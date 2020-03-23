@@ -1,2 +1,3 @@
 HelloTriangle
 *.swp
+obj/*.o
