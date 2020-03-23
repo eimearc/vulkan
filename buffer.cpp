@@ -1,36 +1,5 @@
 #include "evulkan.h"
 
-void EVulkan::createBuffer(VkDeviceSize size, VkBufferUsageFlags usage,
-    VkMemoryPropertyFlags properties, VkBuffer &buffer,
-    VkDeviceMemory &bufferMemory)
-{
-    VkBufferCreateInfo bufferInfo = {};
-    bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-    bufferInfo.size = size;
-    bufferInfo.usage = usage;
-    bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-
-    if (vkCreateBuffer(device, &bufferInfo, nullptr, &buffer) != VK_SUCCESS)
-    {
-        throw std::runtime_error("failed to create vertex buffer.");
-    }
-
-    VkMemoryRequirements memRequirements;
-    vkGetBufferMemoryRequirements(device, buffer, &memRequirements);
-
-    VkMemoryAllocateInfo allocInfo = {};
-    allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-    allocInfo.allocationSize = memRequirements.size;
-    allocInfo.memoryTypeIndex = findMemoryType(memRequirements.memoryTypeBits, properties);
-
-    if (vkAllocateMemory(device, &allocInfo, nullptr, &bufferMemory) != VK_SUCCESS)
-    {
-        throw std::runtime_error("failed to allocate vertex buffer memory");
-    }
-
-    vkBindBufferMemory(device, buffer, bufferMemory, 0);
-}
-
 void EVulkan::createVertexBuffer()
 {
     VkDeviceSize bufferSize = sizeof(vertices[0]) * vertices.size();
@@ -106,6 +75,37 @@ void EVulkan::createUniformBuffers()
     }
 }
 
+void EVulkan::createBuffer(VkDeviceSize size, VkBufferUsageFlags usage,
+    VkMemoryPropertyFlags properties, VkBuffer &buffer,
+    VkDeviceMemory &bufferMemory)
+{
+    VkBufferCreateInfo bufferInfo = {};
+    bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+    bufferInfo.size = size;
+    bufferInfo.usage = usage;
+    bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+    if (vkCreateBuffer(device, &bufferInfo, nullptr, &buffer) != VK_SUCCESS)
+    {
+        throw std::runtime_error("failed to create vertex buffer.");
+    }
+
+    VkMemoryRequirements memRequirements;
+    vkGetBufferMemoryRequirements(device, buffer, &memRequirements);
+
+    VkMemoryAllocateInfo allocInfo = {};
+    allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+    allocInfo.allocationSize = memRequirements.size;
+    allocInfo.memoryTypeIndex = findMemoryType(memRequirements.memoryTypeBits, properties);
+
+    if (vkAllocateMemory(device, &allocInfo, nullptr, &bufferMemory) != VK_SUCCESS)
+    {
+        throw std::runtime_error("failed to allocate vertex buffer memory");
+    }
+
+    vkBindBufferMemory(device, buffer, bufferMemory, 0);
+}
+
 void EVulkan::copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size)
 {
     VkCommandBufferAllocateInfo allocInfo = {};
@@ -140,6 +140,25 @@ void EVulkan::copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize si
     vkQueueWaitIdle(graphicsQueue);
 
     vkFreeCommandBuffers(device, commandPool, 1, &commandBuffer);
+}
+
+void EVulkan::updateUniformBuffer(uint32_t currentImage)
+{
+    static auto startTime = std::chrono::high_resolution_clock::now();
+
+    auto currentTime = std::chrono::high_resolution_clock::now();
+    float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
+
+    UniformBufferObject ubo = {};
+    ubo.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f,0.0f,1.0f));
+    ubo.view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+    ubo.proj = glm::perspective(glm::radians(45.0f), swapChainExtent.width / (float) swapChainExtent.height, 0.1f, 10.0f);
+    ubo.proj[1][1] *= -1;
+
+    void* data;
+    vkMapMemory(device, uniformBuffersMemory[currentImage], 0, sizeof(ubo), 0, &data);
+    memcpy(data, &ubo, sizeof(ubo));
+    vkUnmapMemory(device, uniformBuffersMemory[currentImage]);
 }
 
 uint32_t EVulkan::findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties)

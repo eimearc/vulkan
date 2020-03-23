@@ -276,3 +276,14 @@ void EVulkan::populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEX
     createInfo.pfnUserCallback = debugCallback;
     createInfo.pUserData = nullptr;
 }
+
+VKAPI_ATTR VkBool32 VKAPI_CALL EVulkan::debugCallback(
+    VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
+    VkDebugUtilsMessageTypeFlagsEXT messageType,
+    const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
+    void* pUserData)
+{
+    std::cerr << "validation layer: " << pCallbackData->pMessage << std::endl;
+
+    return VK_FALSE;
+}
