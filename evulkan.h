@@ -141,13 +141,6 @@ private:
         }
     };
 
-    struct UniformBufferObject
-    {
-        glm::mat4 model;
-        glm::mat4 view;
-        glm::mat4 proj;
-    };
-
     const std::vector<Vertex> vertices =
     {
         {{-0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}},
@@ -155,9 +148,17 @@ private:
         {{0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}},
         {{-0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}}
     };
+
     const std::vector<uint16_t> indices =
     {
         0, 1, 2, 2, 3, 0
+    };
+
+    struct UniformBufferObject
+    {
+        glm::mat4 model;
+        glm::mat4 view;
+        glm::mat4 proj;
     };
 
     struct QueueFamilyIndices
@@ -178,91 +179,65 @@ private:
         std::vector<VkPresentModeKHR> presentModes;
     };
 
+    // run.cpp
     void initWindow();
+    void initVulkan();
     static void framebufferResizeCallback(GLFWwindow* window, int width, int height);
+    void mainLoop();
+    void drawFrame();
+    void cleanup();
 
+    // instance.cpp
+    void createInstance();
+    std::vector<const char*> getRequiredExtensions();
+    bool checkValidationLayerSupport();
+    void setupDebugMessenger();
+    void createSurface();
+    void createLogicalDevice();
+    void pickPhysicalDevice();
+    QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device);
+    bool isDeviceSuitable(VkPhysicalDevice device);
+    bool checkDeviceExtensionSupport(VkPhysicalDevice device);
+    void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
     static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
         VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
         VkDebugUtilsMessageTypeFlagsEXT messageType,
         const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
         void* pUserData);
 
-    bool checkValidationLayerSupport();
-    std::vector<const char*> getRequiredExtensions();
+    // swap.cpp
+    void createSwapChain();
+    void recreateSwapChain();
+    SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice device);
+    VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
+    VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes);
+    VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
+    void cleanupSwapChain();
 
-    void createInstance();
-    void initVulkan();
-
+    // render.cpp
+    void createImageViews();
+    void createRenderPass();
+    void createGraphicsPipeline();
+    VkShaderModule createShaderModule(const std::vector<char>& code);
+    void createFramebuffers();
+    void createCommandPool();
+    void createCommandBuffers();
     void createTextureImage();
+    void createSyncObjects();
 
-    void createDescriptorSets();
-    void createDescriptorPool();
+    // buffer.cpp
+    void createVertexBuffer();
+    void createIndexBuffer();
     void createUniformBuffers();
-    // Create the descriptor layout. This specifies the type of resources that are going
-    // to be accessed by the pipeline. The descriptor set describes the actual buffer
-    // or image that will be bound to the descriptor.
-    void createDescriptorSetLayout();
-
     void createBuffer(VkDeviceSize size, VkBufferUsageFlags usage,
         VkMemoryPropertyFlags properties, VkBuffer &buffer,
         VkDeviceMemory &bufferMemory);
-    void createVertexBuffer();
-    void createIndexBuffer();
     void copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
-
+    void updateUniformBuffer(uint32_t currentImage);
     uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
 
-    void createSyncObjects();
-
-    void createCommandBuffers();
-    void createCommandPool();
-
-    // Set up the framebuffers.
-    void createFramebuffers();
-
-    // Describes the color and depth buffers.
-    void createRenderPass();
-
-    void createGraphicsPipeline();
-
-    VkShaderModule createShaderModule(const std::vector<char>& code);
-
-    void createImageViews();
-
-    void cleanupSwapChain();
-
-    void recreateSwapChain();
-
-    void createSwapChain();
-
-    void createSurface();
-
-    void createLogicalDevice();
-
-    void pickPhysicalDevice();
-
-    SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice device);
-
-    VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
-
-    VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes);
-
-    VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
-
-    QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device);
-
-    bool isDeviceSuitable(VkPhysicalDevice device);
-
-    bool checkDeviceExtensionSupport(VkPhysicalDevice device);
-
-    void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
-
-    void setupDebugMessenger();
-
-    void mainLoop();
-
-    void drawFrame();
-    void updateUniformBuffer(uint32_t currentImage);
-
-    void cleanup();
+    // descriptor.cpp
+    void createDescriptorPool();
+    void createDescriptorSets();
+    void createDescriptorSetLayout();
 };

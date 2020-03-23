@@ -5,9 +5,12 @@ CFLAGS = -std=c++17 -I$(VULKAN_SDK_PATH)/include -I$(STB_INCLUDE_PATH)
 LDFLAGS = -L$(VULKAN_SDK_PATH)/lib `pkg-config --static --libs glfw3` -lvulkan
 
 HelloTriangle: main.cpp
-	g++ $(CFLAGS) -o HelloTriangle descriptor.cpp rest.cpp main.cpp $(LDFLAGS)
+	g++ $(CFLAGS) -o HelloTriangle descriptor.cpp buffer.cpp swap.cpp run.cpp instance.cpp rest.cpp main.cpp $(LDFLAGS)
 
 .PHONY: test clean
+
+# run.o: run.cpp
+# 	g++ $(CFLAGS) -c run.cpp $(LDFLAGS)
 
 test: HelloTriangle
 	LD_LIBRARY_PATH=$(VULKAN_SDK_PATH)/lib VK_LAYER_PATH=$(VULKAN_SDK_PATH)/etc/vulkan/explicit_layer.d ./HelloTriangle
