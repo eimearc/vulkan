@@ -453,7 +453,7 @@ void EVulkan::createCommandBuffers()
 
         // Bind the vertex and index buffers during rendering operations.
         vkCmdBindVertexBuffers(commandBuffers[i], 0, 1, vertexBuffers, offsets);
-        vkCmdBindIndexBuffer(commandBuffers[i], indexBuffer, 0, VK_INDEX_TYPE_UINT16);
+        vkCmdBindIndexBuffer(commandBuffers[i], indexBuffer, 0, VK_INDEX_TYPE_UINT32);
 
         // Bind the descriptor set for each swap chain image.
         vkCmdBindDescriptorSets(commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSets[i], 0, nullptr);
@@ -514,7 +514,7 @@ VkFormat EVulkan::findSupportedFormat(const std::vector<VkFormat>& candidates,
 void EVulkan::createTextureImage()
 {
     int texWidth, texHeight, texChannels;
-    stbi_uc* pixels = stbi_load("textures/texture.jpg",
+    stbi_uc* pixels = stbi_load(TEXTURE_PATH.c_str(),
         &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
 
     // Pixels laid out row by row with 4 bytes per pixel.

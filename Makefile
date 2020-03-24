@@ -8,15 +8,16 @@ SDIR = src
 CC=g++
 CFLAGS = -std=c++17 -I$(VULKAN_SDK_PATH)/include -I$(STB_INCLUDE_PATH) -I$(IDIR)
 LDFLAGS = -L$(VULKAN_SDK_PATH)/lib `pkg-config --static --libs glfw3` -lvulkan
+OPTFLAGS = -O3
 
 _DEPS = evulkan.h
 DEPS = $(patsubst %,$(IDIR)/%,$(_DEPS))
 
-_OBJ = buffer.o descriptor.o instance.o main.o render.o run.o swap.o
+_OBJ = buffer.o descriptor.o instance.o main.o render.o run.o swap.o model.o
 OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
 
 HelloTriangle: $(OBJ)
-	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
+	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS) $(OPTFLAGS)
 
 .PHONY: test clean
 

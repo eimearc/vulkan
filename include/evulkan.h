@@ -58,6 +58,8 @@ private:
         VK_KHR_SWAPCHAIN_EXTENSION_NAME
     };
     const int MAX_FRAMES_IN_FLIGHT = 2;
+    const std::string MODEL_PATH = "models/chalet.obj";
+    const std::string TEXTURE_PATH = "textures/chalet.jpg";
 
     GLFWwindow* window;
     VkInstance instance;
@@ -158,26 +160,8 @@ private:
         }
     };
 
-    const std::vector<Vertex> vertices =
-    {
-        // Top square.
-        {{-0.5f, -0.5f, 0.0f}, {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f}},
-        {{0.5f, -0.5f, 0.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f}},
-        {{0.5f, 0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f}},
-        {{-0.5f, 0.5f, 0.0f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}},
-
-        // Bottom square.
-        {{-0.5f, -0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f}},
-        {{0.5f, -0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f}},
-        {{0.5f, 0.5f, -0.5f}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f}},
-        {{-0.5f, 0.5f, -0.5f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}}
-    };
-
-    const std::vector<uint16_t> indices =
-    {
-        0, 1, 2, 2, 3, 0,
-        4, 5, 6, 6, 7, 4
-    };
+    std::vector<Vertex> vertices;
+    std::vector<uint32_t> indices;
 
     struct UniformBufferObject
     {
@@ -281,4 +265,7 @@ private:
     void createDescriptorPool();
     void createDescriptorSets();
     void createDescriptorSetLayout();
+
+    // model.cpp
+    void loadModel();
 };
