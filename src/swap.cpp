@@ -77,7 +77,7 @@ void EVulkan::recreateSwapChain()
     createImageViews();
     createRenderPass();
     createGraphicsPipeline();
-
+    createDepthResources();
     createFramebuffers();
     createUniformBuffers();
     createDescriptorPool();
@@ -119,6 +119,8 @@ VkSurfaceFormatKHR EVulkan::chooseSwapSurfaceFormat(const std::vector<VkSurfaceF
             return availableFormat;
         }
     }
+
+    throw std::runtime_error("no suitable format found in available formats.");
 }
 
 VkPresentModeKHR EVulkan::chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes)
@@ -162,6 +164,10 @@ VkExtent2D EVulkan::chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilitie
 
 void EVulkan::cleanupSwapChain()
 {
+    vkDestroyImageView(device, depthImageView, nullptr);
+    vkDestroyImage(device, depthImage, nullptr);
+    vkFreeMemory(device, depthImageMemory, nullptr);
+
     for (auto framebuffer : swapChainFramebuffers)
     {
         vkDestroyFramebuffer(device, framebuffer, nullptr);
