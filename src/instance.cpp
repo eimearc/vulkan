@@ -187,6 +187,7 @@ void EVulkan::pickPhysicalDevice()
         if (isDeviceSuitable(device))
         {
             physicalDevice = device;
+            msaaSamples = getMaxUsableSampleCount();
             break;
         }
     }

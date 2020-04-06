@@ -36,6 +36,7 @@ void EVulkan::initVulkan()
     createRenderPass();
     createDescriptorSetLayout();
     createGraphicsPipeline();
+    createColorResources();
     createDepthResources();
     createFramebuffers();
     createCommandPool();
