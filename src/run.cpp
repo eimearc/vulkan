@@ -17,7 +17,7 @@ void EVulkan::initWindow()
     glfwInit(); // Initialize the GLFW library.
     
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API); // Don't create OpenGL context.
-    glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
+    glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);    // Make the window resizable.
 
     window=glfwCreateWindow(WIDTH, HEIGHT, "Vulkan", nullptr, nullptr);
     glfwSetWindowUserPointer(window, this);
@@ -55,7 +55,6 @@ void EVulkan::initVulkan()
 
 void EVulkan::framebufferResizeCallback(GLFWwindow* window, int width, int height)
 {
-    std::cout << "RESIZE" << std::endl;
     auto app = reinterpret_cast<EVulkan*>(glfwGetWindowUserPointer(window));
     app->framebufferResized = true;
 }

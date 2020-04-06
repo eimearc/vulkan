@@ -154,7 +154,6 @@ void EVulkan::createLogicalDevice()
 
     if (enableValidationLayers) {
         createInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
-        std::cout << "Num validation layers:" << validationLayers.size() << std::endl;
         createInfo.ppEnabledLayerNames = validationLayers.data();
     } else {
         createInfo.enabledLayerCount = 0;

@@ -570,7 +570,7 @@ void EVulkan::createTextureImage()
 
     transitionImageLayout(textureImage,
         VK_FORMAT_R8G8B8A8_SRGB,
-        VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1);
+        VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, mipLevels);
 
     // Copy the staging buffer to the texture image.
     copyBufferToImage(stagingBuffer, textureImage,
