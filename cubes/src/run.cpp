@@ -62,14 +62,20 @@ void EVulkan::framebufferResizeCallback(GLFWwindow* window, int width, int heigh
 
 void EVulkan::mainLoop()
 {
-    for (size_t i = 0; i < 3; ++i)
-    {
-        drawFrame();
-    }
+    int i = 0;
+    std::chrono::steady_clock::time_point startTime, endTime;
     while(!glfwWindowShouldClose(window))
     {
         glfwPollEvents();
+        if ((i % 10) == 0) startTime = std::chrono::high_resolution_clock::now();
         drawFrame();
+        if ((i % 10) == 0)
+        {
+            endTime = std::chrono::high_resolution_clock::now();
+            float time = std::chrono::duration<float, std::chrono::seconds::period>(endTime - startTime).count();
+            std::cout << "Frame draw time: " << time << std::endl;
+        }
+        ++i;
     }
 
     vkDeviceWaitIdle(device);

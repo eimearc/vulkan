@@ -126,31 +126,6 @@ private:
     std::vector<Vertex> vertices;
     std::vector<uint16_t> indices;
 
-    // const std::vector<Vertex> vertices =
-    // {
-    //     // Top square.
-    //     {{-0.5f, -0.5f, 0.5f}, {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f}},  // bottom left
-    //     {{0.5f, -0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f}},   // bottom right
-    //     {{0.5f, 0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f}},    // top right
-    //     {{-0.5f, 0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}},   // top left
-
-    //     // Bottom square.
-    //     {{-0.5f, -0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f}}, // bottom left
-    //     {{0.5f, -0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f}},  // bottom right
-    //     {{0.5f, 0.5f, -0.5f}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f}},   // top right
-    //     {{-0.5f, 0.5f, -0.5f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}}   // top left
-    // };
-
-    // const std::vector<uint16_t> indices =
-    // {
-    //     0, 1, 2, 2, 3, 0, // top
-    //     4, 5, 6, 6, 7, 4, // bottom
-    //     0, 4, 5, 5, 1, 0, // side 0
-    //     1, 5, 6, 6, 2, 1, // side 1
-    //     2, 6, 7, 7, 3, 2, // side 2
-    //     3, 7, 4, 4, 0, 3  // side 3
-    // };
-
     struct UniformBufferObject
     {
         glm::mat4 model;
