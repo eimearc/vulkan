@@ -3,7 +3,7 @@
 void EVulkan::setupVertices()
 {
     int i=0;
-    const size_t numVerts = 7;
+    const size_t numVerts = 8;
     Vertex vertex = {{}, {1,0,0}, {1,0}};
     for (auto cube : cubes)
     {
@@ -18,6 +18,7 @@ void EVulkan::setupVertices()
         for(size_t j = 0; j<ind.size(); ++j)
         {
             indices.push_back(ind[j]+i*numVerts);
+            std::cout << indices.back() << std::endl;
         }
         ++i;
     }
@@ -26,8 +27,8 @@ void EVulkan::setupVertices()
 void EVulkan::createCubes()
 {
     cubes = std::vector<Cube>();
-    cubes.push_back(Cube(glm::vec3(0,0,0), glm::vec3(0,1,0), 1.0f));
-
+    cubes.push_back(Cube(glm::vec3(-0.5,0,0), glm::vec3(0,1,0), 0.5f));
+    cubes.push_back(Cube(glm::vec3(+0.5,0,0), glm::vec3(0,0,1), 0.5f));
     setupVertices();
 }
 

@@ -10,21 +10,24 @@ public:
     Cube(glm::vec3 center, glm::vec3 color, float size)
     {
         float half = size/2.0f;
-        float x = center.x + half;
-        float y = center.y + half;
-        float z = center.z + half;
+        float pos_x = center.x + half;
+        float neg_x = center.x - half;
+        float pos_y = center.y + half;
+        float neg_y = center.y - half;
+        float pos_z = center.z + half;
+        float neg_z = center.z - half;
 
         m_vertices = {
             // Top
-            {-x, -y, z},  // bottom left
-            {x, -y, z},   // bottom right
-            {x, y, z},   // top right
-            {-x, y, z},  // top left
+            {neg_x, neg_y, pos_z},  // bottom left
+            {pos_x, neg_y, pos_z},   // bottom right
+            {pos_x, pos_y, pos_z},   // top right
+            {neg_x, pos_y, pos_z},  // top left
             // Bottom
-            {-x, -y, -z}, // bottom left
-            {x, -y, -z},  // bottom right
-            {x, y, -z},   // top right
-            {-x, y, -z},
+            {neg_x, neg_y, neg_z}, // bottom left
+            {pos_x, neg_y, neg_z},  // bottom right
+            {pos_x, pos_y, neg_z},   // top right
+            {neg_x, pos_y, neg_z},
         };
         m_indices = {
             0, 1, 2, 2, 3, 0, // top
