@@ -23,12 +23,14 @@ void EVulkan::setupVertices()
         }
         ++i;
     }
+    std::cout << "Num verts: " << vertices.size() << std::endl;
+    std::cout << "Num indices: " << indices.size() << std::endl;
 }
 
 void EVulkan::createCubes()
 {
     cubes = std::vector<Cube>();
-    uint16_t num = 5;
+    uint16_t num = 64;
     float gridSize = 2.0f;
     float cubeSize = (gridSize/num)*0.5;
     float stepSize = gridSize/num;
@@ -42,14 +44,11 @@ void EVulkan::createCubes()
         for (int j=0; j<num; ++j)
         {
             center = {(left+j*stepSize),(top-i*stepSize),0.0f};
-            std::cout << "center: " << glm::to_string(center) << std::endl;
             cubes.push_back(Cube(center, color, cubeSize));
-            color={0,1,1};
         }
     }
-    std::cout << cubes.size() << std::endl;
-    // cubes.push_back(Cube(glm::vec3(-0.5,0,0), glm::vec3(0,1,0), 0.5f));
-    cubes.push_back(Cube(glm::vec3(0,0,0), glm::vec3(0,0,1), 0.5f));
+    std::cout << "Num cubes: " << cubes.size() << std::endl;
+    std::cout << "Num tris: " << cubes.size()*12 << std::endl;
     setupVertices();
 }
 
