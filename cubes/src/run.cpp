@@ -55,7 +55,6 @@ void EVulkan::initVulkan()
 
 void EVulkan::framebufferResizeCallback(GLFWwindow* window, int width, int height)
 {
-    std::cout << "RESIZE" << std::endl;
     auto app = reinterpret_cast<EVulkan*>(glfwGetWindowUserPointer(window));
     app->framebufferResized = true;
 }

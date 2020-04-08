@@ -7,7 +7,8 @@ void EVulkan::setupVertices()
     int i=0;
     const size_t numVerts = 8;
     Vertex vertex = {{}, {1,0,0}, {1,0}};
-    for (auto cube : cubes)
+    std::cout << grid.cubes.size();
+    for (auto cube : grid.cubes)
     {
         std::vector<glm::vec3> verts = cube.vertices;
         std::vector<uint16_t> ind = cube.indices;
@@ -27,29 +28,12 @@ void EVulkan::setupVertices()
     std::cout << "Num indices: " << indices.size() << std::endl;
 }
 
-void EVulkan::createCubes()
+void EVulkan::createGrid()
 {
-    cubes = std::vector<Cube>();
-    uint16_t num = 2;
+    uint16_t num = 64;
     float gridSize = 2.0f;
     float cubeSize = (gridSize/num)*0.5;
-    float stepSize = gridSize/num;
-
-    glm::vec3 color{1,0,0};
-    glm::vec3 center{0,0,0};
-    float left = (center.x-gridSize/2.0f)+0.5f*stepSize;
-    float top = (center.y+gridSize/2.0f)-0.5f*stepSize;
-    for (int i=0; i<num; ++i)
-    {
-        for (int j=0; j<num; ++j)
-        {
-            center = {(left+j*stepSize),(top-i*stepSize),0.0f};
-            std::cout << glm::to_string(color) << " " << glm::to_string(center) << std::endl;
-            cubes.push_back(Cube(center, color, cubeSize));
-        }
-    }
-    std::cout << "Num cubes: " << cubes.size() << std::endl;
-    std::cout << "Num tris: " << cubes.size()*12 << std::endl;
+    grid = Grid(gridSize, cubeSize, num);
     setupVertices();
 }
 
@@ -91,7 +75,7 @@ void EVulkan::updateVertexBuffer()
     for (size_t i = 0; i < vertices.size(); ++i)
     {
         int j = floor(i/8);
-        glm::vec3 center = cubes[floor(i/8)].center;
+        glm::vec3 center = grid.cubes[floor(i/8)].center;
         glm::vec3 tmp = vertices[i].pos;
         tmp -= center;
         tmp = rotate*tmp;

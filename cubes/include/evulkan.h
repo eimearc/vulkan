@@ -20,7 +20,7 @@
 #include <chrono>
 
 #include "vertex.h"
-#include "cube.h"
+#include "grid.h"
 
 static std::vector<char> readFile(const std::string& filename)
 {
@@ -44,7 +44,7 @@ class EVulkan {
 public:
     void run() {
         initWindow();
-        createCubes();
+        createGrid();
         initVulkan();
         mainLoop();
         cleanup();
@@ -120,9 +120,9 @@ private:
         const bool enableValidationLayers = true;
     #endif
 
-    void createCubes();
+    void createGrid();
     void setupVertices();
-    std::vector<Cube> cubes;
+    Grid grid;
     std::vector<Vertex> vertices;
     std::vector<uint16_t> indices;
 
