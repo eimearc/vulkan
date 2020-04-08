@@ -6,8 +6,7 @@ void EVulkan::setupVertices()
 {
     int i=0;
     const size_t numVerts = 8;
-    Vertex vertex = {{}, {1,0,0}, {1,0}};
-    std::cout << grid.cubes.size();
+    Vertex vertex = {{}, {1,0,0}};
     for (auto cube : grid.cubes)
     {
         std::vector<glm::vec3> verts = cube.vertices;
