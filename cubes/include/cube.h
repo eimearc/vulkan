@@ -38,6 +38,7 @@ public:
             3, 7, 4, 4, 0, 3  // side 3
         };
         m_color = color;
+        m_center = center;
     }
     ~Cube()noexcept=default;
     std::vector<glm::vec3> vertices()
@@ -51,6 +52,10 @@ public:
     glm::vec3 color()
     {
         return m_color;
+    }
+    glm::vec3 center()
+    {
+        return m_center;
     }
 private:
     glm::vec3 m_center;

@@ -46,7 +46,7 @@ void EVulkan::initVulkan()
     createVertexBuffer();
     createIndexBuffer();
     createUniformBuffers();
-    
+
     createDescriptorPool();
     createDescriptorSets();
     createCommandBuffers();
@@ -62,6 +62,10 @@ void EVulkan::framebufferResizeCallback(GLFWwindow* window, int width, int heigh
 
 void EVulkan::mainLoop()
 {
+    for (size_t i = 0; i < 3; ++i)
+    {
+        drawFrame();
+    }
     while(!glfwWindowShouldClose(window))
     {
         glfwPollEvents();
@@ -102,6 +106,9 @@ void EVulkan::drawFrame()
 
     // Update the uniform buffers.
     updateUniformBuffer(imageIndex);
+
+    // Also need to upate the vertex buffers.
+    updateVertexBuffer();
     
     VkSubmitInfo submitInfo = {};
     submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;

@@ -18,7 +18,6 @@ void EVulkan::setupVertices()
         for(size_t j = 0; j<ind.size(); ++j)
         {
             indices.push_back(ind[j]+i*numVerts);
-            std::cout << indices.back() << std::endl;
         }
         ++i;
     }
@@ -56,6 +55,47 @@ void EVulkan::createVertexBuffer()
         VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
         VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
         vertexBuffer, vertexBufferMemory);
+
+    // Copy the vertex data from the staging buffer to the device-local buffer.
+    copyBuffer(stagingBuffer, vertexBuffer, bufferSize);
+
+    vkDestroyBuffer(device, stagingBuffer, nullptr);
+    vkFreeMemory(device, stagingBufferMemory, nullptr);
+}
+
+void EVulkan::updateVertexBuffer()
+{
+    glm::mat3 rotate = glm::rotate(glm::mat4(1.0f), 0.001f * glm::radians(90.0f), glm::vec3(0.0f,1.0f,0.0f));
+    for (size_t i = 0; i < vertices.size(); ++i)
+    {
+        int j = floor(i/8);
+        glm::vec3 center = cubes[floor(i/8)].center();
+        glm::vec3 tmp = vertices[i].pos;
+        std::cout << "Cube:\t" << j << "\tCenter:\t" << center.x << center.y << center.z << "\tPOS:" << tmp.x << tmp.y << tmp.z << std::endl;
+        tmp -= center; // Move back.
+        std::cout << "New center: " << tmp.x << tmp.y << tmp.z << std::endl;
+        tmp = rotate*tmp;
+        // tmp += center*(glm::inverse(rotate));
+        tmp += center;
+        vertices[i].pos = tmp;
+    }
+    
+    VkDeviceSize bufferSize = sizeof(vertices[0]) * vertices.size();
+
+    // Use a host visible buffer as a temporary buffer.
+    VkBuffer stagingBuffer;
+    VkDeviceMemory stagingBufferMemory;
+    createBuffer(bufferSize,
+        VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+        stagingBuffer, stagingBufferMemory);
+
+    // Copy vertex data to the staging buffer by mapping the buffer memory into CPU
+    // accessible memory.
+    void *data;
+    vkMapMemory(device, stagingBufferMemory, 0, bufferSize, 0, &data);
+    memcpy(data, vertices.data(), (size_t) bufferSize);
+    vkUnmapMemory(device, stagingBufferMemory);
 
     // Copy the vertex data from the staging buffer to the device-local buffer.
     copyBuffer(stagingBuffer, vertexBuffer, bufferSize);
@@ -159,7 +199,8 @@ void EVulkan::updateUniformBuffer(uint32_t currentImage)
     float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
 
     UniformBufferObject ubo = {};
-    ubo.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f,0.0f,1.0f));
+    // ubo.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f,0.0f,1.0f));
+    ubo.model=glm::mat4(1.0f);
     ubo.view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
     ubo.proj = glm::perspective(glm::radians(45.0f), swapChainExtent.width / (float) swapChainExtent.height, 0.1f, 10.0f);
     ubo.proj[1][1] *= -1;

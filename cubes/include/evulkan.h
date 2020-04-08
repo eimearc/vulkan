@@ -240,6 +240,7 @@ private:
 
     // buffer.cpp
     void createVertexBuffer();
+    void updateVertexBuffer();
     void createIndexBuffer();
     void createUniformBuffers();
     void createBuffer(VkDeviceSize size, VkBufferUsageFlags usage,
