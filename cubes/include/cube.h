@@ -31,11 +31,11 @@ public:
         };
         m_indices = {
             0, 1, 2, 2, 3, 0, // top
-            4, 5, 6, 6, 7, 4, // bottom
             0, 4, 5, 5, 1, 0, // side 0
             1, 5, 6, 6, 2, 1, // side 1
             2, 6, 7, 7, 3, 2, // side 2
-            3, 7, 4, 4, 0, 3  // side 3
+            3, 7, 4, 4, 0, 3,  // side 3
+            4, 6, 5, 6, 4, 7, // bottom
         };
         m_color = color;
         m_center = center;

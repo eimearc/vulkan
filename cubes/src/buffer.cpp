@@ -65,17 +65,14 @@ void EVulkan::createVertexBuffer()
 
 void EVulkan::updateVertexBuffer()
 {
-    glm::mat3 rotate = glm::rotate(glm::mat4(1.0f), 0.001f * glm::radians(90.0f), glm::vec3(0.0f,1.0f,0.0f));
+    glm::mat3 rotate = glm::rotate(glm::mat4(1.0f), 0.01f * glm::radians(90.0f), glm::vec3(1.0f,0.0f,0.0f));
     for (size_t i = 0; i < vertices.size(); ++i)
     {
         int j = floor(i/8);
         glm::vec3 center = cubes[floor(i/8)].center();
         glm::vec3 tmp = vertices[i].pos;
-        std::cout << "Cube:\t" << j << "\tCenter:\t" << center.x << center.y << center.z << "\tPOS:" << tmp.x << tmp.y << tmp.z << std::endl;
-        tmp -= center; // Move back.
-        std::cout << "New center: " << tmp.x << tmp.y << tmp.z << std::endl;
+        tmp -= center;
         tmp = rotate*tmp;
-        // tmp += center*(glm::inverse(rotate));
         tmp += center;
         vertices[i].pos = tmp;
     }
@@ -107,8 +104,6 @@ void EVulkan::updateVertexBuffer()
 void EVulkan::createIndexBuffer()
 {
     VkDeviceSize bufferSize = sizeof(indices[0]) * indices.size();
-
-    std::cout << "Buffer size: " << bufferSize << std::endl;
 
     VkBuffer stagingBuffer;
     VkDeviceMemory stagingBufferMemory;
