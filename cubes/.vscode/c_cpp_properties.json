@@ -14,14 +14,15 @@
         },
         {
             "name": "macOS",
-            "includePath": [
-                "${workspaceFolder}/**"
-            ],
+            "includePath": [],
             "defines": [],
-            "compilerPath": "/usr/bin/g++",
+            "macFrameworkPath": [
+                "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks"
+            ],
+            "compilerPath": "/usr/bin/clang",
             "cStandard": "c11",
             "cppStandard": "c++17",
-            "intelliSenseMode": "gcc-x64"
+            "intelliSenseMode": "clang-x64"
         }
     ],
     "version": 4

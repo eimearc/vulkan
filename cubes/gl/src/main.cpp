@@ -1,8 +1,5 @@
-#include <iostream>
-
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
-
 #include <iostream>
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
@@ -27,13 +24,10 @@ const char *fragmentShaderSource = "#version 330 core\n"
 
 int main()
 {
-    // glfw: initialize and configure
-    // ------------------------------
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
 #ifdef __APPLE__
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); // uncomment this statement to fix compilation on OS X
 #endif
@@ -48,7 +42,6 @@ int main()
         return -1;
     }
     glfwMakeContextCurrent(window);
-
     GLenum err = glewInit();
 	if (GLEW_OK != err)
 	{
@@ -59,13 +52,9 @@ int main()
 
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
-    // build and compile our shader program
-    // ------------------------------------
-    // vertex shader
     int vertexShader = glCreateShader(GL_VERTEX_SHADER);
     glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
     glCompileShader(vertexShader);
-    // check for shader compile errors
     int success;
     char infoLog[512];
     glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
@@ -74,23 +63,19 @@ int main()
         glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
         std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << std::endl;
     }
-    // fragment shader
     int fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
     glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
     glCompileShader(fragmentShader);
-    // check for shader compile errors
     glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
     if (!success)
     {
         glGetShaderInfoLog(fragmentShader, 512, NULL, infoLog);
         std::cout << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n" << infoLog << std::endl;
     }
-    // link shaders
     int shaderProgram = glCreateProgram();
     glAttachShader(shaderProgram, vertexShader);
     glAttachShader(shaderProgram, fragmentShader);
     glLinkProgram(shaderProgram);
-    // check for linking errors
     glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
     if (!success) {
         glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
