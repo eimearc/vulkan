@@ -1,5 +1,37 @@
 #include "evulkan.h"
 
+void EVulkan::setupVertices()
+{
+    int i=0;
+    const size_t numVerts = 7;
+    Vertex vertex = {{}, {1,0,0}, {1,0}};
+    for (auto cube : cubes)
+    {
+        std::vector<glm::vec3> verts = cube.vertices();
+        std::vector<uint16_t> ind = cube.indices();
+        for(size_t j = 0; j<verts.size(); ++j)
+        {
+            std::cout << verts[j].x << verts[j].y << verts[j].z << std::endl;
+            vertex.pos=verts[j];
+            vertices.push_back(vertex);
+        }
+        for(size_t j = 0; j<ind.size(); ++j)
+        {
+            std::cout << ind[j] + i*numVerts << std::endl;
+            indices.push_back(ind[j]+i*numVerts);
+        }
+        ++i;
+    }
+}
+
+void EVulkan::createCubes()
+{
+    cubes = std::vector<Cube>();
+    cubes.push_back(Cube(glm::vec3(0,0,0), glm::vec3(0,0,0), 1.0f));
+
+    setupVertices();
+}
+
 void EVulkan::createVertexBuffer()
 {
     VkDeviceSize bufferSize = sizeof(vertices[0]) * vertices.size();
@@ -35,6 +67,8 @@ void EVulkan::createVertexBuffer()
 void EVulkan::createIndexBuffer()
 {
     VkDeviceSize bufferSize = sizeof(indices[0]) * indices.size();
+
+    std::cout << "Buffer size: " << bufferSize << std::endl;
 
     VkBuffer stagingBuffer;
     VkDeviceMemory stagingBufferMemory;

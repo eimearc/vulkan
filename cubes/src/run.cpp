@@ -42,9 +42,11 @@ void EVulkan::initVulkan()
     createTextureImage();
     createTextureImageView();
     createTextureSampler();
+
     createVertexBuffer();
     createIndexBuffer();
     createUniformBuffers();
+    
     createDescriptorPool();
     createDescriptorSets();
     createCommandBuffers();

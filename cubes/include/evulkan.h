@@ -19,6 +19,9 @@
 #include <array>
 #include <chrono>
 
+#include "vertex.h"
+#include "cube.h"
+
 static std::vector<char> readFile(const std::string& filename)
 {
     std::ifstream file(filename, std::ios::ate | std::ios::binary);
@@ -41,6 +44,7 @@ class EVulkan {
 public:
     void run() {
         initWindow();
+        createCubes();
         initVulkan();
         mainLoop();
         cleanup();
@@ -116,72 +120,36 @@ private:
         const bool enableValidationLayers = true;
     #endif
 
-    struct Vertex {
-        glm::vec3 pos;
-        glm::vec3 color;
-        glm::vec2 texCoord;
+    void createCubes();
+    void setupVertices();
+    std::vector<Cube> cubes;
+    std::vector<Vertex> vertices;
+    std::vector<uint16_t> indices;
 
-        // Describes vertex binding - the rate at which to load data from memory.
-        static VkVertexInputBindingDescription getBindingDescription()
-        {
-            VkVertexInputBindingDescription bindingDescription = {};
-            bindingDescription.binding = 0;
-            bindingDescription.stride = sizeof(Vertex);
-            bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
-            return bindingDescription;
-        }
+    // const std::vector<Vertex> vertices =
+    // {
+    //     // Top square.
+    //     {{-0.5f, -0.5f, 0.5f}, {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f}},  // bottom left
+    //     {{0.5f, -0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f}},   // bottom right
+    //     {{0.5f, 0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f}},    // top right
+    //     {{-0.5f, 0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}},   // top left
 
-        // Describes how to get vertex attributes from binding description.
-        static std::array<VkVertexInputAttributeDescription, 3> getAttributeDescriptions()
-        {
-            std::array<VkVertexInputAttributeDescription, 3> attributeDescriptions = {};
+    //     // Bottom square.
+    //     {{-0.5f, -0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f}}, // bottom left
+    //     {{0.5f, -0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f}},  // bottom right
+    //     {{0.5f, 0.5f, -0.5f}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f}},   // top right
+    //     {{-0.5f, 0.5f, -0.5f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}}   // top left
+    // };
 
-            // Position attribute.
-            attributeDescriptions[0].binding = 0;
-            attributeDescriptions[0].location = 0;
-            attributeDescriptions[0].format = VK_FORMAT_R32G32B32_SFLOAT;
-            attributeDescriptions[0].offset = offsetof(Vertex, pos);
-
-            // Color attributes.
-            attributeDescriptions[1].binding = 0;
-            attributeDescriptions[1].location = 1;
-            attributeDescriptions[1].format = VK_FORMAT_R32G32B32_SFLOAT;
-            attributeDescriptions[1].offset = offsetof(Vertex, color);
-
-            // Texture attributes.
-            attributeDescriptions[2].binding = 0;
-            attributeDescriptions[2].location = 2;
-            attributeDescriptions[2].format = VK_FORMAT_R32G32_SFLOAT;
-            attributeDescriptions[2].offset = offsetof(Vertex, texCoord);
-
-            return attributeDescriptions;
-        }
-    };
-
-    const std::vector<Vertex> vertices =
-    {
-        // Top square.
-        {{-0.5f, -0.5f, 0.5f}, {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f}},  // bottom left
-        {{0.5f, -0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f}},   // bottom right
-        {{0.5f, 0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f}},    // top right
-        {{-0.5f, 0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}},   // top left
-
-        // Bottom square.
-        {{-0.5f, -0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f}}, // bottom left
-        {{0.5f, -0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f}},  // bottom right
-        {{0.5f, 0.5f, -0.5f}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f}},   // top right
-        {{-0.5f, 0.5f, -0.5f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}}   // top left
-    };
-
-    const std::vector<uint16_t> indices =
-    {
-        0, 1, 2, 2, 3, 0, // top
-        4, 5, 6, 6, 7, 4, // bottom
-        0, 4, 5, 5, 1, 0, // side 0
-        1, 5, 6, 6, 2, 1, // side 1
-        2, 6, 7, 7, 3, 2, // side 2
-        3, 7, 4, 4, 0, 3  // side 3
-    };
+    // const std::vector<uint16_t> indices =
+    // {
+    //     0, 1, 2, 2, 3, 0, // top
+    //     4, 5, 6, 6, 7, 4, // bottom
+    //     0, 4, 5, 5, 1, 0, // side 0
+    //     1, 5, 6, 6, 2, 1, // side 1
+    //     2, 6, 7, 7, 3, 2, // side 2
+    //     3, 7, 4, 4, 0, 3  // side 3
+    // };
 
     struct UniformBufferObject
     {
