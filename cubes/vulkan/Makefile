@@ -6,16 +6,17 @@ ODIR = obj
 SDIR = src
 
 CC=g++
-CFLAGS = -std=c++17 -I$(VULKAN_SDK_PATH)/include -I$(STB_INCLUDE_PATH) -I$(IDIR)
+CFLAGS = -std=c++17 -I$(VULKAN_SDK_PATH)/include -I$(STB_INCLUDE_PATH) -I$(IDIR) -I../include/
 LDFLAGS = -L$(VULKAN_SDK_PATH)/lib `pkg-config --static --libs glfw3` -lvulkan
 
-_DEPS = evulkan.h vertex.h cube.h grid.h
+_DEPS = evulkan.h vertex.h
 DEPS = $(patsubst %,$(IDIR)/%,$(_DEPS))
+DEPS += ../include/cube.h ../include/grid.h
 
 _OBJ = buffer.o descriptor.o instance.o main.o render.o run.o swap.o cube.o
 OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
 
-Cubes: $(OBJ)
+vulkan: $(OBJ)
 	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
 
 .PHONY: test clean
@@ -24,8 +25,8 @@ $(ODIR)/%.o: $(SDIR)/%.cpp $(DEPS)
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 test: Cubes
-	LD_LIBRARY_PATH=$(VULKAN_SDK_PATH)/lib VK_LAYER_PATH=$(VULKAN_SDK_PATH)/etc/vulkan/explicit_layer.d ./Cubes
+	LD_LIBRARY_PATH=$(VULKAN_SDK_PATH)/lib VK_LAYER_PATH=$(VULKAN_SDK_PATH)/etc/vulkan/explicit_layer.d ./vulkan
 
 clean:
-	rm -f Cubes
+	rm -f vulkan
 	rm -f $(ODIR)/*.o
