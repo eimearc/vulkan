@@ -9,12 +9,12 @@ void EVulkan::setupVertices()
     Vertex vertex = {{}, {1,0,0}, {1,0}};
     for (auto cube : cubes)
     {
-        std::vector<glm::vec3> verts = cube.vertices();
-        std::vector<uint16_t> ind = cube.indices();
+        std::vector<glm::vec3> verts = cube.vertices;
+        std::vector<uint16_t> ind = cube.indices;
         for(size_t j = 0; j<verts.size(); ++j)
         {
             vertex.pos=verts[j];
-            vertex.color=cube.color();
+            vertex.color=cube.color;
             vertices.push_back(vertex);
         }
         for(size_t j = 0; j<ind.size(); ++j)
@@ -30,7 +30,7 @@ void EVulkan::setupVertices()
 void EVulkan::createCubes()
 {
     cubes = std::vector<Cube>();
-    uint16_t num = 64;
+    uint16_t num = 2;
     float gridSize = 2.0f;
     float cubeSize = (gridSize/num)*0.5;
     float stepSize = gridSize/num;
@@ -44,6 +44,7 @@ void EVulkan::createCubes()
         for (int j=0; j<num; ++j)
         {
             center = {(left+j*stepSize),(top-i*stepSize),0.0f};
+            std::cout << glm::to_string(color) << " " << glm::to_string(center) << std::endl;
             cubes.push_back(Cube(center, color, cubeSize));
         }
     }
@@ -90,7 +91,7 @@ void EVulkan::updateVertexBuffer()
     for (size_t i = 0; i < vertices.size(); ++i)
     {
         int j = floor(i/8);
-        glm::vec3 center = cubes[floor(i/8)].center();
+        glm::vec3 center = cubes[floor(i/8)].center;
         glm::vec3 tmp = vertices[i].pos;
         tmp -= center;
         tmp = rotate*tmp;
