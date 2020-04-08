@@ -4,6 +4,9 @@
 #include <GLFW/glfw3.h>
 #include <iostream>
 
+#include "grid.h"
+#include "vertex.h"
+
 class EGL
 {
 public:
@@ -23,6 +26,9 @@ private:
     GLuint VBO;
     GLuint shaderProgram;
     GLuint EBO;
+    Grid grid;
+    std::vector<Vertex> vertices;
+    std::vector<uint16_t> indices;
 
     void initWindow();
     void initGL();
@@ -30,7 +36,9 @@ private:
     void cleanup();
 
     void createShaders();
+    void createGrid();
     void setupBuffers();
+    void setupVertices();
 
     const char *vertexShaderSource = "#version 400\n"
         "#extension GL_ARB_separate_shader_objects : enable\n"

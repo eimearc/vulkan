@@ -30,6 +30,40 @@ void EGL::initGL()
     setupBuffers();
 }
 
+void EGL::createGrid()
+{
+    uint16_t num = 16;
+    float gridSize = 2.0f;
+    float cubeSize = (gridSize/num)*0.5;
+    grid = Grid(gridSize, cubeSize, num);
+    setupVertices();
+}
+
+void EGL::setupVertices()
+{
+    int i=0;
+    const size_t numVerts = 8;
+    Vertex vertex = {{}, {1,0,0}};
+    for (auto cube : grid.cubes)
+    {
+        std::vector<glm::vec3> verts = cube.vertices;
+        std::vector<uint16_t> ind = cube.indices;
+        for(size_t j = 0; j<verts.size(); ++j)
+        {
+            vertex.pos=verts[j];
+            vertex.color=cube.color;
+            vertices.push_back(vertex);
+        }
+        for(size_t j = 0; j<ind.size(); ++j)
+        {
+            indices.push_back(ind[j]+i*numVerts);
+        }
+        ++i;
+    }
+    std::cout << "Num verts: " << vertices.size() << std::endl;
+    std::cout << "Num indices: " << indices.size() << std::endl;
+}
+
 void EGL::mainLoop()
 {
     while (!glfwWindowShouldClose(window))

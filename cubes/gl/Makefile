@@ -5,7 +5,7 @@ ODIR = obj
 SDIR = src
 
 CC=g++
-CFLAGS = -std=c++17 -I$(STB_INCLUDE_PATH) -I$(IDIR)
+CFLAGS = -std=c++17 -I$(STB_INCLUDE_PATH) -I$(IDIR) -I../include/
 GLEW_PATH = /usr/local/lib/
 LDFLAGS = `pkg-config --static --libs glfw3` -L$(GLEW_PATH) -lGLEW -framework OpenGL
 
