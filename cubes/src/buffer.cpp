@@ -11,13 +11,12 @@ void EVulkan::setupVertices()
         std::vector<uint16_t> ind = cube.indices();
         for(size_t j = 0; j<verts.size(); ++j)
         {
-            std::cout << verts[j].x << verts[j].y << verts[j].z << std::endl;
             vertex.pos=verts[j];
+            vertex.color=cube.color();
             vertices.push_back(vertex);
         }
         for(size_t j = 0; j<ind.size(); ++j)
         {
-            std::cout << ind[j] + i*numVerts << std::endl;
             indices.push_back(ind[j]+i*numVerts);
         }
         ++i;
