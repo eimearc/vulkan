@@ -1,6 +1,7 @@
 #include "evulkan.h"
 
 #include <glm/gtx/string_cast.hpp>
+#include "update.h"
 
 void EVulkan::setupVertices()
 {
@@ -29,7 +30,7 @@ void EVulkan::setupVertices()
 
 void EVulkan::createGrid()
 {
-    uint16_t num = 64;
+    uint16_t num = 16;
     float gridSize = 2.0f;
     float cubeSize = (gridSize/num)*0.5;
     grid = Grid(gridSize, cubeSize, num);
@@ -70,17 +71,19 @@ void EVulkan::createVertexBuffer()
 
 void EVulkan::updateVertexBuffer()
 {
-    glm::mat3 rotate = glm::rotate(glm::mat4(1.0f), 0.01f * glm::radians(90.0f), glm::vec3(1.0f,0.0f,0.0f));
-    for (size_t i = 0; i < vertices.size(); ++i)
-    {
-        int j = floor(i/8);
-        glm::vec3 center = grid.cubes[floor(i/8)].center;
-        glm::vec3 tmp = vertices[i].pos;
-        tmp -= center;
-        tmp = rotate*tmp;
-        tmp += center;
-        vertices[i].pos = tmp;
-    }
+    // glm::mat3 rotate = glm::rotate(glm::mat4(1.0f), 0.01f * glm::radians(90.0f), glm::vec3(1.0f,0.0f,0.0f));
+    // for (size_t i = 0; i < vertices.size(); ++i)
+    // {
+    //     int j = floor(i/8);
+    //     glm::vec3 center = grid.cubes[floor(i/8)].center;
+    //     glm::vec3 tmp = vertices[i].pos;
+    //     tmp -= center;
+    //     tmp = rotate*tmp;
+    //     tmp += center;
+    //     vertices[i].pos = tmp;
+    // }
+
+    update(vertices, grid);
     
     VkDeviceSize bufferSize = sizeof(vertices[0]) * vertices.size();
 

@@ -9,9 +9,9 @@ CC=g++
 CFLAGS = -std=c++17 -I$(VULKAN_SDK_PATH)/include -I$(STB_INCLUDE_PATH) -I$(IDIR) -I../include/
 LDFLAGS = -L$(VULKAN_SDK_PATH)/lib `pkg-config --static --libs glfw3` -lvulkan
 
-_DEPS = evulkan.h vertex.h
+_DEPS = evulkan.h
 DEPS = $(patsubst %,$(IDIR)/%,$(_DEPS))
-DEPS += ../include/cube.h ../include/grid.h
+DEPS += ../include/cube.h ../include/grid.h ../include/vertex.h
 
 _OBJ = buffer.o descriptor.o instance.o main.o render.o run.o swap.o cube.o
 OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
