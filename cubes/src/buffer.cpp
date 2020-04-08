@@ -1,5 +1,7 @@
 #include "evulkan.h"
 
+#include <glm/gtx/string_cast.hpp>
+
 void EVulkan::setupVertices()
 {
     int i=0;
@@ -26,8 +28,28 @@ void EVulkan::setupVertices()
 void EVulkan::createCubes()
 {
     cubes = std::vector<Cube>();
-    cubes.push_back(Cube(glm::vec3(-0.5,0,0), glm::vec3(0,1,0), 0.5f));
-    cubes.push_back(Cube(glm::vec3(+0.5,0,0), glm::vec3(0,0,1), 0.5f));
+    uint16_t num = 5;
+    float gridSize = 2.0f;
+    float cubeSize = (gridSize/num)*0.5;
+    float stepSize = gridSize/num;
+
+    glm::vec3 color{1,0,0};
+    glm::vec3 center{0,0,0};
+    float left = (center.x-gridSize/2.0f)+0.5f*stepSize;
+    float top = (center.y+gridSize/2.0f)-0.5f*stepSize;
+    for (int i=0; i<num; ++i)
+    {
+        for (int j=0; j<num; ++j)
+        {
+            center = {(left+j*stepSize),(top-i*stepSize),0.0f};
+            std::cout << "center: " << glm::to_string(center) << std::endl;
+            cubes.push_back(Cube(center, color, cubeSize));
+            color={0,1,1};
+        }
+    }
+    std::cout << cubes.size() << std::endl;
+    // cubes.push_back(Cube(glm::vec3(-0.5,0,0), glm::vec3(0,1,0), 0.5f));
+    cubes.push_back(Cube(glm::vec3(0,0,0), glm::vec3(0,0,1), 0.5f));
     setupVertices();
 }
 
