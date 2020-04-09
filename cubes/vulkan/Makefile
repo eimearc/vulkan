@@ -11,7 +11,7 @@ LDFLAGS = -L$(VULKAN_SDK_PATH)/lib `pkg-config --static --libs glfw3` -lvulkan
 
 _DEPS = evulkan.h
 DEPS = $(patsubst %,$(IDIR)/%,$(_DEPS))
-DEPS += ../include/cube.h ../include/grid.h ../include/vertex.h
+DEPS += ../include/cube.h ../include/grid.h ../include/vertex.h ../include/util.h
 
 _OBJ = buffer.o descriptor.o instance.o main.o render.o run.o swap.o cube.o
 OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
