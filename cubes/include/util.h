@@ -2,21 +2,13 @@
 
 #include <vector>
 #include <fstream>
+#include <glm/glm.hpp>
 
-std::vector<char> readFile(const std::string& filename)
+struct UniformBufferObject
 {
-    std::ifstream file(filename, std::ios::ate | std::ios::binary);
+    glm::mat4 model;
+    glm::mat4 view;
+    glm::mat4 proj;
+};
 
-    if (!file.is_open())
-    {
-        throw std::runtime_error("failed to open file.");
-    }
-
-    size_t fileSize = static_cast<size_t>(file.tellg());
-    std::vector<char> buffer(fileSize);
-    file.seekg(0);
-    file.read(buffer.data(), fileSize);
-    file.close();
-    
-    return buffer;
-}
+std::vector<char> readFile(const std::string& filename);

@@ -1,3 +1,5 @@
+#pragma once
+
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
@@ -21,6 +23,7 @@
 
 #include "vertex.h"
 #include "grid.h"
+#include "util.h"
 
 class EVulkan {
 public:
@@ -107,13 +110,6 @@ private:
     Grid grid;
     std::vector<Vertex> vertices;
     std::vector<uint16_t> indices;
-
-    struct UniformBufferObject
-    {
-        glm::mat4 model;
-        glm::mat4 view;
-        glm::mat4 proj;
-    };
 
     struct QueueFamilyIndices
     {

@@ -41,7 +41,7 @@ void EVulkan::createDescriptorSets()
         VkDescriptorBufferInfo bufferInfo = {};
         bufferInfo.buffer = EVulkan::uniformBuffers[i];
         bufferInfo.offset = 0;
-        bufferInfo.range = sizeof(EVulkan::UniformBufferObject);
+        bufferInfo.range = sizeof(UniformBufferObject);
 
         // Set up the texture for the shader.
         VkDescriptorImageInfo imageInfo = {};
