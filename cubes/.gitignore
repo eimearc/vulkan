@@ -2,3 +2,5 @@
 obj/*
 vulkan/obj/*
 gl/obj/*
+
+.vscode/settings.json
