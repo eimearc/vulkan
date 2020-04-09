@@ -145,12 +145,6 @@ void EGL::setupBuffers()
         }
     }
 
-    // std::vector<unsigned int> ind;
-    // for (int i = 0; i < indices.size(); ++i)
-    // {
-    //     ind.push_back(indices[i]);
-    // }
-
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
     glGenBuffers(1, &EBO);
@@ -164,8 +158,7 @@ void EGL::setupBuffers()
         glEnableVertexAttribArray(1);
 
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size()*sizeof(uint16_t), indices.data(), GL_STATIC_DRAW);
-        // glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size()*sizeof(unsigned int), indices.data(), GL_STATIC_DRAW);
         
         glBindBuffer(GL_ARRAY_BUFFER, 0); 
         // remember: do NOT unbind the EBO while a VAO is active as the bound element buffer object IS stored in the VAO; keep the EBO bound.
