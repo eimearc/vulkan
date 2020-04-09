@@ -39,9 +39,6 @@ void EVulkan::initVulkan()
     createDepthResources();
     createFramebuffers();
     createCommandPool();
-    createTextureImage();
-    createTextureImageView();
-    createTextureSampler();
 
     createVertexBuffer();
     createIndexBuffer();
@@ -168,11 +165,6 @@ void EVulkan::drawFrame()
 void EVulkan::cleanup()
 {
     cleanupSwapChain();
-
-    vkDestroySampler(device, textureSampler, nullptr);
-    vkDestroyImageView(device, textureImageView, nullptr);
-    vkDestroyImage(device, textureImage, nullptr);
-    vkFreeMemory(device, textureImageMemory, nullptr);
 
     vkDestroyDescriptorSetLayout(device, descriptorSetLayout, nullptr);
 

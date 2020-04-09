@@ -511,62 +511,6 @@ VkFormat EVulkan::findSupportedFormat(const std::vector<VkFormat>& candidates,
     throw std::runtime_error("failed to find supported format.");
 }
 
-void EVulkan::createTextureImage()
-{
-    int texWidth, texHeight, texChannels;
-    stbi_uc* pixels = stbi_load("textures/texture.jpg",
-        &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
-
-    // Pixels laid out row by row with 4 bytes per pixel.
-    VkDeviceSize imageSize = texWidth * texHeight * 4;
-
-    if (!pixels)
-    {
-        throw std::runtime_error("failed to load texture image.");
-    }
-
-    VkBuffer stagingBuffer;
-    VkDeviceMemory stagingBufferMemory;
-
-    // Create a buffer that can be used to copy pixels to.
-    // This is on device-owned memory.
-    createBuffer(imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-        stagingBuffer, stagingBufferMemory);
-
-    void* data;
-    // Map the device-owned memory to host-visible memory.
-    vkMapMemory(device, stagingBufferMemory, 0, imageSize, 0, &data);
-        // Copy the pixels to the staging (now host-visible) buffer
-        // Source: pixels.
-        // Destination: data.
-        memcpy(data, pixels, static_cast<size_t>(imageSize));
-    vkUnmapMemory(device, stagingBufferMemory);
-
-    stbi_image_free(pixels);
-
-    createImage(texWidth, texHeight,
-        VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL,
-        VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
-        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, textureImage, textureImageMemory);
-
-    transitionImageLayout(textureImage,
-        VK_FORMAT_R8G8B8A8_SRGB,
-        VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-
-    // Copy the staging buffer to the texture image.
-    copyBufferToImage(stagingBuffer, textureImage,
-        static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight));
-
-    // Prepare the texture image for shader access.
-    transitionImageLayout(textureImage,
-        VK_FORMAT_R8G8B8A8_SRGB,
-        VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-
-    vkDestroyBuffer(device, stagingBuffer, nullptr);
-    vkFreeMemory(device, stagingBufferMemory, nullptr);
-}
-
 void EVulkan::createImage(uint32_t width, uint32_t height, VkFormat format,
     VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties,
     VkImage& image, VkDeviceMemory& imageMemory)
@@ -627,37 +571,6 @@ VkImageView EVulkan::createImageView(VkImage image, VkFormat format, VkImageAspe
     }
 
     return imageView;
-}
-
-void EVulkan::createTextureImageView()
-{
-    textureImageView = createImageView(textureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT);
-}
-
-void EVulkan::createTextureSampler()
-{
-    VkSamplerCreateInfo samplerInfo = {};
-    samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
-    samplerInfo.magFilter = VK_FILTER_LINEAR;
-    samplerInfo.minFilter = VK_FILTER_LINEAR;
-    samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-    samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-    samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-    samplerInfo.anisotropyEnable = VK_FALSE;
-    samplerInfo.maxAnisotropy = 1;
-    samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
-    samplerInfo.unnormalizedCoordinates = VK_FALSE;
-    samplerInfo.compareEnable = VK_FALSE;
-    samplerInfo.compareOp = VK_COMPARE_OP_ALWAYS;
-    samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
-    samplerInfo.mipLodBias = 0.0f;
-    samplerInfo.minLod = 0.0f;
-    samplerInfo.maxLod = 0.0f;
-
-    if (vkCreateSampler(device, &samplerInfo, nullptr, &textureSampler) != VK_SUCCESS)
-    {
-        throw std::runtime_error("failed to create texture sampler.");
-    }
 }
 
 void EVulkan::createSyncObjects()

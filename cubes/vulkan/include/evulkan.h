@@ -90,11 +90,6 @@ private:
     VkDescriptorPool descriptorPool;
     std::vector<VkDescriptorSet> descriptorSets;
 
-    VkImage textureImage;
-    VkDeviceMemory textureImageMemory;
-    VkImageView textureImageView;
-    VkSampler textureSampler;
-
     VkImage depthImage;
     VkDeviceMemory depthImageMemory;
     VkImageView depthImageView;
@@ -179,13 +174,10 @@ private:
         VkImageTiling tiling, VkFormatFeatureFlags features);
     VkFormat findDepthFormat();
     bool hasStencilComponent(VkFormat format);
-    void createTextureImage();
     void createImage(uint32_t width, uint32_t height, VkFormat format,
         VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties,
         VkImage& image, VkDeviceMemory& imageMemory);
     VkImageView createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags);
-    void createTextureImageView();
-    void createTextureSampler();
     void transitionImageLayout(VkImage image, VkFormat format,
         VkImageLayout oldLayout, VkImageLayout newLayout);
     void copyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height);
