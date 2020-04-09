@@ -127,17 +127,6 @@ void EGL::createShaders()
 
 void EGL::setupBuffers()
 {
-    // float p[] = {
-    //      0.5f,  0.5f, 0.0f, 1.0f, 0.0f, 0.0f, // top right
-    //      0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, // bottom right
-    //     -0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, // bottom left
-    //     -0.5f,  0.5f, 0.0f, 1.0f, 0.0f, 0.0f   // top left 
-    // };
-    // unsigned int indices[] = {  // note that we start from 0!
-    //     0, 1, 3,  // first Triangle
-    //     1, 2, 3   // second Triangle
-    // };
-
     std::vector<float> verts;
     for (const auto &v: vertices)
     {
@@ -149,26 +138,17 @@ void EGL::setupBuffers()
             {
                 verts.push_back(0.0f);
             }
-            std::cout << verts.back() << " ";
         }
-        std::cout << " ---- ";
         for (size_t i=0; i<3; ++i)
         {
             verts.push_back(v.color[i]);
-            std::cout << verts.back() << " ";
         }
-        std::cout << '\n';
     }
 
-    std::vector<unsigned int> ind;
-    for (int i = 0; i < indices.size(); ++i)
-    {
-        ind.push_back(indices[i]);
-    }
-
-    // for ()
+    // std::vector<unsigned int> ind;
+    // for (int i = 0; i < indices.size(); ++i)
     // {
-
+    //     ind.push_back(indices[i]);
     // }
 
     glGenVertexArrays(1, &VAO);
@@ -184,7 +164,7 @@ void EGL::setupBuffers()
         glEnableVertexAttribArray(1);
 
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, ind.size()*sizeof(unsigned int), ind.data(), GL_STATIC_DRAW);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size()*sizeof(uint16_t), indices.data(), GL_STATIC_DRAW);
         // glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
         
         glBindBuffer(GL_ARRAY_BUFFER, 0); 
