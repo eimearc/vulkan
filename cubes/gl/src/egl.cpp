@@ -36,7 +36,7 @@ void EGL::initGL()
 
 void EGL::createGrid()
 {
-    uint16_t num = 16;
+    uint16_t num = 4;
     float gridSize = 2.0f;
     float cubeSize = (gridSize/num)*0.5;
     grid = Grid(gridSize, cubeSize, num);
@@ -127,33 +127,15 @@ void EGL::createShaders()
 
 void EGL::setupBuffers()
 {
-    std::vector<float> verts;
-    for (const auto &v: vertices)
-    {
-        for (size_t i=0; i<3; ++i)
-        {
-            if (i < 2)
-                verts.push_back(v.pos[i]);
-            else
-            {
-                verts.push_back(0.0f);
-            }
-        }
-        for (size_t i=0; i<3; ++i)
-        {
-            verts.push_back(v.color[i]);
-        }
-    }
-
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
     glGenBuffers(1, &EBO);
 
     glBindVertexArray(VAO);
         glBindBuffer(GL_ARRAY_BUFFER, VBO);
-        glBufferData(GL_ARRAY_BUFFER, verts.size()*sizeof(float), verts.data(), GL_STATIC_DRAW);
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
-        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3*sizeof(float)));
+        glBufferData(GL_ARRAY_BUFFER, vertices.size()*sizeof(Vertex), vertices.data(), GL_STATIC_DRAW);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 1 * sizeof(Vertex), (void*)offsetof(Vertex,pos));
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 1 * sizeof(Vertex), (void*)(offsetof(Vertex,color)));
         glEnableVertexAttribArray(0);
         glEnableVertexAttribArray(1);
 
