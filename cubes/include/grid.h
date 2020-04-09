@@ -24,7 +24,6 @@ struct Grid
                 cubes.push_back(Cube(center, color, _cubeSize));
             }
         }
-        std::cout << cubes.size();
     }
     ~Grid()noexcept=default;
 

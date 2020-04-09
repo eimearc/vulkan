@@ -1,7 +1,6 @@
 #include "evulkan.h"
 
 #include <glm/gtx/string_cast.hpp>
-#include "update.h"
 
 void EVulkan::setupVertices()
 {

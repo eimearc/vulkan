@@ -1,3 +1,5 @@
+ODIR=obj
+
 all:
 	$(MAKE) vulkan
 	$(MAKE) gl
@@ -11,5 +13,6 @@ gl:
 clean:
 	cd vulkan && $(MAKE) clean
 	cd gl && $(MAKE) clean
+	rm -f $(ODIR)/*.o
 
 .PHONY: vulkan gl

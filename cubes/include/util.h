@@ -3,6 +3,8 @@
 #include <vector>
 #include <fstream>
 #include <glm/glm.hpp>
+#include "vertex.h"
+#include "grid.h"
 
 struct UniformBufferObject
 {
@@ -12,3 +14,4 @@ struct UniformBufferObject
 };
 
 std::vector<char> readFile(const std::string& filename);
+void update(std::vector<Vertex> &vertices, const Grid &grid);
