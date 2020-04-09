@@ -3,6 +3,7 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <iostream>
+#include <glm/gtx/string_cast.hpp>
 
 #include "grid.h"
 #include "vertex.h"
@@ -57,5 +58,6 @@ private:
         "void main()\n"
         "{\n"
         "   FragColor = vec4(color, 1.0f);\n"
+        "   FragColor = vec4(1.0f, 0.0f, 0.0f, 1.0f);\n"
         "}\n\0";
 };
