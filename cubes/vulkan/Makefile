@@ -10,7 +10,7 @@ SDIR_EXT = ../src
 
 CC=g++
 CFLAGS = -std=c++17 -I$(VULKAN_SDK_PATH)/include -I$(STB_INCLUDE_PATH) -I$(IDIR) -I$(IDIR_EXT)
-LDFLAGS = -L$(VULKAN_SDK_PATH)/lib `pkg-config --static --libs glfw3` -lvulkan
+LDFLAGS = `pkg-config --static --libs glfw3` -L$(VULKAN_SDK_PATH)/lib -lvulkan
 
 _DEPS = evulkan.h
 _DEPS_EXT = cube.h grid.h vertex.h util.h 
@@ -23,7 +23,10 @@ OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
 _OBJ_EXT = util.o
 OBJ_EXT = $(patsubst %,$(ODIR_EXT)/%,$(_OBJ_EXT))
 
-.PHONY: test clean
+.PHONY: test clean vulkan
+
+vulkan: libEVulkan.a $(ODIR)/main.o
+	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
 
 $(ODIR)/%.o: $(SDIR)/%.cpp $(DEPS)
 	$(CC) $(CFLAGS) -c -o $@ $<
