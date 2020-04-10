@@ -6,11 +6,11 @@
 int main()
 {
     EGL gl;
-    EVulkan vulkan;
+    // EVulkan vulkan;
     try
     {
         gl.run(10);
-        vulkan.run(10);
+        // vulkan.run(10);
     }
     catch(const std::exception &e)
     {

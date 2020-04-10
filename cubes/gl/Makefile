@@ -25,6 +25,9 @@ OBJ_EXT = $(patsubst %,$(ODIR_EXT)/%,$(_OBJ_EXT))
 
 .PHONY: test clean
 
+gl: libEGL.a $(ODIR)/main.o
+	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
+
 $(ODIR)/%.o: $(SDIR)/%.cpp $(DEPS)
 	$(CC) $(CFLAGS) -c $< -o $@
 

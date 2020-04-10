@@ -91,7 +91,7 @@ void EGL::cleanup()
 
 void EGL::createShaders()
 {
-    vertShaderCode = readFile("shaders/shaderGL.vert");
+    vertShaderCode = readFile("shaders/shader.vert");
     vertShaderCode.push_back('\0'); // Must be 0 terminated (C-string style).
     fragShaderCode = readFile("shaders/shader.frag");
     fragShaderCode.push_back('\0'); // Must be 0 terminated (C-string style).
