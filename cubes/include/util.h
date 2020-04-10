@@ -15,3 +15,4 @@ struct UniformBufferObject
 
 std::vector<char> readFile(const std::string& filename);
 void update(std::vector<Vertex> &vertices, const Grid &grid);
+UniformBufferObject getUBO(const uint32_t &_width, const uint32_t &_height);

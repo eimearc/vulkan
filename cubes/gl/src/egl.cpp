@@ -135,6 +135,19 @@ void EGL::createShaders()
 
 void EGL::setupBuffers()
 {
+    GLuint bindingPoint = 0;
+    GLuint uboBuffer;
+    UniformBufferObject ubo = getUBO(WIDTH, HEIGHT);
+    ubo.proj[1][1] *= -1; // Y is flipped.
+    GLuint blockIndex = glGetUniformBlockIndex(shaderProgram, "ubo");
+    glUniformBlockBinding(shaderProgram, blockIndex, bindingPoint);
+
+    glGenBuffers(1, &uboBuffer);
+    glBindBuffer(GL_UNIFORM_BUFFER, uboBuffer);
+
+    glBufferData(GL_UNIFORM_BUFFER, sizeof(ubo), &ubo, GL_STATIC_DRAW);
+    glBindBufferBase(GL_UNIFORM_BUFFER, bindingPoint, uboBuffer);
+
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
     glGenBuffers(1, &EBO);
