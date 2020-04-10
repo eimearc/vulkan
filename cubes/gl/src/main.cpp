@@ -5,7 +5,7 @@ int main()
     EGL app;
     try
     {
-        app.run();
+        app.run(10);
     }
     catch(const std::exception &e)
     {

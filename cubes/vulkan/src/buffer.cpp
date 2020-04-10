@@ -29,7 +29,7 @@ void EVulkan::setupVertices()
 
 void EVulkan::createGrid()
 {
-    uint16_t num = 16;
+    uint16_t num = numCubes;
     float gridSize = 2.0f;
     float cubeSize = (gridSize/num)*0.5;
     grid = Grid(gridSize, cubeSize, num);

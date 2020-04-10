@@ -27,7 +27,8 @@
 
 class EVulkan {
 public:
-    void run() {
+    void run(size_t n=4) {
+        numCubes = n;
         initWindow();
         createGrid();
         initVulkan();
@@ -103,6 +104,7 @@ private:
     void createGrid();
     void setupVertices();
     Grid grid;
+    size_t numCubes = 4;
     std::vector<Vertex> vertices;
     std::vector<uint16_t> indices;
 
