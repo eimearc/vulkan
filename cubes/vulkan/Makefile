@@ -17,14 +17,11 @@ _DEPS_EXT = cube.h grid.h vertex.h util.h
 DEPS = $(patsubst %,$(IDIR)/%,$(_DEPS))
 DEPS += $(patsubst %,$(IDIR_EXT)/%,$(_DEPS_EXT))
 
-_OBJ =  main.o descriptor.o instance.o render.o run.o swap.o buffer.o
+_OBJ =  descriptor.o instance.o render.o run.o swap.o buffer.o
 OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
 
 _OBJ_EXT = util.o
 OBJ_EXT = $(patsubst %,$(ODIR_EXT)/%,$(_OBJ_EXT))
-
-vulkan: $(OBJ) $(OBJ_EXT)
-	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
 
 .PHONY: test clean
 
@@ -34,9 +31,12 @@ $(ODIR)/%.o: $(SDIR)/%.cpp $(DEPS)
 $(ODIR_EXT)/%.o: $(SDIR_EXT)/%.cpp $(DEPS_EXT)
 	$(CC) $(CFLAGS) -c -o $@ $<
 
-test: vulkan
-	LD_LIBRARY_PATH=$(VULKAN_SDK_PATH)/lib VK_LAYER_PATH=$(VULKAN_SDK_PATH)/etc/vulkan/explicit_layer.d ./vulkan
+libEVulkan.a: $(OBJ) $(OBJ_EXT)
+	ar rcs $@ $^
+
+libs: libEVulkan.a
 
 clean:
-	rm -f vulkan
-	rm -f $(ODIR)/*.o
+	rm vulkan || true
+	rm $(ODIR)/*.o || true
+	rm libEVulkan.a || true

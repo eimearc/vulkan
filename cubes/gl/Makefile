@@ -17,26 +17,26 @@ _DEPS_EXT = cube.h grid.h vertex.h util.h
 DEPS = $(patsubst %,$(IDIR)/%,$(_DEPS))
 DEPS += $(patsubst %,$(IDIR_EXT)/%,$(_DEPS_EXT))
 
-_OBJ = main.o egl.o
+_OBJ = egl.o
 OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
 
 _OBJ_EXT = util.o
 OBJ_EXT = $(patsubst %,$(ODIR_EXT)/%,$(_OBJ_EXT))
 
-gl: $(OBJ) $(OBJ_EXT)
-	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
-
 .PHONY: test clean
 
 $(ODIR)/%.o: $(SDIR)/%.cpp $(DEPS)
-	$(CC) $(CFLAGS) -c -o $@ $<
+	$(CC) $(CFLAGS) -c $< -o $@
 
-$(ODIR_EXT)/%.o: $(SDIR_EXT)/%.cpp $(DEPS_EXT)
-	$(CC) $(CFLAGS) -c -o $@ $<
+$(ODIR_EXT)/%.o: $(SDIR_EXT)/%.cpp $(DEPS)
+	$(CC) $(CFLAGS) -c $< -o $@
 
-test: gl
-	./gl
+libEGL.a: $(OBJ) $(OBJ_EXT)
+	ar rcs $@ $^
+
+libs: libEGL.a
 
 clean:
-	rm -f gl
-	rm -f $(ODIR)/*.o
+	rm gl || true
+	rm $(ODIR)/*.o || true
+	rm libEGL.a || true
