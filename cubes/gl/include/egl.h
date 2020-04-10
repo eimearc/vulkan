@@ -41,6 +41,7 @@ private:
     void createGrid();
     void setupBuffers();
     void setupVertices();
+    void updateVertexBuffer();
 
     std::vector<char> vertShaderCode;
     std::vector<char> fragShaderCode;
