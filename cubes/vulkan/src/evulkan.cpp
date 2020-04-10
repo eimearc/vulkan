@@ -34,6 +34,7 @@ EVulkan::EVulkanInstance::EVulkanInstance()
     setupDebugMessenger();
     createSurface();
     pickPhysicalDevice();
+    std::cout << "HERE" << std::endl;
 }
 
 EVulkan::EVulkanInstance::~EVulkanInstance()

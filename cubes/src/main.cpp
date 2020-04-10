@@ -5,12 +5,12 @@
 
 int main()
 {
-    EGL gl;
-    // EVulkan vulkan;
     try
     {
+        EGL gl;
         gl.run(10);
-        // vulkan.run(10);
+        EVulkan vulkan;
+        vulkan.run(10);
     }
     catch(const std::exception &e)
     {

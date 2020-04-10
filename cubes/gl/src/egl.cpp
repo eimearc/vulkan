@@ -12,13 +12,14 @@ void EGL::initWindow()
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); // uncomment this statement to fix compilation on OS X
 
     window = glfwCreateWindow(WIDTH, HEIGHT, "OpenGL", NULL, NULL);
+    
     if (window == NULL)
     {
         std::cout << "Failed to create GLFW window" << std::endl;
         glfwTerminate();
     }
     glfwMakeContextCurrent(window);
-    GLenum err = glewInit();
+    GLenum err = glewInit(); // Crash here.
 	if (GLEW_OK != err)
 	{
 		std::cerr << "Error: " << glewGetErrorString(err) << std::endl;
@@ -91,7 +92,7 @@ void EGL::cleanup()
 
 void EGL::createShaders()
 {
-    vertShaderCode = readFile("shaders/shader.vert");
+    vertShaderCode = readFile("shaders/shaderGL.vert");
     vertShaderCode.push_back('\0'); // Must be 0 terminated (C-string style).
     fragShaderCode = readFile("shaders/shader.frag");
     fragShaderCode.push_back('\0'); // Must be 0 terminated (C-string style).
