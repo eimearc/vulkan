@@ -30,47 +30,95 @@ class EVulkan {
 public:
     void run(size_t n=4) {
         numCubes = n;
-        initWindow();
         createGrid();
         initVulkan();
         mainLoop();
         cleanup();
     }
 
+    struct EVulkanInstance
+    {
+        EVulkanInstance();
+        // EVulkanInstance(const EVulkanInstance& _other)=default;
+        // EVulkanInstance& operator=(const EVulkanInstance& _other)=default;
+        EVulkanInstance& operator=(EVulkanInstance&& _other)
+        {
+            std::cout << "ME\n";
+            window = _other.window;
+            std::cout << window << "\n" << _other.window << '\n';
+            surface = _other.surface;
+            instance = _other.instance;
+            physicalDevice = _other.physicalDevice;
+            debugMessenger = _other.debugMessenger;
+            return *this;
+        };
+        ~EVulkanInstance();
+        void cleanup();
+
+        void initWindow();
+        void createInstance();
+        void createSurface();
+        void pickPhysicalDevice();
+
+        std::vector<const char*> getRequiredExtensions();
+        bool checkValidationLayerSupport();
+        void setupDebugMessenger();
+        void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
+        static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
+            VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
+            VkDebugUtilsMessageTypeFlagsEXT messageType,
+            const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
+            void* pUserData);
+        bool isDeviceSuitable(VkPhysicalDevice device);
+        QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device);
+        bool checkDeviceExtensionSupport(VkPhysicalDevice device);
+        SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice device);
+
+        bool enableValidationLayers = true;
+
+        GLFWwindow *window;
+        VkSurfaceKHR surface;
+        VkInstance instance;
+        VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
+        VkDebugUtilsMessengerEXT debugMessenger;
+        std::vector<const char*> validationLayers =
+        {
+            "VK_LAYER_LUNARG_standard_validation"
+        };
+        std::vector<const char*> deviceExtensions = 
+        {
+            VK_KHR_SWAPCHAIN_EXTENSION_NAME
+        };
+    };
+
+    // static EVulkanInstance init()
+    // {
+    //     return EVulkanInstance();
+    // }
+
 private:
     const uint32_t WIDTH = 800;
     const uint32_t HEIGHT = 600;
-    const std::vector<const char*> validationLayers =
-    {
-        "VK_LAYER_LUNARG_standard_validation"
-    };
-    const std::vector<const char*> deviceExtensions = 
-    {
-        VK_KHR_SWAPCHAIN_EXTENSION_NAME
-    };
     const int MAX_FRAMES_IN_FLIGHT = 2;
 
-    GLFWwindow* window;
-    VkInstance instance;
-    VkDebugUtilsMessengerEXT debugMessenger;
-    VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
+    EVulkanInstance instance;
+
     VkDevice device;
-    VkQueue graphicsQueue;
-    VkSurfaceKHR surface;
     VkQueue presentQueue;
+    VkQueue graphicsQueue;
 
     VkSwapchainKHR swapChain;
     std::vector<VkImage> swapChainImages;
+    std::vector<VkFramebuffer> swapChainFramebuffers;
     VkFormat swapChainImageFormat;
     VkExtent2D swapChainExtent;
-
     std::vector<VkImageView> swapChainImageViews;
-    VkRenderPass renderPass;
-    VkDescriptorSetLayout descriptorSetLayout;
+
     VkPipelineLayout pipelineLayout;
     VkPipeline graphicsPipeline;
 
-    std::vector<VkFramebuffer> swapChainFramebuffers;
+    VkRenderPass renderPass;
+    VkDescriptorSetLayout descriptorSetLayout;
 
     VkCommandPool commandPool;
     std::vector<VkCommandBuffer> commandBuffers;
@@ -109,54 +157,18 @@ private:
     std::vector<Vertex> vertices;
     std::vector<uint16_t> indices;
 
-    struct QueueFamilyIndices
-    {
-        std::optional<uint32_t> graphicsFamily;
-        std::optional<uint32_t> presentFamily;
-
-        bool isComplete()
-        {
-            return graphicsFamily.has_value() && presentFamily.has_value();
-        }
-    };
-
-    struct SwapChainSupportDetails
-    {
-        VkSurfaceCapabilitiesKHR capabilities;
-        std::vector<VkSurfaceFormatKHR> formats;
-        std::vector<VkPresentModeKHR> presentModes;
-    };
-
     // run.cpp
-    void initWindow();
     void initVulkan();
-    static void framebufferResizeCallback(GLFWwindow* window, int width, int height);
     void mainLoop();
     void drawFrame();
     void cleanup();
 
     // instance.cpp
-    void createInstance();
-    std::vector<const char*> getRequiredExtensions();
-    bool checkValidationLayerSupport();
-    void setupDebugMessenger();
-    void createSurface();
     void createLogicalDevice();
-    void pickPhysicalDevice();
-    QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device);
-    bool isDeviceSuitable(VkPhysicalDevice device);
-    bool checkDeviceExtensionSupport(VkPhysicalDevice device);
-    void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
-    static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
-        VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
-        VkDebugUtilsMessageTypeFlagsEXT messageType,
-        const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
-        void* pUserData);
 
     // swap.cpp
     void createSwapChain();
     void recreateSwapChain();
-    SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice device);
     VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
     VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes);
     VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
@@ -202,6 +214,4 @@ private:
     void createDescriptorPool();
     void createDescriptorSets();
     void createDescriptorSetLayout();
-
-    Renderpass renderpass;
 };

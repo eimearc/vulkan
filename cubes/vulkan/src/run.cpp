@@ -1,35 +1,8 @@
 #include "evulkan.h"
 
-void DestroyDebugUtilsMessengerEXT(VkInstance instance,
-    VkDebugUtilsMessengerEXT debugMessenger,
-    const VkAllocationCallbacks* pAllocator)
-{
-    auto func = (PFN_vkDestroyDebugUtilsMessengerEXT) vkGetInstanceProcAddr(instance,
-        "vkDestroyDebugUtilsMessengerEXT");
-    if (func != nullptr)
-    {
-        func(instance, debugMessenger, pAllocator);
-    }
-}
-
-void EVulkan::initWindow()
-{
-    glfwInit(); // Initialize the GLFW library.
-    
-    glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API); // Don't create OpenGL context.
-    glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
-
-    window=glfwCreateWindow(WIDTH, HEIGHT, "Vulkan", nullptr, nullptr);
-    glfwSetWindowUserPointer(window, this);
-    glfwSetFramebufferSizeCallback(window, framebufferResizeCallback);
-}
-
 void EVulkan::initVulkan()
 {
-    createInstance();
-    setupDebugMessenger();
-    createSurface();
-    pickPhysicalDevice();
+    // instance = EVulkanInstance();
     createLogicalDevice();
     createSwapChain();
     createImageViews();
@@ -50,17 +23,17 @@ void EVulkan::initVulkan()
     createSyncObjects();
 }
 
-void EVulkan::framebufferResizeCallback(GLFWwindow* window, int width, int height)
-{
-    auto app = reinterpret_cast<EVulkan*>(glfwGetWindowUserPointer(window));
-    app->framebufferResized = true;
-}
+// void EVulkan::framebufferResizeCallback(GLFWwindow* window, int width, int height)
+// {
+//     auto app = reinterpret_cast<EVulkan*>(glfwGetWindowUserPointer(window));
+//     app->framebufferResized = true;
+// }
 
 void EVulkan::mainLoop()
 {
     int i = 0;
     std::chrono::steady_clock::time_point startTime, endTime;
-    while(!glfwWindowShouldClose(window))
+    while(!glfwWindowShouldClose(instance.window))
     {
         glfwPollEvents();
         if ((i % 10) == 0) startTime = std::chrono::high_resolution_clock::now();
@@ -69,7 +42,7 @@ void EVulkan::mainLoop()
         {
             endTime = std::chrono::high_resolution_clock::now();
             float time = std::chrono::duration<float, std::chrono::seconds::period>(endTime - startTime).count();
-            std::cout << "Frame draw time: " << time << std::endl;
+            // std::cout << "Frame draw time: " << time << std::endl;
         }
         ++i;
     }
@@ -185,12 +158,5 @@ void EVulkan::cleanup()
 
     vkDestroyDevice(device, nullptr);
 
-    if (enableValidationLayers)
-    {
-        DestroyDebugUtilsMessengerEXT(instance, debugMessenger, nullptr);
-    }
-    vkDestroySurfaceKHR(instance, surface, nullptr);
-    vkDestroyInstance(instance, nullptr);
-    glfwDestroyWindow(window);
-    glfwTerminate();
+    instance.cleanup();
 }

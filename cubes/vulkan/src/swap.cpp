@@ -2,7 +2,7 @@
 
 void EVulkan::createSwapChain()
 {
-    SwapChainSupportDetails swapChainSupport = querySwapChainSupport(physicalDevice);
+    SwapChainSupportDetails swapChainSupport = instance.querySwapChainSupport(instance.physicalDevice);
 
     VkSurfaceFormatKHR surfaceFormat = chooseSwapSurfaceFormat(swapChainSupport.formats);
     VkPresentModeKHR presentMode = chooseSwapPresentMode(swapChainSupport.presentModes);
@@ -16,7 +16,7 @@ void EVulkan::createSwapChain()
 
     VkSwapchainCreateInfoKHR createInfo = {};
     createInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
-    createInfo.surface = surface;
+    createInfo.surface = instance.surface;
     createInfo.minImageCount = imageCount;
     createInfo.imageFormat = surfaceFormat.format;
     createInfo.imageColorSpace = surfaceFormat.colorSpace;
@@ -24,7 +24,7 @@ void EVulkan::createSwapChain()
     createInfo.imageArrayLayers = 1;
     createInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 
-    QueueFamilyIndices indices = findQueueFamilies(physicalDevice);
+    QueueFamilyIndices indices = instance.findQueueFamilies(instance.physicalDevice);
     uint32_t queueFamilyIndices[] = {indices.graphicsFamily.value(), indices.presentFamily.value()};
     if (indices.graphicsFamily != indices.presentFamily)
     {
@@ -61,10 +61,10 @@ void EVulkan::createSwapChain()
 void EVulkan::recreateSwapChain()
 {
     int width = 0, height = 0;
-    glfwGetFramebufferSize(window, &width, &height);
+    glfwGetFramebufferSize(instance.window, &width, &height);
     while (width == 0 || height == 0)
     {
-        glfwGetFramebufferSize(window, &width, &height);
+        glfwGetFramebufferSize(instance.window, &width, &height);
         glfwWaitEvents();
     }
 
@@ -85,30 +85,30 @@ void EVulkan::recreateSwapChain()
     createCommandBuffers();
 }
 
-EVulkan::SwapChainSupportDetails EVulkan::querySwapChainSupport(VkPhysicalDevice device)
-{
-    SwapChainSupportDetails details;
+// EVulkan::SwapChainSupportDetails EVulkan::querySwapChainSupport(VkPhysicalDevice device)
+// {
+//     SwapChainSupportDetails details;
 
-    vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, surface, &details.capabilities);
+//     vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, instance.surface, &details.capabilities);
 
-    uint32_t formatCount;
-    vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &formatCount, nullptr);
-    if (formatCount != 0)
-    {
-        details.formats.resize(formatCount);
-        vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &formatCount, details.formats.data());
-    }
+//     uint32_t formatCount;
+//     vkGetPhysicalDeviceSurfaceFormatsKHR(device, instance.surface, &formatCount, nullptr);
+//     if (formatCount != 0)
+//     {
+//         details.formats.resize(formatCount);
+//         vkGetPhysicalDeviceSurfaceFormatsKHR(device, instance.surface, &formatCount, details.formats.data());
+//     }
 
-    uint32_t presentModeCount;
-    vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, &presentModeCount, nullptr);
-    if (presentModeCount != 0)
-    {
-        details.presentModes.resize(presentModeCount);
-        vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, &presentModeCount, details.presentModes.data());
-    }
+//     uint32_t presentModeCount;
+//     vkGetPhysicalDeviceSurfacePresentModesKHR(device, instance.surface, &presentModeCount, nullptr);
+//     if (presentModeCount != 0)
+//     {
+//         details.presentModes.resize(presentModeCount);
+//         vkGetPhysicalDeviceSurfacePresentModesKHR(device, instance.surface, &presentModeCount, details.presentModes.data());
+//     }
 
-    return details;
-}
+//     return details;
+// }
 
 VkSurfaceFormatKHR EVulkan::chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats)
 {
@@ -145,7 +145,7 @@ VkExtent2D EVulkan::chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilitie
     else
     {
         int width, height;
-        glfwGetFramebufferSize(window, &width, &height);
+        glfwGetFramebufferSize(instance.window, &width, &height);
 
         VkExtent2D actualExtent =
         {
