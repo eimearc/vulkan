@@ -24,6 +24,7 @@
 #include "vertex.h"
 #include "grid.h"
 #include "util.h"
+#include "renderpass.h"
 
 class EVulkan {
 public:
@@ -201,4 +202,6 @@ private:
     void createDescriptorPool();
     void createDescriptorSets();
     void createDescriptorSetLayout();
+
+    Renderpass renderpass;
 };
