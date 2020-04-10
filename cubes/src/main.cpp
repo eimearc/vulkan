@@ -10,14 +10,6 @@ int main()
     try
     {
         gl.run(10);
-    }
-    catch(const std::exception &e)
-    {
-        std::cerr << e.what() << std::endl;
-        return EXIT_FAILURE;
-    }
-    try
-    {
         vulkan.run(10);
     }
     catch(const std::exception &e)
