@@ -69,30 +69,33 @@ struct EVulkanInstance::EVkPickPhysicalDevice
 
 EVulkanInstance::EVulkanInstance()
 {
+    // Device setup and stuff.
     VkInstance instance;
     GLFWwindow *window;
     VkSurfaceKHR surface;
+    VkPhysicalDevice physicalDevice;
 
-    createWindow(EVkCreateWindow{}, window);
+    evkCreateWindow(EVkCreateWindow{}, window);
 
-    // Device setup and stuff.
     EVkCreateInstance instanceInfo{};
     instanceInfo.appTitle = "Vulkan App";
     instanceInfo.requiredExtensions = getRequiredExtensions();
     instanceInfo.validationLayers = m_validationLayers;
 
-    createInstance(instanceInfo, &instance);
-    setupDebugMessenger(instance);
+    evkCreateInstance(instanceInfo, &instance);
+
+    evkSetupDebugMessenger(instance);
 
     EVkCreateSurface surfaceInfo{};
     surfaceInfo.instance = instance;
     surfaceInfo.window = window;
-    createSurface(surfaceInfo, &m_surface);
+    evkCreateSurface(surfaceInfo, &m_surface);
+    
+    evkPickPhysicalDevice(instance, EVkPickPhysicalDevice{}, &physicalDevice);
 
     m_window = window;
     m_instance = instance;
-    
-    pickPhysicalDevice(EVkPickPhysicalDevice{});
+    m_physicalDevice = physicalDevice;
 }
 
 EVulkanInstance::~EVulkanInstance()
@@ -118,7 +121,7 @@ void EVulkanInstance::framebufferResizeCallback(GLFWwindow* window, int width, i
     app->m_framebufferResized = true;
 }
 
-void EVulkanInstance::createWindow(EVkCreateWindow params, GLFWwindow *&window)
+void EVulkanInstance::evkCreateWindow(EVkCreateWindow params, GLFWwindow *&window)
 {
     glfwInit(); // Initialize the GLFW library.
     
@@ -130,7 +133,7 @@ void EVulkanInstance::createWindow(EVkCreateWindow params, GLFWwindow *&window)
     // glfwSetFramebufferSizeCallback(window, framebufferResizeCallback);
 }
 
-void EVulkanInstance::createInstance(EVkCreateInstance params, VkInstance *instance)
+void EVulkanInstance::evkCreateInstance(EVkCreateInstance params, VkInstance *instance)
 {
     VkApplicationInfo appInfo = {};
     appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
@@ -214,7 +217,7 @@ bool EVulkanInstance::checkValidationLayerSupport()
     return true;
 }
 
-void EVulkanInstance::setupDebugMessenger(VkInstance instance)
+void EVulkanInstance::evkSetupDebugMessenger(VkInstance instance)
 {
     if (!m_enableValidationLayers) return;
 
@@ -227,7 +230,7 @@ void EVulkanInstance::setupDebugMessenger(VkInstance instance)
     }
 }
 
-void EVulkanInstance::createSurface(EVkCreateSurface params, VkSurfaceKHR *surface)
+void EVulkanInstance::evkCreateSurface(EVkCreateSurface params, VkSurfaceKHR *surface)
 {
     if (glfwCreateWindowSurface(params.instance, params.window, nullptr, surface) != VK_SUCCESS)
     {
@@ -235,10 +238,10 @@ void EVulkanInstance::createSurface(EVkCreateSurface params, VkSurfaceKHR *surfa
     }
 }
 
-void EVulkanInstance::pickPhysicalDevice(EVkPickPhysicalDevice params)
+void EVulkanInstance::evkPickPhysicalDevice(VkInstance instance, EVkPickPhysicalDevice params, VkPhysicalDevice *physicalDevice)
 {
     uint32_t deviceCount = 0;
-    vkEnumeratePhysicalDevices(m_instance, &deviceCount, nullptr);
+    vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr);
 
     if (deviceCount == 0)
     {
@@ -246,18 +249,18 @@ void EVulkanInstance::pickPhysicalDevice(EVkPickPhysicalDevice params)
     }
 
     std::vector<VkPhysicalDevice> devices(deviceCount);
-    vkEnumeratePhysicalDevices(m_instance, &deviceCount, devices.data());
+    vkEnumeratePhysicalDevices(instance, &deviceCount, devices.data());
 
     for (const auto& device : devices)
     {
         if (isDeviceSuitable(device))
         {
-            m_physicalDevice = device;
+            *physicalDevice = device;
             break;
         }
     }
 
-    if (m_physicalDevice == VK_NULL_HANDLE)
+    if (*physicalDevice == VK_NULL_HANDLE)
     {
         throw std::runtime_error("failed to find suitable GPU.");
     }

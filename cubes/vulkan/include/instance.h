@@ -21,11 +21,11 @@ public:
     struct EVkCreateSurface;
     struct EVkPickPhysicalDevice;
 
-    void createWindow(EVkCreateWindow params, GLFWwindow *&window);
-    void createInstance(EVkCreateInstance params, VkInstance *instance);
-    void setupDebugMessenger(VkInstance instance);
-    void createSurface(EVkCreateSurface params, VkSurfaceKHR *surface);
-    void pickPhysicalDevice(EVkPickPhysicalDevice param);
+    void evkCreateWindow(EVkCreateWindow params, GLFWwindow *&window);
+    void evkCreateInstance(EVkCreateInstance params, VkInstance *instance);
+    void evkSetupDebugMessenger(VkInstance instance);
+    void evkCreateSurface(EVkCreateSurface params, VkSurfaceKHR *surface);
+    void evkPickPhysicalDevice(VkInstance instance, EVkPickPhysicalDevice params, VkPhysicalDevice *physicalDevice);
 
     std::vector<const char*> getRequiredExtensions();
     bool checkValidationLayerSupport();
