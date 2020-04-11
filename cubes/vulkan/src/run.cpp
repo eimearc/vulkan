@@ -1,10 +1,24 @@
 #include "evulkan.h"
 
+#define ENABLE_VALIDATON true
+
+struct EVulkan::EVkCreateDevice
+{
+    VkPhysicalDevice physicalDevice;
+    std::vector<const char *> deviceExtensions;
+    std::vector<const char *> validationLayers;
+};
+
 void EVulkan::initVulkan()
 {
     instance = EVulkanInstance::instance();
 
-    createLogicalDevice();
+    EVkCreateDevice deviceInfo;
+    deviceInfo.physicalDevice = instance->m_physicalDevice;
+    deviceInfo.deviceExtensions = instance->m_deviceExtensions;
+    deviceInfo.validationLayers = instance->m_validationLayers;
+    VkInstance vInstance = instance->m_instance;
+    evkCreateDevice(vInstance, deviceInfo, &device);
     createSwapChain();
     createImageViews();
     createRenderPass();
@@ -24,9 +38,9 @@ void EVulkan::initVulkan()
     createSyncObjects();
 }
 
-void EVulkan::createLogicalDevice()
+void EVulkan::evkCreateDevice(VkInstance _instance, EVkCreateDevice params, VkDevice *device)
 {
-    QueueFamilyIndices indices = instance->findQueueFamilies(instance->m_physicalDevice);
+    QueueFamilyIndices indices = instance->findQueueFamilies(params.physicalDevice);
 
     std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
     std::set<uint32_t> uniqueQueueFamilies = {indices.graphicsFamily.value(), indices.presentFamily.value()};
@@ -49,24 +63,24 @@ void EVulkan::createLogicalDevice()
     createInfo.pQueueCreateInfos = queueCreateInfos.data();
     createInfo.pEnabledFeatures = &deviceFeatures;
 
-    createInfo.enabledExtensionCount = static_cast<uint32_t>(instance->m_deviceExtensions.size());
-    createInfo.ppEnabledExtensionNames = instance->m_deviceExtensions.data();
+    createInfo.enabledExtensionCount = static_cast<uint32_t>(params.deviceExtensions.size());
+    createInfo.ppEnabledExtensionNames = params.deviceExtensions.data();
 
-    if (instance->m_enableValidationLayers) {
-        createInfo.enabledLayerCount = static_cast<uint32_t>(instance->m_validationLayers.size());
-        std::cout << "Num validation layers:" << instance->m_validationLayers.size() << std::endl;
-        createInfo.ppEnabledLayerNames = instance->m_validationLayers.data();
+    if (ENABLE_VALIDATON) {
+        createInfo.enabledLayerCount = static_cast<uint32_t>(params.validationLayers.size());
+        std::cout << "Num validation layers:" << params.validationLayers.size() << std::endl;
+        createInfo.ppEnabledLayerNames = params.validationLayers.data();
     } else {
         createInfo.enabledLayerCount = 0;
     }
 
-    if (vkCreateDevice(instance->m_physicalDevice, &createInfo, nullptr, &device) != VK_SUCCESS)
+    if (vkCreateDevice(instance->m_physicalDevice, &createInfo, nullptr, device) != VK_SUCCESS)
     {
         throw std::runtime_error("failed to create logical device.");
     }
 
-    vkGetDeviceQueue(device, indices.graphicsFamily.value(), 0, &graphicsQueue);
-    vkGetDeviceQueue(device, indices.presentFamily.value(), 0, &presentQueue);
+    vkGetDeviceQueue(*device, indices.graphicsFamily.value(), 0, &graphicsQueue);
+    vkGetDeviceQueue(*device, indices.presentFamily.value(), 0, &presentQueue);
 }
 
 void EVulkan::mainLoop()
@@ -198,5 +212,5 @@ void EVulkan::cleanup()
 
     vkDestroyDevice(device, nullptr);
 
-    instance->cleanup();
+    instance->cleanup(instance->m_instance, instance->m_window, instance->m_surface, instance->m_debugMessenger);
 }

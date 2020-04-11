@@ -5,6 +5,8 @@
 #include <iostream>
 #include "util.h"
 
+#define ENABLE_VALIDATION true
+
 class EVulkanInstance
 {
 public:
@@ -14,7 +16,7 @@ public:
     EVulkanInstance(const EVulkanInstance&)=delete;
     EVulkanInstance& operator=(const EVulkanInstance& _other)=delete;
 
-    void cleanup();
+    void cleanup(VkInstance instance, GLFWwindow *window, VkSurfaceKHR surface, VkDebugUtilsMessengerEXT debugMessenger);
 
     struct EVkCreateWindow;
     struct EVkCreateInstance;
@@ -41,8 +43,6 @@ public:
     SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice device);
     static void framebufferResizeCallback(GLFWwindow* window, int width, int height);
 
-    bool m_enableValidationLayers = true;
-
     GLFWwindow *m_window;
     VkSurfaceKHR m_surface;
     VkInstance m_instance;
@@ -57,9 +57,9 @@ public:
         VK_KHR_SWAPCHAIN_EXTENSION_NAME
     };
     bool m_framebufferResized = false;
-    static EVulkanInstance *s_instance;
 
 private:
+    static EVulkanInstance *s_instance;
     EVulkanInstance();
     ~EVulkanInstance();
 };

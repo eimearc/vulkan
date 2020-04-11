@@ -102,16 +102,16 @@ EVulkanInstance::~EVulkanInstance()
 {
 }
 
-void EVulkanInstance::cleanup()
+void EVulkanInstance::cleanup(VkInstance instance, GLFWwindow *window, VkSurfaceKHR surface, VkDebugUtilsMessengerEXT debugMessenger)
 {
     // Device cleanup and stuff.
-    if (m_enableValidationLayers)
+    if (ENABLE_VALIDATION)
     {
-        DestroyDebugUtilsMessengerEXT(m_instance, m_debugMessenger, nullptr);
+        DestroyDebugUtilsMessengerEXT(instance, debugMessenger, nullptr);
     }
-    vkDestroySurfaceKHR(m_instance, m_surface, nullptr);
-    vkDestroyInstance(m_instance, nullptr);
-    glfwDestroyWindow(m_window);
+    vkDestroySurfaceKHR(instance, surface, nullptr);
+    vkDestroyInstance(instance, nullptr);
+    glfwDestroyWindow(window);
     glfwTerminate();
 }
 
@@ -152,7 +152,7 @@ void EVulkanInstance::evkCreateInstance(EVkCreateInstance params, VkInstance *in
     createInfo.ppEnabledExtensionNames = extensions.data();
 
     VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo;
-    if(m_enableValidationLayers)
+    if(ENABLE_VALIDATION)
     {
         createInfo.enabledLayerCount = static_cast<uint32_t>(m_validationLayers.size());
         createInfo.ppEnabledLayerNames = m_validationLayers.data();
@@ -179,7 +179,7 @@ std::vector<const char*> EVulkanInstance::getRequiredExtensions()
 
     std::vector<const char*> extensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
 
-    if (m_enableValidationLayers) 
+    if (ENABLE_VALIDATION) 
     {
         extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME); // Macro for VK_EXT_debug_utils, used for debug messages.
     }
@@ -219,7 +219,7 @@ bool EVulkanInstance::checkValidationLayerSupport()
 
 void EVulkanInstance::evkSetupDebugMessenger(VkInstance instance)
 {
-    if (!m_enableValidationLayers) return;
+    if (!ENABLE_VALIDATION) return;
 
     VkDebugUtilsMessengerCreateInfoEXT createInfo;
     populateDebugMessengerCreateInfo(createInfo);
