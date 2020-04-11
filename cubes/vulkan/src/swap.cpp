@@ -2,7 +2,7 @@
 
 void EVulkan::createSwapChain()
 {
-    SwapChainSupportDetails swapChainSupport = instance.querySwapChainSupport(instance.physicalDevice);
+    SwapChainSupportDetails swapChainSupport = instance->querySwapChainSupport(instance->m_physicalDevice);
 
     VkSurfaceFormatKHR surfaceFormat = chooseSwapSurfaceFormat(swapChainSupport.formats);
     VkPresentModeKHR presentMode = chooseSwapPresentMode(swapChainSupport.presentModes);
@@ -16,7 +16,7 @@ void EVulkan::createSwapChain()
 
     VkSwapchainCreateInfoKHR createInfo = {};
     createInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
-    createInfo.surface = instance.surface;
+    createInfo.surface = instance->m_surface;
     createInfo.minImageCount = imageCount;
     createInfo.imageFormat = surfaceFormat.format;
     createInfo.imageColorSpace = surfaceFormat.colorSpace;
@@ -24,7 +24,7 @@ void EVulkan::createSwapChain()
     createInfo.imageArrayLayers = 1;
     createInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 
-    QueueFamilyIndices indices = instance.findQueueFamilies(instance.physicalDevice);
+    QueueFamilyIndices indices = instance->findQueueFamilies(instance->m_physicalDevice);
     uint32_t queueFamilyIndices[] = {indices.graphicsFamily.value(), indices.presentFamily.value()};
     if (indices.graphicsFamily != indices.presentFamily)
     {
@@ -61,10 +61,10 @@ void EVulkan::createSwapChain()
 void EVulkan::recreateSwapChain()
 {
     int width = 0, height = 0;
-    glfwGetFramebufferSize(instance.window, &width, &height);
+    glfwGetFramebufferSize(instance->m_window, &width, &height);
     while (width == 0 || height == 0)
     {
-        glfwGetFramebufferSize(instance.window, &width, &height);
+        glfwGetFramebufferSize(instance->m_window, &width, &height);
         glfwWaitEvents();
     }
 
@@ -89,22 +89,22 @@ void EVulkan::recreateSwapChain()
 // {
 //     SwapChainSupportDetails details;
 
-//     vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, instance.surface, &details.capabilities);
+//     vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, instance->surface, &details.capabilities);
 
 //     uint32_t formatCount;
-//     vkGetPhysicalDeviceSurfaceFormatsKHR(device, instance.surface, &formatCount, nullptr);
+//     vkGetPhysicalDeviceSurfaceFormatsKHR(device, instance->surface, &formatCount, nullptr);
 //     if (formatCount != 0)
 //     {
 //         details.formats.resize(formatCount);
-//         vkGetPhysicalDeviceSurfaceFormatsKHR(device, instance.surface, &formatCount, details.formats.data());
+//         vkGetPhysicalDeviceSurfaceFormatsKHR(device, instance->surface, &formatCount, details.formats.data());
 //     }
 
 //     uint32_t presentModeCount;
-//     vkGetPhysicalDeviceSurfacePresentModesKHR(device, instance.surface, &presentModeCount, nullptr);
+//     vkGetPhysicalDeviceSurfacePresentModesKHR(device, instance->surface, &presentModeCount, nullptr);
 //     if (presentModeCount != 0)
 //     {
 //         details.presentModes.resize(presentModeCount);
-//         vkGetPhysicalDeviceSurfacePresentModesKHR(device, instance.surface, &presentModeCount, details.presentModes.data());
+//         vkGetPhysicalDeviceSurfacePresentModesKHR(device, instance->surface, &presentModeCount, details.presentModes.data());
 //     }
 
 //     return details;
@@ -145,7 +145,7 @@ VkExtent2D EVulkan::chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilitie
     else
     {
         int width, height;
-        glfwGetFramebufferSize(instance.window, &width, &height);
+        glfwGetFramebufferSize(instance->m_window, &width, &height);
 
         VkExtent2D actualExtent =
         {

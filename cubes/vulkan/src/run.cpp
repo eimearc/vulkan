@@ -2,6 +2,8 @@
 
 void EVulkan::initVulkan()
 {
+    instance = EVulkanInstance::instance();
+
     createLogicalDevice();
     createSwapChain();
     createImageViews();
@@ -24,7 +26,7 @@ void EVulkan::initVulkan()
 
 void EVulkan::createLogicalDevice()
 {
-    QueueFamilyIndices indices = instance.findQueueFamilies(instance.physicalDevice);
+    QueueFamilyIndices indices = instance->findQueueFamilies(instance->m_physicalDevice);
 
     std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
     std::set<uint32_t> uniqueQueueFamilies = {indices.graphicsFamily.value(), indices.presentFamily.value()};
@@ -47,18 +49,18 @@ void EVulkan::createLogicalDevice()
     createInfo.pQueueCreateInfos = queueCreateInfos.data();
     createInfo.pEnabledFeatures = &deviceFeatures;
 
-    createInfo.enabledExtensionCount = static_cast<uint32_t>(instance.deviceExtensions.size());
-    createInfo.ppEnabledExtensionNames = instance.deviceExtensions.data();
+    createInfo.enabledExtensionCount = static_cast<uint32_t>(instance->m_deviceExtensions.size());
+    createInfo.ppEnabledExtensionNames = instance->m_deviceExtensions.data();
 
-    if (instance.enableValidationLayers) {
-        createInfo.enabledLayerCount = static_cast<uint32_t>(instance.validationLayers.size());
-        std::cout << "Num validation layers:" << instance.validationLayers.size() << std::endl;
-        createInfo.ppEnabledLayerNames = instance.validationLayers.data();
+    if (instance->m_enableValidationLayers) {
+        createInfo.enabledLayerCount = static_cast<uint32_t>(instance->m_validationLayers.size());
+        std::cout << "Num validation layers:" << instance->m_validationLayers.size() << std::endl;
+        createInfo.ppEnabledLayerNames = instance->m_validationLayers.data();
     } else {
         createInfo.enabledLayerCount = 0;
     }
 
-    if (vkCreateDevice(instance.physicalDevice, &createInfo, nullptr, &device) != VK_SUCCESS)
+    if (vkCreateDevice(instance->m_physicalDevice, &createInfo, nullptr, &device) != VK_SUCCESS)
     {
         throw std::runtime_error("failed to create logical device.");
     }
@@ -71,7 +73,7 @@ void EVulkan::mainLoop()
 {
     int i = 0;
     std::chrono::steady_clock::time_point startTime, endTime;
-    while(!glfwWindowShouldClose(instance.window))
+    while(!glfwWindowShouldClose(instance->m_window))
     {
         glfwPollEvents();
         if ((i % 10) == 0) startTime = std::chrono::high_resolution_clock::now();
@@ -196,5 +198,5 @@ void EVulkan::cleanup()
 
     vkDestroyDevice(device, nullptr);
 
-    instance.cleanup();
+    instance->cleanup();
 }

@@ -281,7 +281,7 @@ void EVulkan::createFramebuffers()
 
 void EVulkan::createCommandPool()
 {
-    QueueFamilyIndices queueFamilyIndices = instance.findQueueFamilies(instance.physicalDevice);
+    QueueFamilyIndices queueFamilyIndices = instance->findQueueFamilies(instance->m_physicalDevice);
     VkCommandPoolCreateInfo poolInfo = {};
     poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
     poolInfo.queueFamilyIndex = queueFamilyIndices.graphicsFamily.value();
@@ -498,7 +498,7 @@ VkFormat EVulkan::findSupportedFormat(const std::vector<VkFormat>& candidates,
     for (VkFormat format : candidates)
     {
         VkFormatProperties props;
-        vkGetPhysicalDeviceFormatProperties(instance.physicalDevice, format, &props);
+        vkGetPhysicalDeviceFormatProperties(instance->m_physicalDevice, format, &props);
         if (tiling == VK_IMAGE_TILING_LINEAR && (props.linearTilingFeatures & features) == features)
         {
             return format;

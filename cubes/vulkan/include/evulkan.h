@@ -103,7 +103,7 @@ private:
     const uint32_t HEIGHT = 600;
     const int MAX_FRAMES_IN_FLIGHT = 2;
 
-    EVulkanInstance instance;
+    EVulkanInstance *instance=nullptr;
 
     VkDevice device;
     VkQueue presentQueue;
@@ -165,7 +165,7 @@ private:
     void drawFrame();
     void cleanup();
 
-    // instance.cpp
+    // instance->cpp
     void createLogicalDevice();
 
     // swap.cpp

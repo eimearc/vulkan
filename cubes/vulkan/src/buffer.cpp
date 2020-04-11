@@ -203,7 +203,7 @@ void EVulkan::updateUniformBuffer(uint32_t currentImage)
 uint32_t EVulkan::findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties)
 {
     VkPhysicalDeviceMemoryProperties memProperties;
-    vkGetPhysicalDeviceMemoryProperties(instance.physicalDevice, &memProperties);
+    vkGetPhysicalDeviceMemoryProperties(instance->m_physicalDevice, &memProperties);
 
     for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++)
     {

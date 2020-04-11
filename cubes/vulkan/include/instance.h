@@ -5,23 +5,14 @@
 #include <iostream>
 #include "util.h"
 
-struct EVulkanInstance
+class EVulkanInstance
 {
-    EVulkanInstance();
-    // EVulkanInstance(const EVulkanInstance& _other)=default;
-    // EVulkanInstance& operator=(const EVulkanInstance& _other)=default;
-    EVulkanInstance& operator=(EVulkanInstance&& _other)
-    {
-        std::cout << "ME\n";
-        window = _other.window;
-        std::cout << window << "\n" << _other.window << '\n';
-        surface = _other.surface;
-        instance = _other.instance;
-        physicalDevice = _other.physicalDevice;
-        debugMessenger = _other.debugMessenger;
-        return *this;
-    };
+public:
+    static EVulkanInstance* instance();
+    EVulkanInstance(const EVulkanInstance&)=delete;
+    EVulkanInstance& operator=(const EVulkanInstance& _other)=delete;
     ~EVulkanInstance();
+
     void cleanup();
 
     void initWindow();
@@ -44,21 +35,24 @@ struct EVulkanInstance
     SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice device);
     static void framebufferResizeCallback(GLFWwindow* window, int width, int height);
 
-    bool enableValidationLayers = true;
+    bool m_enableValidationLayers = true;
 
-    GLFWwindow *window;
-    VkSurfaceKHR surface;
-    VkInstance instance;
-    VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
-    VkDebugUtilsMessengerEXT debugMessenger;
-    std::vector<const char*> validationLayers =
+    GLFWwindow *m_window;
+    VkSurfaceKHR m_surface;
+    VkInstance m_instance;
+    VkPhysicalDevice m_physicalDevice = VK_NULL_HANDLE;
+    VkDebugUtilsMessengerEXT m_debugMessenger;
+    std::vector<const char*> m_validationLayers =
     {
         "VK_LAYER_LUNARG_standard_validation"
     };
-    std::vector<const char*> deviceExtensions = 
+    std::vector<const char*> m_deviceExtensions = 
     {
         VK_KHR_SWAPCHAIN_EXTENSION_NAME
     };
+    bool m_framebufferResized = false;
+    static EVulkanInstance *s_instance;
 
-    bool framebufferResized = false;
+private:
+    EVulkanInstance();
 };
