@@ -73,6 +73,7 @@ public:
         QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device);
         bool checkDeviceExtensionSupport(VkPhysicalDevice device);
         SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice device);
+        static void framebufferResizeCallback(GLFWwindow* window, int width, int height);
 
         bool enableValidationLayers = true;
 

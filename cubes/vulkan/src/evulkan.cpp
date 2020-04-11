@@ -34,7 +34,6 @@ EVulkan::EVulkanInstance::EVulkanInstance()
     setupDebugMessenger();
     createSurface();
     pickPhysicalDevice();
-    std::cout << "HERE" << std::endl;
 }
 
 EVulkan::EVulkanInstance::~EVulkanInstance()
@@ -52,6 +51,12 @@ void EVulkan::EVulkanInstance::cleanup()
     vkDestroyInstance(instance, nullptr);
     glfwDestroyWindow(window);
     glfwTerminate();
+}
+
+void EVulkan::EVulkanInstance::framebufferResizeCallback(GLFWwindow* window, int width, int height)
+{
+    auto app = reinterpret_cast<EVulkan*>(glfwGetWindowUserPointer(window));
+    app->framebufferResized = true;
 }
 
 void EVulkan::EVulkanInstance::initWindow()

@@ -2,7 +2,6 @@
 
 void EVulkan::initVulkan()
 {
-    // instance = EVulkanInstance();
     createLogicalDevice();
     createSwapChain();
     createImageViews();
@@ -22,12 +21,6 @@ void EVulkan::initVulkan()
     createCommandBuffers();
     createSyncObjects();
 }
-
-// void EVulkan::framebufferResizeCallback(GLFWwindow* window, int width, int height)
-// {
-//     auto app = reinterpret_cast<EVulkan*>(glfwGetWindowUserPointer(window));
-//     app->framebufferResized = true;
-// }
 
 void EVulkan::mainLoop()
 {
