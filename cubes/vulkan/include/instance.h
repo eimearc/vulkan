@@ -9,20 +9,26 @@ class EVulkanInstance
 {
 public:
     static EVulkanInstance* instance();
+    static void killInstance() { if(s_instance !=nullptr) delete s_instance;}
+    
     EVulkanInstance(const EVulkanInstance&)=delete;
     EVulkanInstance& operator=(const EVulkanInstance& _other)=delete;
-    ~EVulkanInstance();
 
     void cleanup();
 
-    void initWindow();
-    void createInstance();
-    void createSurface();
-    void pickPhysicalDevice();
+    struct EVkCreateWindow;
+    struct EVkCreateInstance;
+    struct EVkCreateSurface;
+    struct EVkPickPhysicalDevice;
+
+    void createWindow(EVkCreateWindow params, GLFWwindow *&window);
+    void createInstance(EVkCreateInstance params, VkInstance *instance);
+    void setupDebugMessenger(VkInstance instance);
+    void createSurface(EVkCreateSurface params, VkSurfaceKHR *surface);
+    void pickPhysicalDevice(EVkPickPhysicalDevice param);
 
     std::vector<const char*> getRequiredExtensions();
     bool checkValidationLayerSupport();
-    void setupDebugMessenger();
     void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
     static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
         VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
@@ -55,4 +61,5 @@ public:
 
 private:
     EVulkanInstance();
+    ~EVulkanInstance();
 };

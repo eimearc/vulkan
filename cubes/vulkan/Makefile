@@ -25,7 +25,7 @@ OBJ_EXT = $(patsubst %,$(ODIR_EXT)/%,$(_OBJ_EXT))
 
 .PHONY: test clean vulkan
 
-vulkan: libEVulkan.a $(ODIR)/main.o
+vulkan: $(ODIR)/main.o $(OBJ) $(OBJ_EXT)
 	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
 
 $(ODIR)/%.o: $(SDIR)/%.cpp $(DEPS)

@@ -2,6 +2,7 @@
 
 #include <set>
 #include <vector>
+#include <string>
 
 void DestroyDebugUtilsMessengerEXT(VkInstance instance,
     VkDebugUtilsMessengerEXT debugMessenger,
@@ -36,18 +37,62 @@ EVulkanInstance* EVulkanInstance::instance()
     if (s_instance == 0)
     {
         s_instance = new EVulkanInstance();
+        std::atexit(killInstance);
     }
     return s_instance;
 }
 
+struct EVulkanInstance::EVkCreateWindow
+{
+    bool resizeable;
+    std::string title;
+    int width;
+    int height;
+};
+
+struct EVulkanInstance::EVkCreateInstance
+{
+    const char* appTitle;
+    std::vector<const char*> requiredExtensions;
+    std::vector<const char*> validationLayers;
+};
+
+struct EVulkanInstance::EVkCreateSurface
+{
+    VkInstance instance;
+    GLFWwindow *window;
+};
+
+struct EVulkanInstance::EVkPickPhysicalDevice
+{
+};
+
 EVulkanInstance::EVulkanInstance()
 {
+    VkInstance instance;
+    GLFWwindow *window;
+    VkSurfaceKHR surface;
+
+    createWindow(EVkCreateWindow{}, window);
+
     // Device setup and stuff.
-    initWindow();
-    createInstance();
-    setupDebugMessenger();
-    createSurface();
-    pickPhysicalDevice();
+    EVkCreateInstance instanceInfo{};
+    instanceInfo.appTitle = "Vulkan App";
+    instanceInfo.requiredExtensions = getRequiredExtensions();
+    instanceInfo.validationLayers = m_validationLayers;
+
+    createInstance(instanceInfo, &instance);
+    setupDebugMessenger(instance);
+
+    EVkCreateSurface surfaceInfo{};
+    surfaceInfo.instance = instance;
+    surfaceInfo.window = window;
+    createSurface(surfaceInfo, &m_surface);
+
+    m_window = window;
+    m_instance = instance;
+    
+    pickPhysicalDevice(EVkPickPhysicalDevice{});
 }
 
 EVulkanInstance::~EVulkanInstance()
@@ -73,23 +118,23 @@ void EVulkanInstance::framebufferResizeCallback(GLFWwindow* window, int width, i
     app->m_framebufferResized = true;
 }
 
-void EVulkanInstance::initWindow()
+void EVulkanInstance::createWindow(EVkCreateWindow params, GLFWwindow *&window)
 {
     glfwInit(); // Initialize the GLFW library.
     
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API); // Don't create OpenGL context.
     glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
 
-    m_window=glfwCreateWindow(800, 600, "Vulkan", nullptr, nullptr);
-    glfwSetWindowUserPointer(m_window, this);
+    window=glfwCreateWindow(800, 600, "Vulkan", nullptr, nullptr);
+    glfwSetWindowUserPointer(window, this);
     // glfwSetFramebufferSizeCallback(window, framebufferResizeCallback);
 }
 
-void EVulkanInstance::createInstance()
+void EVulkanInstance::createInstance(EVkCreateInstance params, VkInstance *instance)
 {
     VkApplicationInfo appInfo = {};
     appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
-    appInfo.pApplicationName = "Hello Triangle";
+    appInfo.pApplicationName = params.appTitle;
     appInfo.applicationVersion = VK_MAKE_VERSION(1,0,0);
     appInfo.pEngineName = "No Engine";
     appInfo.engineVersion = VK_MAKE_VERSION(1,0,0);
@@ -117,7 +162,7 @@ void EVulkanInstance::createInstance()
         createInfo.pNext = nullptr;
     }
 
-    if (vkCreateInstance(&createInfo, nullptr, &m_instance) != VK_SUCCESS)
+    if (vkCreateInstance(&createInfo, nullptr, instance) != VK_SUCCESS)
     {
         throw std::runtime_error("failed to create instance->");
     }
@@ -169,28 +214,28 @@ bool EVulkanInstance::checkValidationLayerSupport()
     return true;
 }
 
-void EVulkanInstance::setupDebugMessenger()
+void EVulkanInstance::setupDebugMessenger(VkInstance instance)
 {
     if (!m_enableValidationLayers) return;
 
     VkDebugUtilsMessengerCreateInfoEXT createInfo;
     populateDebugMessengerCreateInfo(createInfo);
 
-    if (CreateDebugUtilsMessengerEXT(m_instance, &createInfo, nullptr, &m_debugMessenger) != VK_SUCCESS)
+    if (CreateDebugUtilsMessengerEXT(instance, &createInfo, nullptr, &m_debugMessenger) != VK_SUCCESS)
     {
         throw std::runtime_error("failed to set up debug messenger.");
     }
 }
 
-void EVulkanInstance::createSurface()
+void EVulkanInstance::createSurface(EVkCreateSurface params, VkSurfaceKHR *surface)
 {
-    if (glfwCreateWindowSurface(m_instance, m_window, nullptr, &m_surface) != VK_SUCCESS)
+    if (glfwCreateWindowSurface(params.instance, params.window, nullptr, surface) != VK_SUCCESS)
     {
         throw std::runtime_error("failed to create window instance->surface.");
     }
 }
 
-void EVulkanInstance::pickPhysicalDevice()
+void EVulkanInstance::pickPhysicalDevice(EVkPickPhysicalDevice params)
 {
     uint32_t deviceCount = 0;
     vkEnumeratePhysicalDevices(m_instance, &deviceCount, nullptr);
