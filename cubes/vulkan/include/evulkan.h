@@ -38,6 +38,12 @@ public:
     }
 
 private:
+    struct EVkSwapchainCreateInfo
+    {
+        VkPhysicalDevice physicalDevice;
+        VkSurfaceKHR surface;
+    };
+
     const uint32_t WIDTH = 800;
     const uint32_t HEIGHT = 600;
     const int MAX_FRAMES_IN_FLIGHT = 2;
@@ -105,11 +111,11 @@ private:
     void cleanup();
 
     // instance->cpp
-    struct EVkCreateDevice;
-    void evkCreateDevice(VkInstance _instance, EVkCreateDevice params, VkDevice *device);
+    struct EVkDeviceCreateInfo;
+    void evkCreateDevice(VkInstance _instance, const EVkDeviceCreateInfo *pCreateInfo, VkDevice *device);
 
     // swap.cpp
-    void createSwapChain();
+    void evkCreateSwapchain(VkDevice device, const EVkSwapchainCreateInfo *pCreateInfo, VkSwapchainKHR *pSwapchain);
     void recreateSwapChain();
     VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
     VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes);

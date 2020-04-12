@@ -1,8 +1,8 @@
 #include "evulkan.h"
 
-void EVulkan::createSwapChain()
+void EVulkan::evkCreateSwapchain(VkDevice device, const EVkSwapchainCreateInfo *pCreateInfo, VkSwapchainKHR *pSwapchain)
 {
-    SwapChainSupportDetails swapChainSupport = instance->querySwapChainSupport(instance->m_physicalDevice);
+    SwapChainSupportDetails swapChainSupport = instance->querySwapChainSupport(pCreateInfo->physicalDevice);
 
     VkSurfaceFormatKHR surfaceFormat = chooseSwapSurfaceFormat(swapChainSupport.formats);
     VkPresentModeKHR presentMode = chooseSwapPresentMode(swapChainSupport.presentModes);
@@ -16,7 +16,7 @@ void EVulkan::createSwapChain()
 
     VkSwapchainCreateInfoKHR createInfo = {};
     createInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
-    createInfo.surface = instance->m_surface;
+    createInfo.surface = pCreateInfo->surface;
     createInfo.minImageCount = imageCount;
     createInfo.imageFormat = surfaceFormat.format;
     createInfo.imageColorSpace = surfaceFormat.colorSpace;
@@ -24,7 +24,7 @@ void EVulkan::createSwapChain()
     createInfo.imageArrayLayers = 1;
     createInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 
-    QueueFamilyIndices indices = instance->findQueueFamilies(instance->m_physicalDevice);
+    QueueFamilyIndices indices = instance->findQueueFamilies(pCreateInfo->physicalDevice);
     uint32_t queueFamilyIndices[] = {indices.graphicsFamily.value(), indices.presentFamily.value()};
     if (indices.graphicsFamily != indices.presentFamily)
     {
@@ -44,15 +44,14 @@ void EVulkan::createSwapChain()
     createInfo.clipped = VK_TRUE;
     createInfo.oldSwapchain = VK_NULL_HANDLE;
 
-    if(vkCreateSwapchainKHR(device, &createInfo, nullptr, &swapChain) != VK_SUCCESS)
+    if(vkCreateSwapchainKHR(device, &createInfo, nullptr, pSwapchain) != VK_SUCCESS)
     {
         throw std::runtime_error("failed to create swap chain.");
     }
 
-    vkGetSwapchainImagesKHR(device, swapChain, &imageCount, nullptr);
+    vkGetSwapchainImagesKHR(device, *pSwapchain, &imageCount, nullptr);
     swapChainImages.resize(imageCount);
-    std::cout << "image count: " << imageCount << std::endl;
-    vkGetSwapchainImagesKHR(device, swapChain, &imageCount, swapChainImages.data());
+    vkGetSwapchainImagesKHR(device, *pSwapchain, &imageCount, swapChainImages.data());
 
     swapChainImageFormat = surfaceFormat.format;
     swapChainExtent = extent;
@@ -73,7 +72,10 @@ void EVulkan::recreateSwapChain()
 
     cleanupSwapChain();
 
-    createSwapChain();
+    EVkSwapchainCreateInfo swapchainInfo = {};
+    swapchainInfo.physicalDevice = instance->m_physicalDevice;
+    swapchainInfo.surface = instance->m_surface;
+    evkCreateSwapchain(device, &swapchainInfo, &swapChain);
     createImageViews();
     createRenderPass();
     createGraphicsPipeline();
