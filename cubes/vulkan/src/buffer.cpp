@@ -109,22 +109,27 @@ void evkCreateIndexBuffer(
     vkFreeMemory(device, stagingBufferMemory, nullptr);
 }
 
-void EVulkan::createUniformBuffers()
+void evkCreateUniformBuffers(
+    VkDevice device,
+    const EVkUniformBufferCreateInfo *pCreateInfo,
+    std::vector<VkBuffer> *pBuffer,
+    std::vector<VkDeviceMemory> *pBufferMemory
+)
 {
     VkDeviceSize bufferSize = sizeof(UniformBufferObject);
+    const size_t &size = pCreateInfo->swapchainImages.size();
+    pBuffer->resize(size);
+    pBufferMemory->resize(size);
 
-    uniformBuffers.resize(swapChainImages.size());
-    uniformBuffersMemory.resize(swapChainImages.size());
-
-    for (size_t i = 0; i < swapChainImages.size(); i++)
+    for (size_t i = 0; i < size; i++)
     {
         createBuffer(
             device,
-            instance->m_physicalDevice,
+            pCreateInfo->physicalDevice,
             bufferSize,
             VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
             VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-            &uniformBuffers[i], &uniformBuffersMemory[i]);
+            &(*pBuffer)[i], &(*pBufferMemory)[i]);
     }
 }
 

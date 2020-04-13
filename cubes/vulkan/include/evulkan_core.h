@@ -219,3 +219,15 @@ void endSingleTimeCommands(
     VkCommandPool commandPool,
     VkCommandBuffer commandBuffer);
 
+struct EVkUniformBufferCreateInfo
+{
+    VkPhysicalDevice physicalDevice;
+    std::vector<VkImage> swapchainImages;  
+};
+void evkCreateUniformBuffers(
+    VkDevice device,
+    const EVkUniformBufferCreateInfo *pCreateInfo,
+    std::vector<VkBuffer> *pBuffer,
+    std::vector<VkDeviceMemory> *pBufferMemory
+);
+

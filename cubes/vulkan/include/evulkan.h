@@ -133,7 +133,7 @@ private:
     // void createVertexBuffer();
     void updateVertexBuffer();
     // void createIndexBuffer();
-    void createUniformBuffers();
+    // void createUniformBuffers();
     // void createBuffer(VkDeviceSize size, VkBufferUsageFlags usage,
     //     VkMemoryPropertyFlags properties, VkBuffer &buffer,
     //     VkDeviceMemory &bufferMemory);

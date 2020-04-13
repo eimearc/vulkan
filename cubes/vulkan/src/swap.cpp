@@ -52,7 +52,11 @@ void EVulkan::recreateSwapChain()
     framebuffersInfo.depthImageView = depthImageView;
     evkCreateFramebuffers(device, &framebuffersInfo, &swapChainFramebuffers);
 
-    createUniformBuffers();
+    EVkUniformBufferCreateInfo uniformBufferInfo = {};
+    uniformBufferInfo.physicalDevice = instance->m_physicalDevice;
+    uniformBufferInfo.swapchainImages = swapChainImages;
+    evkCreateUniformBuffers(device, &uniformBufferInfo, &uniformBuffers, &uniformBuffersMemory);
+
     createDescriptorPool();
     createDescriptorSets();
     createCommandBuffers();

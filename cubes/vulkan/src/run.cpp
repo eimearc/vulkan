@@ -69,8 +69,11 @@ void EVulkan::initVulkan()
     indexBufferInfo.queue = graphicsQueue;
     indexBufferInfo.indices = indices;
     evkCreateIndexBuffer(device, &indexBufferInfo, &indexBuffer, &indexBufferMemory);
-    
-    createUniformBuffers();
+
+    EVkUniformBufferCreateInfo uniformBufferInfo = {};
+    uniformBufferInfo.physicalDevice = instance->m_physicalDevice;
+    uniformBufferInfo.swapchainImages = swapChainImages;
+    evkCreateUniformBuffers(device, &uniformBufferInfo, &uniformBuffers, &uniformBuffersMemory);
 
     createDescriptorPool();
     createDescriptorSets();
