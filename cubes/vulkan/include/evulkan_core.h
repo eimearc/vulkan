@@ -231,3 +231,12 @@ void evkCreateUniformBuffers(
     std::vector<VkDeviceMemory> *pBufferMemory
 );
 
+struct EVkDescriptorPoolCreateInfo
+{
+    std::vector<VkImage> swapchainImages;
+};
+void evkCreateDescriptorPool(
+    VkDevice device,
+    const EVkDescriptorPoolCreateInfo *pCreateInfo,
+    VkDescriptorPool *pDescriptorPool
+);
