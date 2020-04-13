@@ -56,3 +56,17 @@ VkExtent2D chooseSwapExtent(
 QueueFamilyIndices findQueueFamilies(
     VkPhysicalDevice device,
     VkSurfaceKHR surface);
+
+struct EVkImageViewsCreateInfo
+{
+    std::vector<VkImage> images;
+    VkFormat swapChainImageFormat;
+};
+
+void evkCreateImageViews
+(
+    VkDevice device,
+    const EVkImageViewsCreateInfo *pCreateInfo,
+    std::vector<VkImageView> *pSwapChainImageViews
+);
+VkImageView createImageView(VkDevice device, VkImage image, VkFormat format, VkImageAspectFlags aspectFlags);

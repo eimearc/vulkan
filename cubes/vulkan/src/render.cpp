@@ -3,15 +3,6 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 
-void EVulkan::createImageViews()
-{
-    swapChainImageViews.resize(swapChainImages.size());
-
-    for (uint32_t i = 0; i < swapChainImages.size(); i++) {
-        swapChainImageViews[i] = createImageView(swapChainImages[i], swapChainImageFormat, VK_IMAGE_ASPECT_COLOR_BIT);
-    }
-}
-
 // Describes the color and depth buffers.
 void EVulkan::createRenderPass()
 {
@@ -476,7 +467,8 @@ void EVulkan::createDepthResources()
         VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
         VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
         depthImage, depthImageMemory);
-    depthImageView = createImageView(depthImage, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT);
+
+    depthImageView = createImageView(device, depthImage, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT);
 }
 
 VkFormat EVulkan::findDepthFormat()
@@ -550,27 +542,6 @@ void EVulkan::createImage(uint32_t width, uint32_t height, VkFormat format,
     }
 
     vkBindImageMemory(device, image, imageMemory, 0);
-}
-
-VkImageView EVulkan::createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags)
-{
-    VkImageViewCreateInfo viewInfo = {};
-    viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-    viewInfo.image = image;
-    viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-    viewInfo.format = format;
-    viewInfo.subresourceRange.aspectMask = aspectFlags;
-    viewInfo.subresourceRange.baseMipLevel = 0;
-    viewInfo.subresourceRange.levelCount = 1;
-    viewInfo.subresourceRange.baseArrayLayer = 0;
-    viewInfo.subresourceRange.layerCount = 1;
-
-    VkImageView imageView;
-    if (vkCreateImageView(device, &viewInfo, nullptr, &imageView) != VK_SUCCESS) {
-        throw std::runtime_error("failed to create texture image view!");
-    }
-
-    return imageView;
 }
 
 void EVulkan::createSyncObjects()
