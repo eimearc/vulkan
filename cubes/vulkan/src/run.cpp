@@ -50,7 +50,12 @@ void EVulkan::initVulkan()
     framebuffersInfo.renderPass = renderPass;
     framebuffersInfo.depthImageView = depthImageView;
     evkCreateFramebuffers(device, &framebuffersInfo, &swapChainFramebuffers);
-    createCommandPool();
+
+
+    EVkCommandPoolCreateInfo commandPoolInfo = {};
+    commandPoolInfo.physicalDevice = instance->m_physicalDevice;
+    commandPoolInfo.surface = instance->m_surface;
+    evkCreateCommandPool(device, &commandPoolInfo, &commandPool);
 
     createVertexBuffer();
     createIndexBuffer();

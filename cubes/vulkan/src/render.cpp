@@ -31,19 +31,19 @@
 //     }
 // }
 
-void EVulkan::createCommandPool()
-{
-    QueueFamilyIndices queueFamilyIndices = instance->findQueueFamilies(instance->m_physicalDevice);
-    VkCommandPoolCreateInfo poolInfo = {};
-    poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-    poolInfo.queueFamilyIndex = queueFamilyIndices.graphicsFamily.value();
-    poolInfo.flags = 0;
+// void EVulkan::createCommandPool()
+// {
+//     QueueFamilyIndices queueFamilyIndices = instance->findQueueFamilies(instance->m_physicalDevice);
+//     VkCommandPoolCreateInfo poolInfo = {};
+//     poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+//     poolInfo.queueFamilyIndex = queueFamilyIndices.graphicsFamily.value();
+//     poolInfo.flags = 0;
 
-    if (vkCreateCommandPool(device, &poolInfo, nullptr, &commandPool) != VK_SUCCESS)
-    {
-        throw std::runtime_error("failed to create command pool.");
-    }
-}
+//     if (vkCreateCommandPool(device, &poolInfo, nullptr, &commandPool) != VK_SUCCESS)
+//     {
+//         throw std::runtime_error("failed to create command pool.");
+//     }
+// }
 
 VkCommandBuffer EVulkan::beginSingleTimeCommands()
 {

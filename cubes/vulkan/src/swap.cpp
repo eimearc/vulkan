@@ -51,7 +51,7 @@ void EVulkan::recreateSwapChain()
     framebuffersInfo.renderPass = renderPass;
     framebuffersInfo.depthImageView = depthImageView;
     evkCreateFramebuffers(device, &framebuffersInfo, &swapChainFramebuffers);
-    
+
     createUniformBuffers();
     createDescriptorPool();
     createDescriptorSets();

@@ -151,8 +151,20 @@ struct EVkFramebuffersCreateInfo
     VkImageView depthImageView;
     VkRenderPass renderPass;
 };
-void evkCreateFramebuffers(
+void evkCreateFramebuffers
+(
     VkDevice device,
     const EVkFramebuffersCreateInfo *pCreateInfo,
     std::vector<VkFramebuffer> *pFramebuffers
-    );
+);
+
+struct EVkCommandPoolCreateInfo
+{
+    VkPhysicalDevice physicalDevice;
+    VkSurfaceKHR surface;
+};
+void evkCreateCommandPool(
+    VkDevice device,
+    const EVkCommandPoolCreateInfo *pCreateInfo,
+    VkCommandPool *pCommandPool);
+

@@ -116,7 +116,7 @@ private:
 
     // render.cpp
     // void createFramebuffers();
-    void createCommandPool();
+    // void createCommandPool();
     void createCommandBuffers();
     VkCommandBuffer beginSingleTimeCommands();
     void endSingleTimeCommands(VkCommandBuffer commandBuffer);
