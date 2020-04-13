@@ -16,13 +16,43 @@ struct EVkDeviceCreateInfo
     std::vector<const char *> validationLayers;
 };
 
+struct EVkSwapchainCreateInfo
+{
+    VkPhysicalDevice physicalDevice;
+    VkSurfaceKHR surface;
+    GLFWwindow* window;
+};
+
 void evkCreateDevice(
     VkPhysicalDevice physicalDevice,
     const EVkDeviceCreateInfo *pCreateInfo,
     VkDevice *pDevice,
     VkQueue *pGraphicsQueue,
     VkQueue *pPresentQueue);
-    
+
 QueueFamilyIndices getQueueFamilies(
+    VkPhysicalDevice device,
+    VkSurfaceKHR surface);
+
+void evkCreateSwapchain(
+    VkDevice device,
+    const EVkSwapchainCreateInfo *pCreateInfo,
+    VkSwapchainKHR *pSwapchain,
+    std::vector<VkImage> *pSwapchainImages,
+    VkFormat *pSwapchainImageFormat,
+    VkExtent2D *pSwapchainExtent);
+
+SwapChainSupportDetails querySwapChainSupport(
+    VkPhysicalDevice device,
+    VkSurfaceKHR surface);
+
+VkSurfaceFormatKHR chooseSwapSurfaceFormat(
+    const std::vector<VkSurfaceFormatKHR>& availableFormats);
+VkPresentModeKHR chooseSwapPresentMode(
+    const std::vector<VkPresentModeKHR>& availablePresentModes);
+VkExtent2D chooseSwapExtent(
+    GLFWwindow* window,
+    const VkSurfaceCapabilitiesKHR& capabilities);
+QueueFamilyIndices findQueueFamilies(
     VkPhysicalDevice device,
     VkSurfaceKHR surface);

@@ -14,7 +14,9 @@ void EVulkan::initVulkan()
     EVkSwapchainCreateInfo swapchainInfo = {};
     swapchainInfo.physicalDevice = instance->m_physicalDevice;
     swapchainInfo.surface = instance->m_surface;
-    evkCreateSwapchain(device, &swapchainInfo, &swapChain);
+    swapchainInfo.window = instance->m_window;
+    evkCreateSwapchain(device, &swapchainInfo, &swapChain, &swapChainImages, &swapChainImageFormat, &swapChainExtent);
+    
     createImageViews();
     createRenderPass();
     createDescriptorSetLayout();
