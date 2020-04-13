@@ -160,7 +160,7 @@ void EVulkan::createBuffer(VkDeviceSize size, VkBufferUsageFlags usage,
     VkMemoryAllocateInfo allocInfo = {};
     allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
     allocInfo.allocationSize = memRequirements.size;
-    allocInfo.memoryTypeIndex = findMemoryType(memRequirements.memoryTypeBits, properties);
+    allocInfo.memoryTypeIndex = findMemoryType(instance->m_physicalDevice, memRequirements.memoryTypeBits, properties);
 
     if (vkAllocateMemory(device, &allocInfo, nullptr, &bufferMemory) != VK_SUCCESS)
     {
@@ -200,18 +200,18 @@ void EVulkan::updateUniformBuffer(uint32_t currentImage)
     vkUnmapMemory(device, uniformBuffersMemory[currentImage]);
 }
 
-uint32_t EVulkan::findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties)
-{
-    VkPhysicalDeviceMemoryProperties memProperties;
-    vkGetPhysicalDeviceMemoryProperties(instance->m_physicalDevice, &memProperties);
+// uint32_t EVulkan::findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties)
+// {
+//     VkPhysicalDeviceMemoryProperties memProperties;
+//     vkGetPhysicalDeviceMemoryProperties(instance->m_physicalDevice, &memProperties);
 
-    for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++)
-    {
-        if ((typeFilter & (1<<i)) && (memProperties.memoryTypes[i].propertyFlags & properties) == properties)
-        {
-            return i;
-        }
-    }
+//     for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++)
+//     {
+//         if ((typeFilter & (1<<i)) && (memProperties.memoryTypes[i].propertyFlags & properties) == properties)
+//         {
+//             return i;
+//         }
+//     }
 
-    throw std::runtime_error("failed to find suitable memory type.");
-}
+//     throw std::runtime_error("failed to find suitable memory type.");
+// }

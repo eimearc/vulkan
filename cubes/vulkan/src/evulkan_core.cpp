@@ -1,6 +1,7 @@
 #include "evulkan_core.h"
 
 #include <set>
+#include <iostream>
 
 void evkCreateDevice(
     VkPhysicalDevice physicalDevice,
@@ -602,4 +603,90 @@ void createShaderModule(VkDevice device, const std::vector<char>& code, VkShader
     {
         throw std::runtime_error("failed to create shader module.");
     }
+}
+
+void evkCreateDepthResources(
+    VkDevice device,
+    const EVkDepthResourcesCreateInfo *pCreateInfo,
+    VkImage *pImage,
+    VkImageView *pImageView,
+    VkDeviceMemory *pImageMemory)
+{
+    EVkRenderPassCreateInfo renderPassInfo = {};
+    renderPassInfo.swapChainImageFormat = pCreateInfo->swapchainImageFormat;
+    renderPassInfo.physicalDevice = pCreateInfo->physicalDevice;
+    VkFormat depthFormat = findDepthFormat(&renderPassInfo);
+
+    EVkImageCreateInfo createInfo = {};
+    createInfo.physicalDevice = pCreateInfo->physicalDevice;
+    createInfo.width = pCreateInfo->swapchainExtent.width;
+    createInfo.height = pCreateInfo->swapchainExtent.height;
+    createInfo.format = depthFormat;
+    createInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
+    createInfo.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
+    createInfo.properties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+
+    evkCreateImage(device, &createInfo, pImage, pImageMemory);
+    *pImageView = createImageView(device, *pImage, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT);
+}
+
+void evkCreateImage(
+    VkDevice device,
+    const EVkImageCreateInfo *pCreateInfo,
+    VkImage *pImage,
+    VkDeviceMemory *pImageMemory)
+{
+    VkImageCreateInfo imageInfo = {};
+    imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+    imageInfo.imageType = VK_IMAGE_TYPE_2D;
+    imageInfo.extent.width = pCreateInfo->width;
+    imageInfo.extent.height = pCreateInfo->height;
+    imageInfo.extent.depth = 1;
+    imageInfo.mipLevels = 1;
+    imageInfo.arrayLayers = 1;
+    imageInfo.format = pCreateInfo->format;
+    imageInfo.tiling = pCreateInfo->tiling;
+    imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    imageInfo.usage = pCreateInfo->usage;
+    imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+    imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
+    imageInfo.flags = 0;
+
+    if (vkCreateImage(device, &imageInfo, nullptr, pImage) != VK_SUCCESS)
+    {
+        throw std::runtime_error("failed to create image.");
+    }
+
+    VkMemoryRequirements memRequirements;
+    vkGetImageMemoryRequirements(device, *pImage, &memRequirements);
+    VkMemoryAllocateInfo allocInfo = {};
+    allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+    allocInfo.allocationSize = memRequirements.size;
+    allocInfo.memoryTypeIndex = findMemoryType(
+        pCreateInfo->physicalDevice,
+        memRequirements.memoryTypeBits,
+        pCreateInfo->properties);
+
+    if (vkAllocateMemory(device, &allocInfo, nullptr, pImageMemory) != VK_SUCCESS)
+    {
+        throw std::runtime_error("failed to allocate image memory.");
+    }
+
+    vkBindImageMemory(device, *pImage, *pImageMemory, 0);
+}
+
+uint32_t findMemoryType(VkPhysicalDevice physicalDevice, uint32_t typeFilter, VkMemoryPropertyFlags properties)
+{
+    VkPhysicalDeviceMemoryProperties memProperties;
+    vkGetPhysicalDeviceMemoryProperties(physicalDevice, &memProperties);
+
+    for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++)
+    {
+        if ((typeFilter & (1<<i)) && (memProperties.memoryTypes[i].propertyFlags & properties) == properties)
+        {
+            return i;
+        }
+    }
+
+    throw std::runtime_error("failed to find suitable memory type.");
 }

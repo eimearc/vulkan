@@ -111,3 +111,35 @@ void evkCreateGraphicsPipeline(
     VkPipelineLayout *pPipelineLayout,
     VkPipeline *pPipeline);
 void createShaderModule(VkDevice device, const std::vector<char>& code, VkShaderModule *pShaderModule);
+
+struct EVkDepthResourcesCreateInfo
+{
+    VkFormat swapchainImageFormat;
+    VkPhysicalDevice physicalDevice;
+    VkExtent2D swapchainExtent;
+};
+void evkCreateDepthResources(
+    VkDevice device,
+    const EVkDepthResourcesCreateInfo *pCreateInfo,
+    VkImage *pImage,
+    VkImageView *pImageView,
+    VkDeviceMemory *pImageMemory
+);
+
+struct EVkImageCreateInfo
+{
+    VkPhysicalDevice physicalDevice;
+    uint32_t width;
+    uint32_t height;
+    VkFormat format;
+    VkImageTiling tiling;
+    VkImageUsageFlags usage;
+    VkMemoryPropertyFlags properties;
+};
+void evkCreateImage(
+    VkDevice device,
+    const EVkImageCreateInfo *pCreateInfo,
+    VkImage *pImage,
+    VkDeviceMemory *pImageMemory);
+
+uint32_t findMemoryType(VkPhysicalDevice physicalDevice, uint32_t typeFilter, VkMemoryPropertyFlags properties);

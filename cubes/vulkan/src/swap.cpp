@@ -39,7 +39,12 @@ void EVulkan::recreateSwapChain()
     pipelineInfo.renderPass = renderPass;
     evkCreateGraphicsPipeline(device, &pipelineInfo, &pipelineLayout, &graphicsPipeline);
 
-    createDepthResources();
+    EVkDepthResourcesCreateInfo depthResourcesInfo = {};
+    depthResourcesInfo.physicalDevice = instance->m_physicalDevice;
+    depthResourcesInfo.swapchainExtent = swapChainExtent;
+    depthResourcesInfo.swapchainImageFormat = swapChainImageFormat;
+    evkCreateDepthResources(device, &depthResourcesInfo, &depthImage, &depthImageView, &depthImageMemory);
+
     createFramebuffers();
     createUniformBuffers();
     createDescriptorPool();
