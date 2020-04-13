@@ -86,8 +86,18 @@ void EVulkan::initVulkan()
     descriptorSetInfo.uniformBuffers = uniformBuffers;
     evkCreateDescriptorSets(device, &descriptorSetInfo, &descriptorSets);
 
-    
-    createCommandBuffers();
+    EVkCommandBuffersCreateInfo commandBuffersInfo = {};
+    commandBuffersInfo.commandPool = commandPool;
+    commandBuffersInfo.descriptorSets = descriptorSets;
+    commandBuffersInfo.graphicsPipeline = graphicsPipeline;
+    commandBuffersInfo.indexBuffer = indexBuffer;
+    commandBuffersInfo.indices = indices;
+    commandBuffersInfo.pipelineLayout = pipelineLayout;
+    commandBuffersInfo.renderPass = renderPass;
+    commandBuffersInfo.swapchainExtent = swapChainExtent;
+    commandBuffersInfo.swapchainFramebuffers = swapChainFramebuffers;
+    commandBuffersInfo.vertexBuffer = vertexBuffer;
+    evkCreateCommandBuffers(device, &commandBuffersInfo, &commandBuffers);
     createSyncObjects();
 }
 

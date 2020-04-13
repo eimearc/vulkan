@@ -172,29 +172,34 @@ void EVulkan::copyBufferToImage(VkBuffer buffer, VkImage image,
     endSingleTimeCommands(device, graphicsQueue, commandPool, commandBuffer);
 }
 
-void EVulkan::createCommandBuffers()
+void evkCreateCommandBuffers(
+    VkDevice device,
+    const EVkCommandBuffersCreateInfo *pCreateInfo,
+    std::vector<VkCommandBuffer> *pCommandBuffers
+)
 {
-    commandBuffers.resize(swapChainFramebuffers.size());
+    const size_t &size = pCreateInfo->swapchainFramebuffers.size();
+    pCommandBuffers->resize(size);
 
     VkCommandBufferAllocateInfo allocInfo = {};
     allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-    allocInfo.commandPool = commandPool;
+    allocInfo.commandPool = pCreateInfo->commandPool;
     allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-    allocInfo.commandBufferCount = (uint32_t) commandBuffers.size();
+    allocInfo.commandBufferCount = size;
 
-    if (vkAllocateCommandBuffers(device, &allocInfo, commandBuffers.data()) != VK_SUCCESS)
+    if (vkAllocateCommandBuffers(device, &allocInfo, pCommandBuffers->data()) != VK_SUCCESS)
     {
         throw std::runtime_error("failed to allocate command buffers.");
     }
 
-    for (size_t i = 0; i <commandBuffers.size(); i++)
+    for (size_t i = 0; i < size; i++)
     {
         VkCommandBufferBeginInfo beginInfo = {};
         beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
         beginInfo.flags = 0;
         beginInfo.pInheritanceInfo = nullptr;
 
-        if (vkBeginCommandBuffer(commandBuffers[i], &beginInfo) != VK_SUCCESS)
+        if (vkBeginCommandBuffer((*pCommandBuffers)[i], &beginInfo) != VK_SUCCESS)
         {
             throw std::runtime_error("failed to begin recording command buffer.");
         }
@@ -205,29 +210,29 @@ void EVulkan::createCommandBuffers()
 
         VkRenderPassBeginInfo renderPassInfo = {};
         renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-        renderPassInfo.renderPass = renderPass;
-        renderPassInfo.framebuffer = swapChainFramebuffers[i];
+        renderPassInfo.renderPass = pCreateInfo->renderPass;
+        renderPassInfo.framebuffer = pCreateInfo->swapchainFramebuffers[i];
         renderPassInfo.renderArea.offset = {0,0};
-        renderPassInfo.renderArea.extent = swapChainExtent;
+        renderPassInfo.renderArea.extent = pCreateInfo->swapchainExtent;
         renderPassInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
         renderPassInfo.pClearValues = clearValues.data();
-        vkCmdBeginRenderPass(commandBuffers[i], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+        vkCmdBeginRenderPass((*pCommandBuffers)[i], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
         
-        vkCmdBindPipeline(commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
-        VkBuffer vertexBuffers[] = {vertexBuffer};
+        vkCmdBindPipeline((*pCommandBuffers)[i], VK_PIPELINE_BIND_POINT_GRAPHICS, pCreateInfo->graphicsPipeline);
+        VkBuffer vertexBuffers[] = {pCreateInfo->vertexBuffer};
         VkDeviceSize offsets[] = {0};
 
         // Bind the vertex and index buffers during rendering operations.
-        vkCmdBindVertexBuffers(commandBuffers[i], 0, 1, vertexBuffers, offsets);
-        vkCmdBindIndexBuffer(commandBuffers[i], indexBuffer, 0, VK_INDEX_TYPE_UINT16);
+        vkCmdBindVertexBuffers((*pCommandBuffers)[i], 0, 1, vertexBuffers, offsets);
+        vkCmdBindIndexBuffer((*pCommandBuffers)[i], pCreateInfo->indexBuffer, 0, VK_INDEX_TYPE_UINT16);
 
         // Bind the descriptor set for each swap chain image.
-        vkCmdBindDescriptorSets(commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSets[i], 0, nullptr);
+        vkCmdBindDescriptorSets((*pCommandBuffers)[i], VK_PIPELINE_BIND_POINT_GRAPHICS, pCreateInfo->pipelineLayout, 0, 1, &(pCreateInfo->descriptorSets[i]), 0, nullptr);
         
-        vkCmdDrawIndexed(commandBuffers[i], static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);
+        vkCmdDrawIndexed((*pCommandBuffers)[i], static_cast<uint32_t>(pCreateInfo->indices.size()), 1, 0, 0, 0);
 
-        vkCmdEndRenderPass(commandBuffers[i]);
-        if (vkEndCommandBuffer(commandBuffers[i]) != VK_SUCCESS)
+        vkCmdEndRenderPass((*pCommandBuffers)[i]);
+        if (vkEndCommandBuffer((*pCommandBuffers)[i]) != VK_SUCCESS)
         {
             throw std::runtime_error("failed to record command buffer.");
         }

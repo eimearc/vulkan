@@ -253,3 +253,22 @@ void evkCreateDescriptorSets(
     const EVkDescriptorSetCreateInfo *pCreateInfo,
     std::vector<VkDescriptorSet> *pDescriptorSets
 );
+
+struct EVkCommandBuffersCreateInfo
+{
+    std::vector<VkFramebuffer> swapchainFramebuffers;
+    VkCommandPool commandPool;
+    VkRenderPass renderPass;
+    VkPipeline graphicsPipeline;
+    VkPipelineLayout pipelineLayout;
+    std::vector<VkDescriptorSet> descriptorSets;
+    VkExtent2D swapchainExtent;
+    VkBuffer vertexBuffer;
+    VkBuffer indexBuffer;
+    std::vector<uint16_t> indices;
+};
+void evkCreateCommandBuffers(
+    VkDevice device,
+    const EVkCommandBuffersCreateInfo *pCreateInfo,
+    std::vector<VkCommandBuffer> *pCommandBuffers
+);

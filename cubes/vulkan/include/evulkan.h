@@ -117,7 +117,7 @@ private:
     // render.cpp
     // void createFramebuffers();
     // void createCommandPool();
-    void createCommandBuffers();
+    // void createCommandBuffers();
     // VkCommandBuffer beginSingleTimeCommands();
     // void endSingleTimeCommands(VkCommandBuffer commandBuffer);
     bool hasStencilComponent(VkFormat format);
