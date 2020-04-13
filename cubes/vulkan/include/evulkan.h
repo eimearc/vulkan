@@ -1,5 +1,7 @@
 #pragma once
 
+#include "evulkan_core.h"
+
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
@@ -111,8 +113,8 @@ private:
     void cleanup();
 
     // instance->cpp
-    struct EVkDeviceCreateInfo;
-    void evkCreateDevice(VkInstance _instance, const EVkDeviceCreateInfo *pCreateInfo, VkDevice *device);
+    // struct EVkDeviceCreateInfo;
+    // void evkCreateDevice(VkInstance _instance, const EVkDeviceCreateInfo *pCreateInfo, VkDevice *device);
 
     // swap.cpp
     void evkCreateSwapchain(VkDevice device, const EVkSwapchainCreateInfo *pCreateInfo, VkSwapchainKHR *pSwapchain);
