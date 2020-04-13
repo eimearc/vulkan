@@ -240,3 +240,16 @@ void evkCreateDescriptorPool(
     const EVkDescriptorPoolCreateInfo *pCreateInfo,
     VkDescriptorPool *pDescriptorPool
 );
+
+struct EVkDescriptorSetCreateInfo
+{
+    std::vector<VkImage> swapchainImages;
+    VkDescriptorSetLayout descriptorSetLayout;
+    VkDescriptorPool descriptorPool;
+    std::vector<VkBuffer> uniformBuffers;
+};
+void evkCreateDescriptorSets(
+    VkDevice device,
+    const EVkDescriptorSetCreateInfo *pCreateInfo,
+    std::vector<VkDescriptorSet> *pDescriptorSets
+);

@@ -57,11 +57,17 @@ void EVulkan::recreateSwapChain()
     uniformBufferInfo.swapchainImages = swapChainImages;
     evkCreateUniformBuffers(device, &uniformBufferInfo, &uniformBuffers, &uniformBuffersMemory);
 
-    EVkDescriptorPoolCreateInfo descriptorSetInfo = {};
+    EVkDescriptorPoolCreateInfo descriptorPoolInfo = {};
+    descriptorPoolInfo.swapchainImages = swapChainImages;
+    evkCreateDescriptorPool(device, &descriptorPoolInfo, &descriptorPool);
+
+    EVkDescriptorSetCreateInfo descriptorSetInfo = {};
+    descriptorSetInfo.descriptorPool = descriptorPool;
+    descriptorSetInfo.descriptorSetLayout = descriptorSetLayout;
     descriptorSetInfo.swapchainImages = swapChainImages;
-    evkCreateDescriptorPool(device, &descriptorSetInfo, &descriptorPool);
-    
-    createDescriptorSets();
+    descriptorSetInfo.uniformBuffers = uniformBuffers;
+    evkCreateDescriptorSets(device, &descriptorSetInfo, &descriptorSets);
+
     createCommandBuffers();
 }
 

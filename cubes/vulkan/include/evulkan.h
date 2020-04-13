@@ -141,5 +141,5 @@ private:
     void updateUniformBuffer(uint32_t currentImage);
 
     // descriptor.cpp
-    void createDescriptorSets();
+    // void createDescriptorSets();
 };
