@@ -116,7 +116,7 @@ private:
 
     // render.cpp
     void createImageViews();
-    void createRenderPass();
+    // void createRenderPass();
     void createGraphicsPipeline();
     VkShaderModule createShaderModule(const std::vector<char>& code);
     void createFramebuffers();
@@ -125,9 +125,9 @@ private:
     VkCommandBuffer beginSingleTimeCommands();
     void endSingleTimeCommands(VkCommandBuffer commandBuffer);
     void createDepthResources();
-    VkFormat findSupportedFormat(const std::vector<VkFormat>& candidates,
-        VkImageTiling tiling, VkFormatFeatureFlags features);
-    VkFormat findDepthFormat();
+    // VkFormat findSupportedFormat(const std::vector<VkFormat>& candidates,
+    //     VkImageTiling tiling, VkFormatFeatureFlags features);
+    // VkFormat findDepthFormat();
     bool hasStencilComponent(VkFormat format);
     void createImage(uint32_t width, uint32_t height, VkFormat format,
         VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties,

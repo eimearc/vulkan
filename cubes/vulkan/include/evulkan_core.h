@@ -70,3 +70,19 @@ void evkCreateImageViews
     std::vector<VkImageView> *pSwapChainImageViews
 );
 VkImageView createImageView(VkDevice device, VkImage image, VkFormat format, VkImageAspectFlags aspectFlags);
+
+struct EVkRenderPassCreateInfo
+{
+    VkFormat swapChainImageFormat;
+    VkPhysicalDevice physicalDevice;
+};
+void evkCreateRenderPass(
+    VkDevice device,
+    const EVkRenderPassCreateInfo *pCreateInfo,
+    VkRenderPass *pRenderPass);
+VkFormat findDepthFormat(const EVkRenderPassCreateInfo *pCreateInfo);
+VkFormat findSupportedFormat(
+    const EVkRenderPassCreateInfo *pCreateInfo,
+    const std::vector<VkFormat>& candidates,
+    VkImageTiling tiling,
+    VkFormatFeatureFlags features);

@@ -26,7 +26,11 @@ void EVulkan::recreateSwapChain()
     imageViewsInfo.swapChainImageFormat = swapChainImageFormat;
     evkCreateImageViews(device, &imageViewsInfo, &swapChainImageViews);
 
-    createRenderPass();
+    EVkRenderPassCreateInfo renderPassInfo = {};
+    renderPassInfo.swapChainImageFormat = swapChainImageFormat;
+    renderPassInfo.physicalDevice = instance->m_physicalDevice;
+    evkCreateRenderPass(device, &renderPassInfo, &renderPass);
+    
     createGraphicsPipeline();
     createDepthResources();
     createFramebuffers();
