@@ -181,6 +181,19 @@ void evkCreateVertexBuffer(
     VkBuffer *pBuffer,
     VkDeviceMemory *pBufferMemory
 );
+struct EVkIndexBufferCreateInfo
+{
+    std::vector<uint16_t> indices;
+    VkPhysicalDevice physicalDevice;
+    VkQueue queue;
+    VkCommandPool commandPool;
+};
+void evkCreateIndexBuffer(
+    VkDevice device,
+    const EVkIndexBufferCreateInfo *pCreateInfo,
+    VkBuffer *pBuffer,
+    VkDeviceMemory *pBufferMemory
+);
 void createBuffer(
     VkDevice device,
     VkPhysicalDevice physicalDevice,

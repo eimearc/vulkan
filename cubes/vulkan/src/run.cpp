@@ -62,8 +62,14 @@ void EVulkan::initVulkan()
     vertexBufferInfo.queue = graphicsQueue;
     vertexBufferInfo.vertices = vertices;
     evkCreateVertexBuffer(device, &vertexBufferInfo, &vertexBuffer, &vertexBufferMemory);
+
+    EVkIndexBufferCreateInfo indexBufferInfo = {};
+    indexBufferInfo.commandPool = commandPool;
+    indexBufferInfo.physicalDevice = instance->m_physicalDevice;
+    indexBufferInfo.queue = graphicsQueue;
+    indexBufferInfo.indices = indices;
+    evkCreateIndexBuffer(device, &indexBufferInfo, &indexBuffer, &indexBufferMemory);
     
-    createIndexBuffer();
     createUniformBuffers();
 
     createDescriptorPool();
