@@ -51,13 +51,18 @@ void EVulkan::initVulkan()
     framebuffersInfo.depthImageView = depthImageView;
     evkCreateFramebuffers(device, &framebuffersInfo, &swapChainFramebuffers);
 
-
     EVkCommandPoolCreateInfo commandPoolInfo = {};
     commandPoolInfo.physicalDevice = instance->m_physicalDevice;
     commandPoolInfo.surface = instance->m_surface;
     evkCreateCommandPool(device, &commandPoolInfo, &commandPool);
 
-    createVertexBuffer();
+    EVkVertexBufferCreateInfo vertexBufferInfo = {};
+    vertexBufferInfo.commandPool = commandPool;
+    vertexBufferInfo.physicalDevice = instance->m_physicalDevice;
+    vertexBufferInfo.queue = graphicsQueue;
+    vertexBufferInfo.vertices = vertices;
+    evkCreateVertexBuffer(device, &vertexBufferInfo, &vertexBuffer, &vertexBufferMemory);
+    
     createIndexBuffer();
     createUniformBuffers();
 

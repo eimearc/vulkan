@@ -168,3 +168,41 @@ void evkCreateCommandPool(
     const EVkCommandPoolCreateInfo *pCreateInfo,
     VkCommandPool *pCommandPool);
 
+struct EVkVertexBufferCreateInfo
+{
+    std::vector<Vertex> vertices;
+    VkPhysicalDevice physicalDevice;
+    VkQueue queue;
+    VkCommandPool commandPool;
+};
+void evkCreateVertexBuffer(
+    VkDevice device,
+    const EVkVertexBufferCreateInfo *pCreateInfo,
+    VkBuffer *pBuffer,
+    VkDeviceMemory *pBufferMemory
+);
+void createBuffer(
+    VkDevice device,
+    VkPhysicalDevice physicalDevice,
+    VkDeviceSize size,
+    VkBufferUsageFlags usage,
+    VkMemoryPropertyFlags properties,
+    VkBuffer *pBuffer,
+    VkDeviceMemory *pBufferMemory);
+void copyBuffer(
+    VkDevice device,
+    VkCommandPool commandPool,
+    VkQueue queue,
+    VkBuffer srcBuffer,
+    VkBuffer dstBuffer,
+    VkDeviceSize size);
+void beginSingleTimeCommands(
+    VkDevice device,
+    VkCommandPool commandPool,
+    VkCommandBuffer *pCommandBuffer);
+void endSingleTimeCommands(
+    VkDevice device,
+    VkQueue queue,
+    VkCommandPool commandPool,
+    VkCommandBuffer commandBuffer);
+

@@ -45,45 +45,50 @@
 //     }
 // }
 
-VkCommandBuffer EVulkan::beginSingleTimeCommands()
-{
-    VkCommandBufferAllocateInfo allocInfo = {};
-    allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-    allocInfo.commandPool = commandPool;
-    allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-    allocInfo.commandBufferCount = 1;
+// VkCommandBuffer EVulkan::beginSingleTimeCommands()
+// {
+//     VkCommandBufferAllocateInfo allocInfo = {};
+//     allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+//     allocInfo.commandPool = commandPool;
+//     allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+//     allocInfo.commandBufferCount = 1;
 
-    VkCommandBuffer commandBuffer;
-    vkAllocateCommandBuffers(device, &allocInfo, &commandBuffer);
+//     VkCommandBuffer commandBuffer;
+//     vkAllocateCommandBuffers(device, &allocInfo, &commandBuffer);
 
-    VkCommandBufferBeginInfo beginInfo = {};
-    beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-    beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+//     VkCommandBufferBeginInfo beginInfo = {};
+//     beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+//     beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
 
-    vkBeginCommandBuffer(commandBuffer, &beginInfo);
+//     vkBeginCommandBuffer(commandBuffer, &beginInfo);
 
-    return commandBuffer;
-}
+//     return commandBuffer;
+// }
 
-void EVulkan::endSingleTimeCommands(VkCommandBuffer commandBuffer)
-{
-    vkEndCommandBuffer(commandBuffer);
+// void EVulkan::endSingleTimeCommands(VkCommandBuffer commandBuffer)
+// {
+//     vkEndCommandBuffer(commandBuffer);
 
-    VkSubmitInfo submitInfo = {};
-    submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-    submitInfo.commandBufferCount = 1;
-    submitInfo.pCommandBuffers = &commandBuffer;
+//     VkSubmitInfo submitInfo = {};
+//     submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+//     submitInfo.commandBufferCount = 1;
+//     submitInfo.pCommandBuffers = &commandBuffer;
 
-    vkQueueSubmit(graphicsQueue, 1, &submitInfo, VK_NULL_HANDLE);
-    vkQueueWaitIdle(graphicsQueue);
+//     vkQueueSubmit(graphicsQueue, 1, &submitInfo, VK_NULL_HANDLE);
+//     vkQueueWaitIdle(graphicsQueue);
 
-    vkFreeCommandBuffers(device, commandPool, 1, &commandBuffer);
-}
+//     vkFreeCommandBuffers(device, commandPool, 1, &commandBuffer);
+// }
 
 void EVulkan::transitionImageLayout(VkImage image, VkFormat format,
     VkImageLayout oldLayout, VkImageLayout newLayout)
 {
-    VkCommandBuffer commandBuffer = beginSingleTimeCommands();
+    VkCommandBuffer commandBuffer;
+    beginSingleTimeCommands(
+        device,
+        commandPool,
+        &commandBuffer
+    );
 
     VkImageMemoryBarrier barrier = {};
     barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
@@ -130,13 +135,22 @@ void EVulkan::transitionImageLayout(VkImage image, VkFormat format,
         0, nullptr,
         1, &barrier);
 
-    endSingleTimeCommands(commandBuffer);
+    endSingleTimeCommands(
+        device,
+        graphicsQueue,
+        commandPool,
+        commandBuffer);
 }
 
 void EVulkan::copyBufferToImage(VkBuffer buffer, VkImage image,
     uint32_t width, uint32_t height)
 {
-    VkCommandBuffer commandBuffer = beginSingleTimeCommands();
+    VkCommandBuffer commandBuffer;
+    beginSingleTimeCommands(
+        device,
+        commandPool,
+        &commandBuffer
+    );
 
     VkBufferImageCopy region = {};
     region.bufferOffset = 0;
@@ -155,7 +169,7 @@ void EVulkan::copyBufferToImage(VkBuffer buffer, VkImage image,
     vkCmdCopyBufferToImage(commandBuffer,
         buffer, image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
 
-    endSingleTimeCommands(commandBuffer);
+    endSingleTimeCommands(device, graphicsQueue, commandPool, commandBuffer);
 }
 
 void EVulkan::createCommandBuffers()
