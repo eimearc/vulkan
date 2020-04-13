@@ -98,7 +98,11 @@ void EVulkan::initVulkan()
     commandBuffersInfo.swapchainFramebuffers = swapChainFramebuffers;
     commandBuffersInfo.vertexBuffer = vertexBuffer;
     evkCreateCommandBuffers(device, &commandBuffersInfo, &commandBuffers);
-    createSyncObjects();
+
+    EVkSyncObjectsCreateInfo syncObjectsInfo = {};
+    syncObjectsInfo.maxFramesInFlight = MAX_FRAMES_IN_FLIGHT;
+    syncObjectsInfo.swapchainSize = swapChainImages.size();
+    evkCreateSyncObjects(device, &syncObjectsInfo, &imageAvailableSemaphores, &renderFinishedSemaphores, &inFlightFences, &imagesInFlight);
 }
 
 void EVulkan::mainLoop()

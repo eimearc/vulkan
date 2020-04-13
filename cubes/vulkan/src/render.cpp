@@ -3,83 +3,6 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 
-// void EVulkan::createFramebuffers()
-// {
-//     swapChainFramebuffers.resize(swapChainImageViews.size());
-
-//     for (size_t i = 0; i < swapChainImageViews.size(); i++)
-//     {
-//         std::array<VkImageView,2> attachments =
-//         {
-//             swapChainImageViews[i],
-//             depthImageView            
-//         };
-
-//         VkFramebufferCreateInfo framebufferInfo = {};
-//         framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-//         framebufferInfo.renderPass = renderPass;
-//         framebufferInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
-//         framebufferInfo.pAttachments = attachments.data();
-//         framebufferInfo.width = swapChainExtent.width;
-//         framebufferInfo.height = swapChainExtent.height;
-//         framebufferInfo.layers = 1;
-
-//         if (vkCreateFramebuffer(device, &framebufferInfo, nullptr, &swapChainFramebuffers[i]) != VK_SUCCESS)
-//         {
-//             throw std::runtime_error("failed to create framebuffer.");
-//         }
-//     }
-// }
-
-// void EVulkan::createCommandPool()
-// {
-//     QueueFamilyIndices queueFamilyIndices = instance->findQueueFamilies(instance->m_physicalDevice);
-//     VkCommandPoolCreateInfo poolInfo = {};
-//     poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-//     poolInfo.queueFamilyIndex = queueFamilyIndices.graphicsFamily.value();
-//     poolInfo.flags = 0;
-
-//     if (vkCreateCommandPool(device, &poolInfo, nullptr, &commandPool) != VK_SUCCESS)
-//     {
-//         throw std::runtime_error("failed to create command pool.");
-//     }
-// }
-
-// VkCommandBuffer EVulkan::beginSingleTimeCommands()
-// {
-//     VkCommandBufferAllocateInfo allocInfo = {};
-//     allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-//     allocInfo.commandPool = commandPool;
-//     allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-//     allocInfo.commandBufferCount = 1;
-
-//     VkCommandBuffer commandBuffer;
-//     vkAllocateCommandBuffers(device, &allocInfo, &commandBuffer);
-
-//     VkCommandBufferBeginInfo beginInfo = {};
-//     beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-//     beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
-
-//     vkBeginCommandBuffer(commandBuffer, &beginInfo);
-
-//     return commandBuffer;
-// }
-
-// void EVulkan::endSingleTimeCommands(VkCommandBuffer commandBuffer)
-// {
-//     vkEndCommandBuffer(commandBuffer);
-
-//     VkSubmitInfo submitInfo = {};
-//     submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-//     submitInfo.commandBufferCount = 1;
-//     submitInfo.pCommandBuffers = &commandBuffer;
-
-//     vkQueueSubmit(graphicsQueue, 1, &submitInfo, VK_NULL_HANDLE);
-//     vkQueueWaitIdle(graphicsQueue);
-
-//     vkFreeCommandBuffers(device, commandPool, 1, &commandBuffer);
-// }
-
 void EVulkan::transitionImageLayout(VkImage image, VkFormat format,
     VkImageLayout oldLayout, VkImageLayout newLayout)
 {
@@ -244,12 +167,19 @@ bool EVulkan::hasStencilComponent(VkFormat format)
     return format == VK_FORMAT_D32_SFLOAT_S8_UINT || format == VK_FORMAT_D24_UNORM_S8_UINT;
 }
 
-void EVulkan::createSyncObjects()
+void evkCreateSyncObjects(
+    VkDevice device,
+    const EVkSyncObjectsCreateInfo *pCreateInfo,
+    std::vector<VkSemaphore> *pImageAvailableSemaphores,
+    std::vector<VkSemaphore> *pRenderFinishedSemaphores,
+    std::vector<VkFence> *pFencesInFlight,
+    std::vector<VkFence> *pImagesInFlight
+)
 {
-    imageAvailableSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
-    renderFinishedSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
-    inFlightFences.resize(MAX_FRAMES_IN_FLIGHT);
-    imagesInFlight.resize(swapChainImages.size(), VK_NULL_HANDLE);
+    pImageAvailableSemaphores->resize(pCreateInfo->maxFramesInFlight);
+    pRenderFinishedSemaphores->resize(pCreateInfo->maxFramesInFlight);
+    pFencesInFlight->resize(pCreateInfo->maxFramesInFlight);
+    pImagesInFlight->resize(pCreateInfo->swapchainSize, VK_NULL_HANDLE);
 
     VkSemaphoreCreateInfo semaphoreInfo = {};
     semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
@@ -258,11 +188,11 @@ void EVulkan::createSyncObjects()
     fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
     fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 
-    for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+    for (size_t i = 0; i < pCreateInfo->maxFramesInFlight; i++)
     {
-        if (vkCreateSemaphore(device, &semaphoreInfo, nullptr, &imageAvailableSemaphores[i]) != VK_SUCCESS ||
-            vkCreateSemaphore(device, &semaphoreInfo, nullptr, &renderFinishedSemaphores[i]) != VK_SUCCESS ||
-            vkCreateFence(device, &fenceInfo, nullptr, &inFlightFences[i]) != VK_SUCCESS)
+        if (vkCreateSemaphore(device, &semaphoreInfo, nullptr, &(*pImageAvailableSemaphores)[i]) != VK_SUCCESS ||
+            vkCreateSemaphore(device, &semaphoreInfo, nullptr, &(*pRenderFinishedSemaphores)[i]) != VK_SUCCESS ||
+            vkCreateFence(device, &fenceInfo, nullptr, &(*pFencesInFlight)[i]) != VK_SUCCESS)
         {
             throw std::runtime_error("failed to create semaphores for a frame.");
         }

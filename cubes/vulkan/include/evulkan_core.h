@@ -272,3 +272,17 @@ void evkCreateCommandBuffers(
     const EVkCommandBuffersCreateInfo *pCreateInfo,
     std::vector<VkCommandBuffer> *pCommandBuffers
 );
+
+struct EVkSyncObjectsCreateInfo
+{
+    size_t maxFramesInFlight;
+    size_t swapchainSize;
+};
+void evkCreateSyncObjects(
+    VkDevice device,
+    const EVkSyncObjectsCreateInfo *pCreateInfo,
+    std::vector<VkSemaphore> *pImageAvailableSemaphores,
+    std::vector<VkSemaphore> *pRenderFinishedSemaphores,
+    std::vector<VkFence> *pFencesInFlight,
+    std::vector<VkFence> *pImagesInFlight
+);
