@@ -690,3 +690,35 @@ uint32_t findMemoryType(VkPhysicalDevice physicalDevice, uint32_t typeFilter, Vk
 
     throw std::runtime_error("failed to find suitable memory type.");
 }
+
+void evkCreateFramebuffers(
+    VkDevice device,
+    const EVkFramebuffersCreateInfo *pCreateInfo,
+    std::vector<VkFramebuffer> *pFramebuffers
+)
+{
+    pFramebuffers->resize(pCreateInfo->swapchainImageViews.size());
+
+    for (size_t i = 0; i < pCreateInfo->swapchainImageViews.size(); i++)
+    {
+        std::array<VkImageView,2> attachments =
+        {
+            pCreateInfo->swapchainImageViews[i],
+            pCreateInfo->depthImageView            
+        };
+
+        VkFramebufferCreateInfo framebufferInfo = {};
+        framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+        framebufferInfo.renderPass = pCreateInfo->renderPass;
+        framebufferInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
+        framebufferInfo.pAttachments = attachments.data();
+        framebufferInfo.width = pCreateInfo->swapchainExtent.width;
+        framebufferInfo.height = pCreateInfo->swapchainExtent.height;
+        framebufferInfo.layers = 1;
+
+        if (vkCreateFramebuffer(device, &framebufferInfo, nullptr, &(*pFramebuffers)[i]) != VK_SUCCESS)
+        {
+            throw std::runtime_error("failed to create framebuffer.");
+        }
+    }
+}

@@ -115,12 +115,11 @@ private:
     void cleanupSwapChain();
 
     // render.cpp
-    void createFramebuffers();
+    // void createFramebuffers();
     void createCommandPool();
     void createCommandBuffers();
     VkCommandBuffer beginSingleTimeCommands();
     void endSingleTimeCommands(VkCommandBuffer commandBuffer);
-    // void createDepthResources();
     bool hasStencilComponent(VkFormat format);
     void createImage(uint32_t width, uint32_t height, VkFormat format,
         VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties,
@@ -140,7 +139,6 @@ private:
         VkDeviceMemory &bufferMemory);
     void copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
     void updateUniformBuffer(uint32_t currentImage);
-    // uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
 
     // descriptor.cpp
     void createDescriptorPool();

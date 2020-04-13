@@ -45,7 +45,13 @@ void EVulkan::recreateSwapChain()
     depthResourcesInfo.swapchainImageFormat = swapChainImageFormat;
     evkCreateDepthResources(device, &depthResourcesInfo, &depthImage, &depthImageView, &depthImageMemory);
 
-    createFramebuffers();
+    EVkFramebuffersCreateInfo framebuffersInfo = {};
+    framebuffersInfo.swapchainExtent = swapChainExtent;
+    framebuffersInfo.swapchainImageViews = swapChainImageViews;
+    framebuffersInfo.renderPass = renderPass;
+    framebuffersInfo.depthImageView = depthImageView;
+    evkCreateFramebuffers(device, &framebuffersInfo, &swapChainFramebuffers);
+    
     createUniformBuffers();
     createDescriptorPool();
     createDescriptorSets();

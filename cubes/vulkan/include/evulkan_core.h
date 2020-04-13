@@ -143,3 +143,16 @@ void evkCreateImage(
     VkDeviceMemory *pImageMemory);
 
 uint32_t findMemoryType(VkPhysicalDevice physicalDevice, uint32_t typeFilter, VkMemoryPropertyFlags properties);
+
+struct EVkFramebuffersCreateInfo
+{
+    std::vector<VkImageView> swapchainImageViews;
+    VkExtent2D swapchainExtent;
+    VkImageView depthImageView;
+    VkRenderPass renderPass;
+};
+void evkCreateFramebuffers(
+    VkDevice device,
+    const EVkFramebuffersCreateInfo *pCreateInfo,
+    std::vector<VkFramebuffer> *pFramebuffers
+    );
