@@ -115,19 +115,12 @@ private:
     void cleanupSwapChain();
 
     // render.cpp
-    void createImageViews();
-    // void createRenderPass();
-    void createGraphicsPipeline();
-    VkShaderModule createShaderModule(const std::vector<char>& code);
     void createFramebuffers();
     void createCommandPool();
     void createCommandBuffers();
     VkCommandBuffer beginSingleTimeCommands();
     void endSingleTimeCommands(VkCommandBuffer commandBuffer);
     void createDepthResources();
-    // VkFormat findSupportedFormat(const std::vector<VkFormat>& candidates,
-    //     VkImageTiling tiling, VkFormatFeatureFlags features);
-    // VkFormat findDepthFormat();
     bool hasStencilComponent(VkFormat format);
     void createImage(uint32_t width, uint32_t height, VkFormat format,
         VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties,
@@ -152,5 +145,4 @@ private:
     // descriptor.cpp
     void createDescriptorPool();
     void createDescriptorSets();
-    void createDescriptorSetLayout();
 };

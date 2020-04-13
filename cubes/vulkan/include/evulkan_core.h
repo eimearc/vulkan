@@ -86,3 +86,28 @@ VkFormat findSupportedFormat(
     const std::vector<VkFormat>& candidates,
     VkImageTiling tiling,
     VkFormatFeatureFlags features);
+
+struct EVkDescriptorSetLayoutCreateInfo
+{
+
+};
+void evkCreateDescriptorSetLayout(
+    VkDevice device,
+    const EVkDescriptorSetLayoutCreateInfo *pCreateInfo,
+    VkDescriptorSetLayout *pDescriptorSetLayout
+);
+
+struct EVkGraphicsPipelineCreateInfo
+{
+    std::string vertShaderFile;
+    std::string fragShaderFile;
+    VkExtent2D swapchainExtent;
+    VkDescriptorSetLayout *pDescriptorSetLayout;
+    VkRenderPass renderPass;
+};
+void evkCreateGraphicsPipeline(
+    VkDevice device,
+    const EVkGraphicsPipelineCreateInfo *pCreateInfo,
+    VkPipelineLayout *pPipelineLayout,
+    VkPipeline *pPipeline);
+void createShaderModule(VkDevice device, const std::vector<char>& code, VkShaderModule *pShaderModule);

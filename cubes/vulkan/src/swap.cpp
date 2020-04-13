@@ -30,8 +30,15 @@ void EVulkan::recreateSwapChain()
     renderPassInfo.swapChainImageFormat = swapChainImageFormat;
     renderPassInfo.physicalDevice = instance->m_physicalDevice;
     evkCreateRenderPass(device, &renderPassInfo, &renderPass);
-    
-    createGraphicsPipeline();
+
+    EVkGraphicsPipelineCreateInfo pipelineInfo = {};
+    pipelineInfo.vertShaderFile = "shaders/vert.spv";
+    pipelineInfo.fragShaderFile = "shaders/frag.spv";
+    pipelineInfo.swapchainExtent = swapChainExtent;
+    pipelineInfo.pDescriptorSetLayout = &descriptorSetLayout;
+    pipelineInfo.renderPass = renderPass;
+    evkCreateGraphicsPipeline(device, &pipelineInfo, &pipelineLayout, &graphicsPipeline);
+
     createDepthResources();
     createFramebuffers();
     createUniformBuffers();

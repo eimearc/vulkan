@@ -27,8 +27,17 @@ void EVulkan::initVulkan()
     renderPassInfo.physicalDevice = instance->m_physicalDevice;
     evkCreateRenderPass(device, &renderPassInfo, &renderPass);
 
-    createDescriptorSetLayout();
-    createGraphicsPipeline();
+    EVkDescriptorSetLayoutCreateInfo descriptorSetLayoutInfo = {};
+    evkCreateDescriptorSetLayout(device, &descriptorSetLayoutInfo, &descriptorSetLayout);
+
+    EVkGraphicsPipelineCreateInfo pipelineInfo = {};
+    pipelineInfo.vertShaderFile = "shaders/vert.spv";
+    pipelineInfo.fragShaderFile = "shaders/frag.spv";
+    pipelineInfo.swapchainExtent = swapChainExtent;
+    pipelineInfo.pDescriptorSetLayout = &descriptorSetLayout;
+    pipelineInfo.renderPass = renderPass;
+    evkCreateGraphicsPipeline(device, &pipelineInfo, &pipelineLayout, &graphicsPipeline);
+
     createDepthResources();
     createFramebuffers();
     createCommandPool();
