@@ -115,11 +115,6 @@ private:
     void cleanupSwapChain();
 
     // render.cpp
-    // void createFramebuffers();
-    // void createCommandPool();
-    // void createCommandBuffers();
-    // VkCommandBuffer beginSingleTimeCommands();
-    // void endSingleTimeCommands(VkCommandBuffer commandBuffer);
     bool hasStencilComponent(VkFormat format);
     void createImage(uint32_t width, uint32_t height, VkFormat format,
         VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties,
@@ -127,19 +122,4 @@ private:
     void transitionImageLayout(VkImage image, VkFormat format,
         VkImageLayout oldLayout, VkImageLayout newLayout);
     void copyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height);
-    // void createSyncObjects();
-
-    // buffer.cpp
-    // void createVertexBuffer();
-    void updateVertexBuffer();
-    // void createIndexBuffer();
-    // void createUniformBuffers();
-    // void createBuffer(VkDeviceSize size, VkBufferUsageFlags usage,
-    //     VkMemoryPropertyFlags properties, VkBuffer &buffer,
-    //     VkDeviceMemory &bufferMemory);
-    // void copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
-    void updateUniformBuffer(uint32_t currentImage);
-
-    // descriptor.cpp
-    // void createDescriptorSets();
 };
