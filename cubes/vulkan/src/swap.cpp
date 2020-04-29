@@ -1,116 +1,116 @@
 #include "evulkan.h"
 
-void EVulkan::recreateSwapChain()
-{
-    int width = 0, height = 0;
-    glfwGetFramebufferSize(instance->m_window, &width, &height);
-    while (width == 0 || height == 0)
-    {
-        glfwGetFramebufferSize(instance->m_window, &width, &height);
-        glfwWaitEvents();
-    }
+// void EVulkan::recreateSwapChain()
+// {
+//     int width = 0, height = 0;
+//     glfwGetFramebufferSize(instance->m_window, &width, &height);
+//     while (width == 0 || height == 0)
+//     {
+//         glfwGetFramebufferSize(instance->m_window, &width, &height);
+//         glfwWaitEvents();
+//     }
 
-    // Wait until nobody is using the device.
-    vkDeviceWaitIdle(device);
+//     // Wait until nobody is using the device.
+//     vkDeviceWaitIdle(device);
 
-    cleanupSwapChain();
+//     cleanupSwapChain();
 
-    EVkSwapchainCreateInfo swapchainInfo = {};
-    swapchainInfo.physicalDevice = instance->m_physicalDevice;
-    swapchainInfo.surface = instance->m_surface;
-    swapchainInfo.window = instance->m_window;
-    evkCreateSwapchain(device, &swapchainInfo, &swapChain, &swapChainImages, &swapChainImageFormat, &swapChainExtent);
+//     EVkSwapchainCreateInfo swapchainInfo = {};
+//     swapchainInfo.physicalDevice = instance->m_physicalDevice;
+//     swapchainInfo.surface = instance->m_surface;
+//     swapchainInfo.window = instance->m_window;
+//     evkCreateSwapchain(device, &swapchainInfo, &swapChain, &swapChainImages, &swapChainImageFormat, &swapChainExtent);
 
-    EVkImageViewsCreateInfo imageViewsInfo = {};
-    imageViewsInfo.images = swapChainImages;
-    imageViewsInfo.swapChainImageFormat = swapChainImageFormat;
-    evkCreateImageViews(device, &imageViewsInfo, &swapChainImageViews);
+//     EVkImageViewsCreateInfo imageViewsInfo = {};
+//     imageViewsInfo.images = swapChainImages;
+//     imageViewsInfo.swapChainImageFormat = swapChainImageFormat;
+//     evkCreateImageViews(device, &imageViewsInfo, &swapChainImageViews);
 
-    EVkRenderPassCreateInfo renderPassInfo = {};
-    renderPassInfo.swapChainImageFormat = swapChainImageFormat;
-    renderPassInfo.physicalDevice = instance->m_physicalDevice;
-    evkCreateRenderPass(device, &renderPassInfo, &renderPass);
+//     EVkRenderPassCreateInfo renderPassInfo = {};
+//     renderPassInfo.swapChainImageFormat = swapChainImageFormat;
+//     renderPassInfo.physicalDevice = instance->m_physicalDevice;
+//     evkCreateRenderPass(device, &renderPassInfo, &renderPass);
 
-    EVkGraphicsPipelineCreateInfo pipelineInfo = {};
-    pipelineInfo.vertShaderFile = "shaders/vert.spv";
-    pipelineInfo.fragShaderFile = "shaders/frag.spv";
-    pipelineInfo.swapchainExtent = swapChainExtent;
-    pipelineInfo.pDescriptorSetLayout = &descriptorSetLayout;
-    pipelineInfo.renderPass = renderPass;
-    evkCreateGraphicsPipeline(device, &pipelineInfo, &pipelineLayout, &graphicsPipeline);
+//     EVkGraphicsPipelineCreateInfo pipelineInfo = {};
+//     pipelineInfo.vertShaderFile = "shaders/vert.spv";
+//     pipelineInfo.fragShaderFile = "shaders/frag.spv";
+//     pipelineInfo.swapchainExtent = swapChainExtent;
+//     pipelineInfo.pDescriptorSetLayout = &descriptorSetLayout;
+//     pipelineInfo.renderPass = renderPass;
+//     evkCreateGraphicsPipeline(device, &pipelineInfo, &pipelineLayout, &graphicsPipeline);
 
-    EVkDepthResourcesCreateInfo depthResourcesInfo = {};
-    depthResourcesInfo.physicalDevice = instance->m_physicalDevice;
-    depthResourcesInfo.swapchainExtent = swapChainExtent;
-    depthResourcesInfo.swapchainImageFormat = swapChainImageFormat;
-    evkCreateDepthResources(device, &depthResourcesInfo, &depthImage, &depthImageView, &depthImageMemory);
+//     EVkDepthResourcesCreateInfo depthResourcesInfo = {};
+//     depthResourcesInfo.physicalDevice = instance->m_physicalDevice;
+//     depthResourcesInfo.swapchainExtent = swapChainExtent;
+//     depthResourcesInfo.swapchainImageFormat = swapChainImageFormat;
+//     evkCreateDepthResources(device, &depthResourcesInfo, &depthImage, &depthImageView, &depthImageMemory);
 
-    EVkFramebuffersCreateInfo framebuffersInfo = {};
-    framebuffersInfo.swapchainExtent = swapChainExtent;
-    framebuffersInfo.swapchainImageViews = swapChainImageViews;
-    framebuffersInfo.renderPass = renderPass;
-    framebuffersInfo.depthImageView = depthImageView;
-    evkCreateFramebuffers(device, &framebuffersInfo, &swapChainFramebuffers);
+//     EVkFramebuffersCreateInfo framebuffersInfo = {};
+//     framebuffersInfo.swapchainExtent = swapChainExtent;
+//     framebuffersInfo.swapchainImageViews = swapChainImageViews;
+//     framebuffersInfo.renderPass = renderPass;
+//     framebuffersInfo.depthImageView = depthImageView;
+//     evkCreateFramebuffers(device, &framebuffersInfo, &swapChainFramebuffers);
 
-    EVkUniformBufferCreateInfo uniformBufferInfo = {};
-    uniformBufferInfo.physicalDevice = instance->m_physicalDevice;
-    uniformBufferInfo.swapchainImages = swapChainImages;
-    evkCreateUniformBuffers(device, &uniformBufferInfo, &uniformBuffers, &uniformBuffersMemory);
+//     EVkUniformBufferCreateInfo uniformBufferInfo = {};
+//     uniformBufferInfo.physicalDevice = instance->m_physicalDevice;
+//     uniformBufferInfo.swapchainImages = swapChainImages;
+//     evkCreateUniformBuffers(device, &uniformBufferInfo, &uniformBuffers, &uniformBuffersMemory);
 
-    EVkDescriptorPoolCreateInfo descriptorPoolInfo = {};
-    descriptorPoolInfo.swapchainImages = swapChainImages;
-    evkCreateDescriptorPool(device, &descriptorPoolInfo, &descriptorPool);
+//     EVkDescriptorPoolCreateInfo descriptorPoolInfo = {};
+//     descriptorPoolInfo.swapchainImages = swapChainImages;
+//     evkCreateDescriptorPool(device, &descriptorPoolInfo, &descriptorPool);
 
-    EVkDescriptorSetCreateInfo descriptorSetInfo = {};
-    descriptorSetInfo.descriptorPool = descriptorPool;
-    descriptorSetInfo.descriptorSetLayout = descriptorSetLayout;
-    descriptorSetInfo.swapchainImages = swapChainImages;
-    descriptorSetInfo.uniformBuffers = uniformBuffers;
-    evkCreateDescriptorSets(device, &descriptorSetInfo, &descriptorSets);
+//     EVkDescriptorSetCreateInfo descriptorSetInfo = {};
+//     descriptorSetInfo.descriptorPool = descriptorPool;
+//     descriptorSetInfo.descriptorSetLayout = descriptorSetLayout;
+//     descriptorSetInfo.swapchainImages = swapChainImages;
+//     descriptorSetInfo.uniformBuffers = uniformBuffers;
+//     evkCreateDescriptorSets(device, &descriptorSetInfo, &descriptorSets);
 
-    EVkCommandBuffersCreateInfo commandBuffersInfo = {};
-    commandBuffersInfo.commandPool = commandPool;
-    commandBuffersInfo.descriptorSets = descriptorSets;
-    commandBuffersInfo.graphicsPipeline = graphicsPipeline;
-    commandBuffersInfo.indexBuffer = indexBuffer;
-    commandBuffersInfo.indices = indices;
-    commandBuffersInfo.pipelineLayout = pipelineLayout;
-    commandBuffersInfo.renderPass = renderPass;
-    commandBuffersInfo.swapchainExtent = swapChainExtent;
-    commandBuffersInfo.swapchainFramebuffers = swapChainFramebuffers;
-    commandBuffersInfo.vertexBuffer = vertexBuffer;
-    evkCreateCommandBuffers(device, &commandBuffersInfo, &commandBuffers);
-}
+//     EVkCommandBuffersCreateInfo commandBuffersInfo = {};
+//     commandBuffersInfo.commandPool = commandPool;
+//     commandBuffersInfo.descriptorSets = descriptorSets;
+//     commandBuffersInfo.graphicsPipeline = graphicsPipeline;
+//     commandBuffersInfo.indexBuffer = indexBuffer;
+//     commandBuffersInfo.indices = indices;
+//     commandBuffersInfo.pipelineLayout = pipelineLayout;
+//     commandBuffersInfo.renderPass = renderPass;
+//     commandBuffersInfo.swapchainExtent = swapChainExtent;
+//     commandBuffersInfo.swapchainFramebuffers = swapChainFramebuffers;
+//     commandBuffersInfo.vertexBuffer = vertexBuffer;
+//     evkCreateCommandBuffers(device, &commandBuffersInfo, &commandBuffers);
+// }
 
-void EVulkan::cleanupSwapChain()
-{
-    vkDestroyImageView(device, depthImageView, nullptr);
-    vkDestroyImage(device, depthImage, nullptr);
-    vkFreeMemory(device, depthImageMemory, nullptr);
+// void EVulkan::cleanupSwapChain()
+// {
+//     vkDestroyImageView(device, depthImageView, nullptr);
+//     vkDestroyImage(device, depthImage, nullptr);
+//     vkFreeMemory(device, depthImageMemory, nullptr);
 
-    for (auto framebuffer : swapChainFramebuffers)
-    {
-        vkDestroyFramebuffer(device, framebuffer, nullptr);
-    }
+//     for (auto framebuffer : swapChainFramebuffers)
+//     {
+//         vkDestroyFramebuffer(device, framebuffer, nullptr);
+//     }
 
-    vkFreeCommandBuffers(device, commandPool, static_cast<uint32_t>(commandBuffers.size()), commandBuffers.data());
+//     vkFreeCommandBuffers(device, commandPool, static_cast<uint32_t>(commandBuffers.size()), commandBuffers.data());
 
-    vkDestroyPipeline(device, graphicsPipeline, nullptr);
-    vkDestroyPipelineLayout(device, pipelineLayout, nullptr);
-    vkDestroyRenderPass(device, renderPass, nullptr);
+//     vkDestroyPipeline(device, graphicsPipeline, nullptr);
+//     vkDestroyPipelineLayout(device, pipelineLayout, nullptr);
+//     vkDestroyRenderPass(device, renderPass, nullptr);
 
-    for (auto imageView : swapChainImageViews)
-    {
-        vkDestroyImageView(device, imageView, nullptr);
-    }
+//     for (auto imageView : swapChainImageViews)
+//     {
+//         vkDestroyImageView(device, imageView, nullptr);
+//     }
 
-    vkDestroySwapchainKHR(device, swapChain, nullptr);
+//     vkDestroySwapchainKHR(device, swapChain, nullptr);
 
-    for (size_t i = 0; i < swapChainImages.size(); i++)
-    {
-        vkDestroyBuffer(device, uniformBuffers[i], nullptr);
-        vkFreeMemory(device, uniformBuffersMemory[i], nullptr);
-    }
+//     for (size_t i = 0; i < swapChainImages.size(); i++)
+//     {
+//         vkDestroyBuffer(device, uniformBuffers[i], nullptr);
+//         vkFreeMemory(device, uniformBuffersMemory[i], nullptr);
+//     }
 
-    vkDestroyDescriptorPool(device, descriptorPool, nullptr);
-}
+//     vkDestroyDescriptorPool(device, descriptorPool, nullptr);
+// }

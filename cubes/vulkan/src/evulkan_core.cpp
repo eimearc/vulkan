@@ -869,3 +869,261 @@ void endSingleTimeCommands(VkDevice device, VkQueue queue, VkCommandPool command
 
     vkFreeCommandBuffers(device, commandPool, 1, &commandBuffer);
 }
+
+void evkDrawFrame(
+    VkDevice device,
+    const EVkDrawFrameInfo *pDrawInfo,
+    size_t *pCurrentFrame,
+    std::vector<VkFence> *pImagesInFlight,
+    std::vector<VkSemaphore> *pRenderFinishedSemaphores, uint32_t *pImageIndex)
+{
+    const std::vector<VkFence> &inFlightFences = *(pDrawInfo->pInFlightFences);
+    const std::vector<VkSemaphore> &imageAvailableSemaphores = *(pDrawInfo->pImageAvailableSemaphores);
+    std::vector<VkFence> &imagesInFlight = *(pImagesInFlight);
+    const std::vector<VkCommandBuffer> &commandBuffers = *(pDrawInfo->pCommandBuffers);
+
+    vkWaitForFences(device, 1, &inFlightFences[*pCurrentFrame], VK_TRUE, UINT64_MAX);
+
+    uint32_t &imageIndex = *pImageIndex;
+    VkResult result = vkAcquireNextImageKHR(
+        device, pDrawInfo->swapchain, UINT64_MAX,
+        imageAvailableSemaphores[*pCurrentFrame],
+        VK_NULL_HANDLE, &imageIndex);
+
+    if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR)
+    {
+        std::cout << "RECREATE SWAPCHAIN\n";
+        // recreateSwapChain();
+        // return;
+    }
+    else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR)
+    {
+        throw std::runtime_error("failed to acquire swap chain image.");
+    }
+
+    // Check if a previous frame is using this image. If so, wait on its fence.
+    if (imagesInFlight[imageIndex] != VK_NULL_HANDLE)
+    {
+        vkWaitForFences(device, 1, &(imagesInFlight[imageIndex]), VK_TRUE, UINT64_MAX);
+    }
+
+    // Mark the image as being in use.
+    imagesInFlight[imageIndex] = inFlightFences[*pCurrentFrame];
+
+    // Update the uniform buffers.
+    EVkUniformBufferUpdateInfo updateInfo = {};
+    updateInfo.currentImage = *pImageIndex;
+    updateInfo.swapchainExtent = pDrawInfo->swapchainExtent;
+    updateInfo.pUniformBufferMemory = pDrawInfo->pUniformBufferMemory;
+    evkUpdateUniformBuffer(device, &updateInfo);
+
+    // Also need to upate the vertex buffers.
+    EVkVertexBufferUpdateInfo vUpdateInfo = {};
+    vUpdateInfo.pVertices = pDrawInfo->pVertices;
+    vUpdateInfo.physicalDevice = pDrawInfo->physicalDevice;
+    vUpdateInfo.commandPool = pDrawInfo->commandPool;
+    vUpdateInfo.graphicsQueue = pDrawInfo->graphicsQueue;
+    vUpdateInfo.vertexBuffer = pDrawInfo->vertexBuffer;
+    vUpdateInfo.grid = pDrawInfo->grid;
+    evkUpdateVertexBuffer(device, &vUpdateInfo);
+    
+    VkSubmitInfo submitInfo = {};
+    submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+
+    VkSemaphore waitSemaphores[] = {imageAvailableSemaphores[*pCurrentFrame]};
+    VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
+    submitInfo.waitSemaphoreCount = 1;
+    submitInfo.pWaitSemaphores = waitSemaphores;
+    submitInfo.pWaitDstStageMask = waitStages;
+
+    submitInfo.commandBufferCount = 1;
+    submitInfo.pCommandBuffers = &commandBuffers[imageIndex];
+
+    VkSemaphore signalSemaphores[] = {(*pRenderFinishedSemaphores)[*pCurrentFrame]};
+    submitInfo.signalSemaphoreCount = 1;
+    submitInfo.pSignalSemaphores = signalSemaphores;
+
+    vkResetFences(device, 1, &inFlightFences[*pCurrentFrame]);
+
+    if (vkQueueSubmit(pDrawInfo->graphicsQueue, 1, &submitInfo, inFlightFences[*pCurrentFrame]) != VK_SUCCESS)
+    {
+        throw std::runtime_error("failed to submit draw command buffer!");
+    }
+
+    VkPresentInfoKHR presentInfo = {};
+    presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+    presentInfo.waitSemaphoreCount = 1;
+    presentInfo.pWaitSemaphores = signalSemaphores;
+    VkSwapchainKHR swapChains[] = {pDrawInfo->swapchain};
+    presentInfo.swapchainCount = 1;
+    presentInfo.pSwapchains = swapChains;
+    presentInfo.pImageIndices = &imageIndex;
+    presentInfo.pResults = nullptr;
+
+    result = vkQueuePresentKHR(pDrawInfo->presentQueue, &presentInfo);
+
+    if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || *pDrawInfo->pFramebufferResized)
+    {
+        // *pDrawInfo->pFramebufferResized = false;
+        std::cout << "RECREATE SWAPCHAIN\n";
+        // recreateSwapChain();
+    }
+    else if (result != VK_SUCCESS)
+    {
+        throw std::runtime_error("failed to present swap chain image.");
+    }
+
+    vkQueueWaitIdle(pDrawInfo->presentQueue);
+
+    *pCurrentFrame = ((*pCurrentFrame)+1) % pDrawInfo->maxFramesInFlight;
+}
+
+void evkRecreateSwapChain(VkDevice device, const EVkSwapchainRecreateInfo *pCreateInfo)
+{
+    int width = 0, height = 0;
+    glfwGetFramebufferSize(pCreateInfo->pWindow, &width, &height);
+    while (width == 0 || height == 0)
+    {
+        glfwGetFramebufferSize(pCreateInfo->pWindow, &width, &height);
+        glfwWaitEvents();
+    }
+
+    // Wait until nobody is using the device.
+    vkDeviceWaitIdle(device);
+
+    EVkSwapchainCleanupInfo cleanupInfo = {};
+    cleanupInfo.depthImage = *pCreateInfo->pDepthImage;
+    cleanupInfo.depthImageView = *pCreateInfo->pDepthImageView;
+    cleanupInfo.swapchainFramebuffers = *pCreateInfo->pSwapchainFramebuffers;
+    cleanupInfo.commandPool = pCreateInfo->commandBuffersCreateInfo.commandPool;
+    cleanupInfo.pCommandBuffers = pCreateInfo->pCommandBuffers;
+    cleanupInfo.graphicsPipeline = *pCreateInfo->pPipeline;
+    cleanupInfo.pipelineLayout = *pCreateInfo->pPipelineLayout;
+    cleanupInfo.renderPass = *pCreateInfo->pRenderPass;
+    cleanupInfo.swapchainImageViews = *pCreateInfo->pSwapchainImageViews;
+    cleanupInfo.swapchain = *pCreateInfo->pSwapchain;
+    cleanupInfo.swapchainImages = *pCreateInfo->pSwapchainImages;
+    cleanupInfo.uniformBuffers = *pCreateInfo->pUniformBuffers;
+    cleanupInfo.uniformBuffersMemory = *pCreateInfo->pUniformBuffersMemory;
+    cleanupInfo.descriptorPool = *pCreateInfo->pDescriptorPool;
+    evkCleanupSwapchain(device, &cleanupInfo);
+
+    EVkSwapchainCreateInfo swapchainInfo = {};
+    swapchainInfo = pCreateInfo->swapchainCreateInfo;
+    evkCreateSwapchain(device, &swapchainInfo, pCreateInfo->pSwapchain, pCreateInfo->pSwapchainImages, pCreateInfo->pSwapchainImageFormats, pCreateInfo->pSwapchainExtent);
+
+    EVkImageViewsCreateInfo imageViewsInfo = pCreateInfo->imageViewsCreateInfo;
+    evkCreateImageViews(device, &imageViewsInfo, pCreateInfo->pSwapchainImageViews);
+
+    EVkRenderPassCreateInfo renderPassInfo = pCreateInfo->renderPassCreateInfo;
+    evkCreateRenderPass(device, &renderPassInfo, pCreateInfo->pRenderPass);
+
+    EVkGraphicsPipelineCreateInfo pipelineInfo = pCreateInfo->graphicsPipelineCreateInfo;
+    evkCreateGraphicsPipeline(device, &pipelineInfo, pCreateInfo->pPipelineLayout, pCreateInfo->pPipeline);
+
+    EVkDepthResourcesCreateInfo depthResourcesInfo = pCreateInfo->depthResourcesCreateInfo;
+    evkCreateDepthResources(device, &depthResourcesInfo, pCreateInfo->pDepthImage, pCreateInfo->pDepthImageView, pCreateInfo->pDepthImageMemory);
+
+    EVkFramebuffersCreateInfo framebuffersInfo = pCreateInfo->framebuffersCreateInfo;
+    evkCreateFramebuffers(device, &framebuffersInfo, pCreateInfo->pSwapchainFramebuffers);
+
+    EVkUniformBufferCreateInfo uniformBufferInfo = pCreateInfo->uniformBuffersCreateInfo;
+    evkCreateUniformBuffers(device, &uniformBufferInfo, pCreateInfo->pUniformBuffers, pCreateInfo->pUniformBuffersMemory);
+
+    EVkDescriptorPoolCreateInfo descriptorPoolInfo = pCreateInfo->descriptorPoolCreateInfo;
+    evkCreateDescriptorPool(device, &descriptorPoolInfo, pCreateInfo->pDescriptorPool);
+
+    EVkDescriptorSetCreateInfo descriptorSetInfo = pCreateInfo->EVkDescriptorSetCreateInfo;
+    evkCreateDescriptorSets(device, &descriptorSetInfo, pCreateInfo->pDescriptorSets);
+
+    EVkCommandBuffersCreateInfo commandBuffersInfo = pCreateInfo->commandBuffersCreateInfo;
+    evkCreateCommandBuffers(device, &commandBuffersInfo, pCreateInfo->pCommandBuffers);
+}
+
+void evkCleanupSwapchain(VkDevice device, const EVkSwapchainCleanupInfo *pCleanupInfo)
+{
+    vkDestroyImageView(device, pCleanupInfo->depthImageView, nullptr);
+    vkDestroyImage(device, pCleanupInfo->depthImage, nullptr);
+    vkFreeMemory(device, pCleanupInfo->depthImageMemory, nullptr);
+
+    for (auto framebuffer : pCleanupInfo->swapchainFramebuffers)
+    {
+        vkDestroyFramebuffer(device, framebuffer, nullptr);
+    }
+
+    vkFreeCommandBuffers(device, pCleanupInfo->commandPool, static_cast<uint32_t>(pCleanupInfo->pCommandBuffers->size()), pCleanupInfo->pCommandBuffers->data());
+
+    vkDestroyPipeline(device, pCleanupInfo->graphicsPipeline, nullptr);
+    vkDestroyPipelineLayout(device, pCleanupInfo->pipelineLayout, nullptr);
+    vkDestroyRenderPass(device, pCleanupInfo->renderPass, nullptr);
+
+    for (auto imageView : pCleanupInfo->swapchainImageViews)
+    {
+        vkDestroyImageView(device, imageView, nullptr);
+    }
+
+    vkDestroySwapchainKHR(device, pCleanupInfo->swapchain, nullptr);
+
+    for (size_t i = 0; i < pCleanupInfo->swapchainImages.size(); i++)
+    {
+        vkDestroyBuffer(device, pCleanupInfo->uniformBuffers[i], nullptr);
+        vkFreeMemory(device, pCleanupInfo->uniformBuffersMemory[i], nullptr);
+    }
+
+    vkDestroyDescriptorPool(device, pCleanupInfo->descriptorPool, nullptr);
+}
+
+void evkUpdateUniformBuffer(VkDevice device, const EVkUniformBufferUpdateInfo *pUpdateInfo)
+{
+    static auto startTime = std::chrono::high_resolution_clock::now();
+
+    auto currentTime = std::chrono::high_resolution_clock::now();
+    float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
+
+    UniformBufferObject ubo = {};
+    ubo.model=glm::mat4(1.0f);
+    ubo.view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+    ubo.proj = glm::perspective(glm::radians(45.0f), pUpdateInfo->swapchainExtent.width / (float) pUpdateInfo->swapchainExtent.height, 0.1f, 10.0f);
+    ubo.proj[1][1] *= -1;
+
+    void* data;
+    std::vector<VkDeviceMemory> &uniformBufferMemory = *pUpdateInfo->pUniformBufferMemory;
+    vkMapMemory(device, uniformBufferMemory[pUpdateInfo->currentImage], 0, sizeof(ubo), 0, &data);
+    memcpy(data, &ubo, sizeof(ubo));
+    vkUnmapMemory(device, uniformBufferMemory[pUpdateInfo->currentImage]);
+}
+
+void evkUpdateVertexBuffer(VkDevice device, const EVkVertexBufferUpdateInfo *pUpdateInfo)
+{
+    update(*pUpdateInfo->pVertices, pUpdateInfo->grid);
+    
+    VkDeviceSize bufferSize = sizeof((pUpdateInfo->pVertices)[0]) * pUpdateInfo->pVertices->size();
+
+    // Use a host visible buffer as a temporary buffer.
+    VkBuffer stagingBuffer;
+    VkDeviceMemory stagingBufferMemory;
+    createBuffer(
+        device,
+        pUpdateInfo->physicalDevice,
+        bufferSize,
+        VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+        &stagingBuffer, &stagingBufferMemory);
+
+    // Copy vertex data to the staging buffer by mapping the buffer memory into CPU
+    // accessible memory.
+    void *data;
+    vkMapMemory(device, stagingBufferMemory, 0, bufferSize, 0, &data);
+    memcpy(data, pUpdateInfo->pVertices->data(), (size_t) bufferSize);
+    vkUnmapMemory(device, stagingBufferMemory);
+
+    // Copy the vertex data from the staging buffer to the device-local buffer.
+    copyBuffer(
+        device,
+        pUpdateInfo->commandPool,
+        pUpdateInfo->graphicsQueue,
+        stagingBuffer, pUpdateInfo->vertexBuffer, bufferSize);
+
+    vkDestroyBuffer(device, stagingBuffer, nullptr);
+    vkFreeMemory(device, stagingBufferMemory, nullptr);
+}

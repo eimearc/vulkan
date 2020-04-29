@@ -128,92 +128,126 @@ void EVulkan::mainLoop()
 
 void EVulkan::drawFrame()
 {
-    vkWaitForFences(device, 1, &inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
-
     uint32_t imageIndex;
-    VkResult result = vkAcquireNextImageKHR(
-        device, swapChain, UINT64_MAX,
-        imageAvailableSemaphores[currentFrame],
-        VK_NULL_HANDLE, &imageIndex);
+    EVkDrawFrameInfo info = {};
+    info.pInFlightFences = &inFlightFences;
+    info.pImageAvailableSemaphores = &imageAvailableSemaphores;
+    info.swapchain = swapChain;
+    info.maxFramesInFlight = MAX_FRAMES_IN_FLIGHT;
+    info.pCommandBuffers = &commandBuffers;
+    info.graphicsQueue = graphicsQueue;
+    info.presentQueue = presentQueue;
+    info.pFramebufferResized = &framebufferResized;
+    info.swapchainExtent = swapChainExtent;
+    info.pUniformBufferMemory = &uniformBuffersMemory;
+    info.pVertices = &vertices;
+    info.physicalDevice = instance->m_physicalDevice;
+    info.commandPool = commandPool;
+    info.vertexBuffer = vertexBuffer;
+    info.grid = grid;
+    evkDrawFrame(device, &info, &currentFrame, &imagesInFlight, &renderFinishedSemaphores, &imageIndex);
 
-    if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR)
-    {
-        recreateSwapChain();
-        return;
-    }
-    else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR)
-    {
-        throw std::runtime_error("failed to acquire swap chain image.");
-    }
+    // vkWaitForFences(device, 1, &inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
 
-    // Check if a previous frame is using this image. If so, wait on its fence.
-    if (imagesInFlight[imageIndex] != VK_NULL_HANDLE)
-    {
-        vkWaitForFences(device, 1, &imagesInFlight[imageIndex], VK_TRUE, UINT64_MAX);
-    }
+    // VkResult result = vkAcquireNextImageKHR(
+    //     device, swapChain, UINT64_MAX,
+    //     imageAvailableSemaphores[currentFrame],
+    //     VK_NULL_HANDLE, &imageIndex);
 
-    // Mark the image as being in use.
-    imagesInFlight[imageIndex] = inFlightFences[currentFrame];
+    // if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR)
+    // {
+    //     // recreateSwapChain();
+    //     return;
+    // }
+    // else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR)
+    // {
+    //     throw std::runtime_error("failed to acquire swap chain image.");
+    // }
 
-    // Update the uniform buffers.
-    updateUniformBuffer(imageIndex);
+    // // Check if a previous frame is using this image. If so, wait on its fence.
+    // if (imagesInFlight[imageIndex] != VK_NULL_HANDLE)
+    // {
+    //     vkWaitForFences(device, 1, &imagesInFlight[imageIndex], VK_TRUE, UINT64_MAX);
+    // }
 
-    // Also need to upate the vertex buffers.
-    updateVertexBuffer();
+    // // Mark the image as being in use.
+    // imagesInFlight[imageIndex] = inFlightFences[currentFrame];
+
+    // // Update the uniform buffers.
+    // updateUniformBuffer(imageIndex);
+
+    // // Also need to upate the vertex buffers.
+    // updateVertexBuffer();
     
-    VkSubmitInfo submitInfo = {};
-    submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+    // VkSubmitInfo submitInfo = {};
+    // submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 
-    VkSemaphore waitSemaphores[] = {imageAvailableSemaphores[currentFrame]};
-    VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
-    submitInfo.waitSemaphoreCount = 1;
-    submitInfo.pWaitSemaphores = waitSemaphores;
-    submitInfo.pWaitDstStageMask = waitStages;
+    // VkSemaphore waitSemaphores[] = {imageAvailableSemaphores[currentFrame]};
+    // VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
+    // submitInfo.waitSemaphoreCount = 1;
+    // submitInfo.pWaitSemaphores = waitSemaphores;
+    // submitInfo.pWaitDstStageMask = waitStages;
 
-    submitInfo.commandBufferCount = 1;
-    submitInfo.pCommandBuffers = &commandBuffers[imageIndex];
+    // submitInfo.commandBufferCount = 1;
+    // submitInfo.pCommandBuffers = &commandBuffers[imageIndex];
 
-    VkSemaphore signalSemaphores[] = {renderFinishedSemaphores[currentFrame]};
-    submitInfo.signalSemaphoreCount = 1;
-    submitInfo.pSignalSemaphores = signalSemaphores;
+    // VkSemaphore signalSemaphores[] = {renderFinishedSemaphores[currentFrame]};
+    // submitInfo.signalSemaphoreCount = 1;
+    // submitInfo.pSignalSemaphores = signalSemaphores;
 
-    vkResetFences(device, 1, &inFlightFences[currentFrame]);
+    // vkResetFences(device, 1, &inFlightFences[currentFrame]);
 
-    if (vkQueueSubmit(graphicsQueue, 1, &submitInfo, inFlightFences[currentFrame]) != VK_SUCCESS)
-    {
-        throw std::runtime_error("failed to submit draw command buffer!");
-    }
+    // if (vkQueueSubmit(graphicsQueue, 1, &submitInfo, inFlightFences[currentFrame]) != VK_SUCCESS)
+    // {
+    //     throw std::runtime_error("failed to submit draw command buffer!");
+    // }
 
-    VkPresentInfoKHR presentInfo = {};
-    presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
-    presentInfo.waitSemaphoreCount = 1;
-    presentInfo.pWaitSemaphores = signalSemaphores;
-    VkSwapchainKHR swapChains[] = {swapChain};
-    presentInfo.swapchainCount = 1;
-    presentInfo.pSwapchains = swapChains;
-    presentInfo.pImageIndices = &imageIndex;
-    presentInfo.pResults = nullptr;
+    // VkPresentInfoKHR presentInfo = {};
+    // presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+    // presentInfo.waitSemaphoreCount = 1;
+    // presentInfo.pWaitSemaphores = signalSemaphores;
+    // VkSwapchainKHR swapChains[] = {swapChain};
+    // presentInfo.swapchainCount = 1;
+    // presentInfo.pSwapchains = swapChains;
+    // presentInfo.pImageIndices = &imageIndex;
+    // presentInfo.pResults = nullptr;
 
-    result = vkQueuePresentKHR(presentQueue, &presentInfo);
+    // VkResult result = vkQueuePresentKHR(presentQueue, &presentInfo);
 
-    if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || framebufferResized)
-    {
-        framebufferResized = false;
-        recreateSwapChain();
-    }
-    else if (result != VK_SUCCESS)
-    {
-        throw std::runtime_error("failed to present swap chain image.");
-    }
+    // if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || framebufferResized)
+    // {
+    //     framebufferResized = false;
+    //     // recreateSwapChain();
+    // }
+    // else if (result != VK_SUCCESS)
+    // {
+    //     throw std::runtime_error("failed to present swap chain image.");
+    // }
 
-    vkQueueWaitIdle(presentQueue);
+    // vkQueueWaitIdle(presentQueue);
 
-    currentFrame = (currentFrame+1) % MAX_FRAMES_IN_FLIGHT;
+    // currentFrame = (currentFrame+1) % MAX_FRAMES_IN_FLIGHT;
 }
 
 void EVulkan::cleanup()
 {
-    cleanupSwapChain();
+    EVkSwapchainCleanupInfo cleanupInfo = {};
+    cleanupInfo.depthImage = depthImage;
+    cleanupInfo.depthImageView = depthImageView;
+    cleanupInfo.depthImageMemory = depthImageMemory;
+    cleanupInfo.swapchainFramebuffers = swapChainFramebuffers;
+    cleanupInfo.commandPool = commandPool;
+    cleanupInfo.pCommandBuffers = &commandBuffers;
+    cleanupInfo.graphicsPipeline = graphicsPipeline;
+    cleanupInfo.pipelineLayout = pipelineLayout;
+    cleanupInfo.renderPass = renderPass;
+    cleanupInfo.swapchainImageViews = swapChainImageViews;
+    cleanupInfo.swapchain = swapChain;
+    cleanupInfo.uniformBuffers = uniformBuffers;
+    cleanupInfo.uniformBuffersMemory = uniformBuffersMemory;
+    cleanupInfo.descriptorPool = descriptorPool;
+    cleanupInfo.swapchainImages = swapChainImages;
+    evkCleanupSwapchain(device, &cleanupInfo);
 
     vkDestroyDescriptorSetLayout(device, descriptorSetLayout, nullptr);
 

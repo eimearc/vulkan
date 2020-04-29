@@ -286,3 +286,106 @@ void evkCreateSyncObjects(
     std::vector<VkFence> *pFencesInFlight,
     std::vector<VkFence> *pImagesInFlight
 );
+
+struct EVkDrawFrameInfo
+{
+    std::vector<VkFence> *pInFlightFences;
+    std::vector<VkSemaphore> *pImageAvailableSemaphores;
+    VkSwapchainKHR swapchain;
+    size_t maxFramesInFlight;
+    std::vector<VkCommandBuffer> *pCommandBuffers;
+    VkQueue graphicsQueue;
+    VkQueue presentQueue;
+    bool *pFramebufferResized;
+    VkExtent2D swapchainExtent;
+    std::vector<VkDeviceMemory> *pUniformBufferMemory;
+    std::vector<Vertex> *pVertices;
+    VkPhysicalDevice physicalDevice;
+    VkCommandPool commandPool;
+    VkBuffer vertexBuffer;
+    Grid grid;
+};
+void evkDrawFrame(
+    VkDevice device,
+    const EVkDrawFrameInfo *pDrawInfo,
+    size_t *pCurrentFrame,
+    std::vector<VkFence> *pImagesInFlight,
+    std::vector<VkSemaphore> *pRenderFinishedSemaphores,
+    uint32_t *pImageIndex
+);
+
+struct EVkSwapchainRecreateInfo
+{
+    GLFWwindow *pWindow;
+    VkSwapchainKHR *pSwapchain;
+    std::vector<VkImage> *pSwapchainImages;
+    std::vector<VkImageView> *pSwapchainImageViews;
+    VkFormat *pSwapchainImageFormats;
+    VkExtent2D *pSwapchainExtent;
+    VkRenderPass *pRenderPass;
+    VkPipelineLayout *pPipelineLayout;
+    VkPipeline *pPipeline;
+    VkImage *pDepthImage;
+    VkImageView *pDepthImageView;
+    VkDeviceMemory *pDepthImageMemory;
+    std::vector<VkFramebuffer> *pSwapchainFramebuffers;
+    std::vector<VkBuffer> *pUniformBuffers;
+    std::vector<VkDeviceMemory> *pUniformBuffersMemory;
+    VkDescriptorPool *pDescriptorPool;
+    std::vector<VkDescriptorSet> *pDescriptorSets;
+    std::vector<VkCommandBuffer> *pCommandBuffers;
+
+    EVkSwapchainCreateInfo swapchainCreateInfo;
+    EVkImageViewsCreateInfo imageViewsCreateInfo;
+    EVkRenderPassCreateInfo renderPassCreateInfo;
+    EVkGraphicsPipelineCreateInfo graphicsPipelineCreateInfo;
+    EVkDepthResourcesCreateInfo depthResourcesCreateInfo;
+    EVkFramebuffersCreateInfo framebuffersCreateInfo;
+    EVkUniformBufferCreateInfo uniformBuffersCreateInfo;
+    EVkDescriptorPoolCreateInfo descriptorPoolCreateInfo;
+    EVkDescriptorSetCreateInfo EVkDescriptorSetCreateInfo;
+    EVkCommandBuffersCreateInfo commandBuffersCreateInfo;
+};
+void evkRecreateSwapchain(
+    VkDevice device,
+    const EVkSwapchainRecreateInfo *pCreateInfo
+);
+
+struct EVkSwapchainCleanupInfo
+{
+    VkImage depthImage;
+    VkImageView depthImageView;
+    VkDeviceMemory depthImageMemory;
+    std::vector<VkFramebuffer> swapchainFramebuffers;
+    VkCommandPool commandPool;
+    std::vector<VkCommandBuffer> *pCommandBuffers;
+    VkPipeline graphicsPipeline;
+    VkPipelineLayout pipelineLayout;
+    VkRenderPass renderPass;
+    std::vector<VkImageView> swapchainImageViews;
+    VkSwapchainKHR swapchain;
+    std::vector<VkImage> swapchainImages;
+    std::vector<VkBuffer> uniformBuffers;
+    std::vector<VkDeviceMemory> uniformBuffersMemory;
+    VkDescriptorPool descriptorPool;
+};
+void evkCleanupSwapchain(VkDevice device, const EVkSwapchainCleanupInfo *pCleanupInfo);
+
+struct EVkUniformBufferUpdateInfo
+{
+    uint32_t currentImage;
+    VkExtent2D swapchainExtent;
+    std::vector<VkDeviceMemory> *pUniformBufferMemory;
+};
+void evkUpdateUniformBuffer(VkDevice device, const EVkUniformBufferUpdateInfo *pUpdateInfo);
+
+struct EVkVertexBufferUpdateInfo
+{
+   std::vector<Vertex> *pVertices;
+   Grid grid; 
+   VkPhysicalDevice physicalDevice;
+   VkCommandPool commandPool;
+   VkQueue graphicsQueue;
+   VkBuffer vertexBuffer;
+};
+void evkUpdateVertexBuffer(VkDevice device, const EVkVertexBufferUpdateInfo *pUpdateInfo);
