@@ -30,7 +30,7 @@ public:
     void evkPickPhysicalDevice(VkInstance instance, EVkPickPhysicalDevice params, VkPhysicalDevice *physicalDevice);
 
     std::vector<const char*> getRequiredExtensions();
-    bool checkValidationLayerSupport();
+    // bool checkValidationLayerSupport();
     void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
     static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
         VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
@@ -43,20 +43,20 @@ public:
     SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice device);
     static void framebufferResizeCallback(GLFWwindow* window, int width, int height);
 
-    GLFWwindow *m_window;
-    VkSurfaceKHR m_surface;
-    VkInstance m_instance;
-    VkPhysicalDevice m_physicalDevice = VK_NULL_HANDLE;
-    VkDebugUtilsMessengerEXT m_debugMessenger;
-    std::vector<const char*> m_validationLayers =
-    {
-        "VK_LAYER_LUNARG_standard_validation"
-    };
-    std::vector<const char*> m_deviceExtensions = 
-    {
-        VK_KHR_SWAPCHAIN_EXTENSION_NAME
-    };
-    bool m_framebufferResized = false;
+    // GLFWwindow *m_window;
+    // VkSurfaceKHR m_surface;
+    // VkInstance m_instance;
+    // VkPhysicalDevice m_physicalDevice = VK_NULL_HANDLE;
+    // VkDebugUtilsMessengerEXT m_debugMessenger;
+    // std::vector<const char*> m_validationLayers =
+    // {
+    //     "VK_LAYER_LUNARG_standard_validation"
+    // };
+    // std::vector<const char*> m_deviceExtensions = 
+    // {
+    //     VK_KHR_SWAPCHAIN_EXTENSION_NAME
+    // };
+    // bool m_framebufferResized = false;
 
 private:
     static EVulkanInstance *s_instance;

@@ -1,8 +1,10 @@
-#include "instance.h"
+#include "evulkan_core.h"
 
 #include <set>
 #include <vector>
 #include <string>
+#include <iostream>
+
 
 void DestroyDebugUtilsMessengerEXT(VkInstance instance,
     VkDebugUtilsMessengerEXT debugMessenger,
@@ -30,79 +32,38 @@ VkResult CreateDebugUtilsMessengerEXT(VkInstance instance,
     }
 }
 
-EVulkanInstance *EVulkanInstance::s_instance = 0;
+// EVulkanInstance::EVulkanInstance()
+// {
+//     // Device setup and stuff.
+//     VkInstance instance;
+//     GLFWwindow *window;
+//     VkSurfaceKHR surface;
+//     VkPhysicalDevice physicalDevice;
 
-EVulkanInstance* EVulkanInstance::instance()
-{
-    if (s_instance == 0)
-    {
-        s_instance = new EVulkanInstance();
-        std::atexit(killInstance);
-    }
-    return s_instance;
-}
+//     evkCreateWindow(EVkCreateWindow{}, window);
 
-struct EVulkanInstance::EVkCreateWindow
-{
-    bool resizeable;
-    std::string title;
-    int width;
-    int height;
-};
+//     EVkCreateInstance instanceInfo{};
+//     instanceInfo.appTitle = "Vulkan App";
+//     instanceInfo.requiredExtensions = getRequiredExtensions();
+//     instanceInfo.validationLayers = m_validationLayers;
 
-struct EVulkanInstance::EVkCreateInstance
-{
-    const char* appTitle;
-    std::vector<const char*> requiredExtensions;
-    std::vector<const char*> validationLayers;
-};
+//     evkCreateInstance(instanceInfo, &instance);
 
-struct EVulkanInstance::EVkCreateSurface
-{
-    VkInstance instance;
-    GLFWwindow *window;
-};
+//     evkSetupDebugMessenger(instance);
 
-struct EVulkanInstance::EVkPickPhysicalDevice
-{
-};
-
-EVulkanInstance::EVulkanInstance()
-{
-    // Device setup and stuff.
-    VkInstance instance;
-    GLFWwindow *window;
-    VkSurfaceKHR surface;
-    VkPhysicalDevice physicalDevice;
-
-    evkCreateWindow(EVkCreateWindow{}, window);
-
-    EVkCreateInstance instanceInfo{};
-    instanceInfo.appTitle = "Vulkan App";
-    instanceInfo.requiredExtensions = getRequiredExtensions();
-    instanceInfo.validationLayers = m_validationLayers;
-
-    evkCreateInstance(instanceInfo, &instance);
-
-    evkSetupDebugMessenger(instance);
-
-    EVkCreateSurface surfaceInfo{};
-    surfaceInfo.instance = instance;
-    surfaceInfo.window = window;
-    evkCreateSurface(surfaceInfo, &m_surface);
+//     EVkCreateSurface surfaceInfo{};
+//     surfaceInfo.instance = instance;
+//     surfaceInfo.window = window;
+//     evkCreateSurface(surfaceInfo, &m_surface);
     
-    evkPickPhysicalDevice(instance, EVkPickPhysicalDevice{}, &physicalDevice);
+//     evkPickPhysicalDevice(instance, EVkPickPhysicalDevice{}, &physicalDevice);
 
-    m_window = window;
-    m_instance = instance;
-    m_physicalDevice = physicalDevice;
-}
+//     m_window = window;
+//     m_instance = instance;
+//     m_physicalDevice = physicalDevice;
+// }
 
-EVulkanInstance::~EVulkanInstance()
-{
-}
-
-void EVulkanInstance::cleanup(VkInstance instance, GLFWwindow *window, VkSurfaceKHR surface, VkDebugUtilsMessengerEXT debugMessenger)
+void evkCleanup(VkInstance instance, GLFWwindow *window, VkSurfaceKHR surface, VkDebugUtilsMessengerEXT debugMessenger)
 {
     // Device cleanup and stuff.
     if (ENABLE_VALIDATION)
@@ -115,29 +76,39 @@ void EVulkanInstance::cleanup(VkInstance instance, GLFWwindow *window, VkSurface
     glfwTerminate();
 }
 
-void EVulkanInstance::framebufferResizeCallback(GLFWwindow* window, int width, int height)
-{
-    auto app = reinterpret_cast<EVulkanInstance*>(glfwGetWindowUserPointer(window));
-    app->m_framebufferResized = true;
-}
+// void EVulkanInstance::framebufferResizeCallback(GLFWwindow* window, int width, int height)
+// {
+//     auto app = reinterpret_cast<EVulkanInstance*>(glfwGetWindowUserPointer(window));
+//     app->m_framebufferResized = true;
+// }
 
-void EVulkanInstance::evkCreateWindow(EVkCreateWindow params, GLFWwindow *&window)
+// void EVulkanInstance::evkCreateWindow(EVkCreateWindow params, GLFWwindow *&window)
+// {
+//     glfwInit(); // Initialize the GLFW library.
+    
+//     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API); // Don't create OpenGL context.
+//     glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
+
+//     window=glfwCreateWindow(800, 600, "Vulkan", nullptr, nullptr);
+//     glfwSetWindowUserPointer(window, this);
+//     // glfwSetFramebufferSizeCallback(window, framebufferResizeCallback);
+// }
+
+void evkCreateWindow(const EVkCreateWindow params, GLFWwindow *&window)
 {
     glfwInit(); // Initialize the GLFW library.
-    
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API); // Don't create OpenGL context.
     glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
-
     window=glfwCreateWindow(800, 600, "Vulkan", nullptr, nullptr);
-    glfwSetWindowUserPointer(window, this);
+    // glfwSetWindowUserPointer(window, this);
     // glfwSetFramebufferSizeCallback(window, framebufferResizeCallback);
 }
 
-void EVulkanInstance::evkCreateInstance(EVkCreateInstance params, VkInstance *instance)
+void evkCreateInstance(const EVkCreateInstance *pCreateInfo, VkInstance *instance)
 {
     VkApplicationInfo appInfo = {};
     appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
-    appInfo.pApplicationName = params.appTitle;
+    appInfo.pApplicationName = pCreateInfo->appTitle;
     appInfo.applicationVersion = VK_MAKE_VERSION(1,0,0);
     appInfo.pEngineName = "No Engine";
     appInfo.engineVersion = VK_MAKE_VERSION(1,0,0);
@@ -154,8 +125,8 @@ void EVulkanInstance::evkCreateInstance(EVkCreateInstance params, VkInstance *in
     VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo;
     if(ENABLE_VALIDATION)
     {
-        createInfo.enabledLayerCount = static_cast<uint32_t>(m_validationLayers.size());
-        createInfo.ppEnabledLayerNames = m_validationLayers.data();
+        createInfo.enabledLayerCount = static_cast<uint32_t>(pCreateInfo->validationLayers.size());
+        createInfo.ppEnabledLayerNames = pCreateInfo->validationLayers.data();
         populateDebugMessengerCreateInfo(debugCreateInfo);
         createInfo.pNext = (VkDebugUtilsMessengerCreateInfoEXT*) &debugCreateInfo;
     }
@@ -171,7 +142,7 @@ void EVulkanInstance::evkCreateInstance(EVkCreateInstance params, VkInstance *in
     }
 }
 
-std::vector<const char*> EVulkanInstance::getRequiredExtensions()
+std::vector<const char*> getRequiredExtensions()
 {
     uint32_t glfwExtensionCount = 0;
     const char** glfwExtensions;
@@ -187,58 +158,58 @@ std::vector<const char*> EVulkanInstance::getRequiredExtensions()
     return extensions;
 }
 
-bool EVulkanInstance::checkValidationLayerSupport()
-{
-    uint32_t layerCount;
-    vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
+// bool checkValidationLayerSupport()
+// {
+//     uint32_t layerCount;
+//     vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
 
-    std::vector<VkLayerProperties> availableLayers(layerCount);
-    vkEnumerateInstanceLayerProperties(&layerCount, availableLayers.data());
+//     std::vector<VkLayerProperties> availableLayers(layerCount);
+//     vkEnumerateInstanceLayerProperties(&layerCount, availableLayers.data());
 
-    for (const char* layerName : m_validationLayers)
-    {
-        bool layerFound = false;
+//     for (const char* layerName : m_validationLayers)
+//     {
+//         bool layerFound = false;
 
-        for (const auto& layerProperties : availableLayers)
-        {
-            if (strcmp(layerName, layerProperties.layerName) == 0)
-            {
-                layerFound = true;
-                break;
-            }
-        }
+//         for (const auto& layerProperties : availableLayers)
+//         {
+//             if (strcmp(layerName, layerProperties.layerName) == 0)
+//             {
+//                 layerFound = true;
+//                 break;
+//             }
+//         }
 
-        if (!layerFound)
-        {
-            return false;
-        }
-    }
+//         if (!layerFound)
+//         {
+//             return false;
+//         }
+//     }
 
-    return true;
-}
+//     return true;
+// }
 
-void EVulkanInstance::evkSetupDebugMessenger(VkInstance instance)
+void evkSetupDebugMessenger(VkInstance instance, VkDebugUtilsMessengerEXT *pDebugMessenger)
 {
     if (!ENABLE_VALIDATION) return;
 
     VkDebugUtilsMessengerCreateInfoEXT createInfo;
     populateDebugMessengerCreateInfo(createInfo);
 
-    if (CreateDebugUtilsMessengerEXT(instance, &createInfo, nullptr, &m_debugMessenger) != VK_SUCCESS)
+    if (CreateDebugUtilsMessengerEXT(instance, &createInfo, nullptr, pDebugMessenger) != VK_SUCCESS)
     {
         throw std::runtime_error("failed to set up debug messenger.");
     }
 }
 
-void EVulkanInstance::evkCreateSurface(EVkCreateSurface params, VkSurfaceKHR *surface)
+void evkCreateSurface(VkInstance instance, const EVkSurfaceCreate *pCreateInfo, VkSurfaceKHR *surface)
 {
-    if (glfwCreateWindowSurface(params.instance, params.window, nullptr, surface) != VK_SUCCESS)
+    if (glfwCreateWindowSurface(instance, pCreateInfo->window, nullptr, surface) != VK_SUCCESS)
     {
         throw std::runtime_error("failed to create window instance->surface.");
     }
 }
 
-void EVulkanInstance::evkPickPhysicalDevice(VkInstance instance, EVkPickPhysicalDevice params, VkPhysicalDevice *physicalDevice)
+void evkPickPhysicalDevice(VkInstance instance, const EVkPickPhysicalDevice *pPickInfo, VkPhysicalDevice *physicalDevice)
 {
     uint32_t deviceCount = 0;
     vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr);
@@ -253,7 +224,7 @@ void EVulkanInstance::evkPickPhysicalDevice(VkInstance instance, EVkPickPhysical
 
     for (const auto& device : devices)
     {
-        if (isDeviceSuitable(device))
+        if (isDeviceSuitable(device, pPickInfo))
         {
             *physicalDevice = device;
             break;
@@ -266,32 +237,32 @@ void EVulkanInstance::evkPickPhysicalDevice(VkInstance instance, EVkPickPhysical
     }
 }
 
-SwapChainSupportDetails EVulkanInstance::querySwapChainSupport(VkPhysicalDevice device)
+SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice device, const EVkPickPhysicalDevice *pPickInfo)
 {
     SwapChainSupportDetails details;
 
-    vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, m_surface, &details.capabilities);
+    vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, pPickInfo->surface, &details.capabilities);
 
     uint32_t formatCount;
-    vkGetPhysicalDeviceSurfaceFormatsKHR(device, m_surface, &formatCount, nullptr);
+    vkGetPhysicalDeviceSurfaceFormatsKHR(device, pPickInfo->surface, &formatCount, nullptr);
     if (formatCount != 0)
     {
         details.formats.resize(formatCount);
-        vkGetPhysicalDeviceSurfaceFormatsKHR(device, m_surface, &formatCount, details.formats.data());
+        vkGetPhysicalDeviceSurfaceFormatsKHR(device, pPickInfo->surface, &formatCount, details.formats.data());
     }
 
     uint32_t presentModeCount;
-    vkGetPhysicalDeviceSurfacePresentModesKHR(device, m_surface, &presentModeCount, nullptr);
+    vkGetPhysicalDeviceSurfacePresentModesKHR(device, pPickInfo->surface, &presentModeCount, nullptr);
     if (presentModeCount != 0)
     {
         details.presentModes.resize(presentModeCount);
-        vkGetPhysicalDeviceSurfacePresentModesKHR(device, m_surface, &presentModeCount, details.presentModes.data());
+        vkGetPhysicalDeviceSurfacePresentModesKHR(device, pPickInfo->surface, &presentModeCount, details.presentModes.data());
     }
 
     return details;
 }
 
-QueueFamilyIndices EVulkanInstance::findQueueFamilies(VkPhysicalDevice device)
+QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device, const EVkPickPhysicalDevice *pPickInfo)
 {
     QueueFamilyIndices indices;
 
@@ -308,7 +279,7 @@ QueueFamilyIndices EVulkanInstance::findQueueFamilies(VkPhysicalDevice device)
             indices.graphicsFamily = i;
 
             VkBool32 presentSupport = false;
-            vkGetPhysicalDeviceSurfaceSupportKHR(device, i, m_surface, &presentSupport);
+            vkGetPhysicalDeviceSurfaceSupportKHR(device, i, pPickInfo->surface, &presentSupport);
             if (presentSupport)
             {
                 indices.presentFamily = i;
@@ -324,16 +295,16 @@ QueueFamilyIndices EVulkanInstance::findQueueFamilies(VkPhysicalDevice device)
     return indices;
 }
 
-bool EVulkanInstance::isDeviceSuitable(VkPhysicalDevice device)
+bool isDeviceSuitable(VkPhysicalDevice device, const EVkPickPhysicalDevice *pPickInfo)
 {
-    QueueFamilyIndices indices = findQueueFamilies(device);
+    QueueFamilyIndices indices = findQueueFamilies(device, pPickInfo);
 
-    bool extensionsSupported = checkDeviceExtensionSupport(device);
+    bool extensionsSupported = checkDeviceExtensionSupport(device, pPickInfo);
 
     bool swapChainAdequate = false;
     if (extensionsSupported)
     {
-        SwapChainSupportDetails swapChainSupport = querySwapChainSupport(device);
+        SwapChainSupportDetails swapChainSupport = querySwapChainSupport(device, pPickInfo);
         swapChainAdequate = !swapChainSupport.formats.empty() && !swapChainSupport.presentModes.empty();
     }
 
@@ -344,14 +315,14 @@ bool EVulkanInstance::isDeviceSuitable(VkPhysicalDevice device)
         && swapChainAdequate && supportedFeatures.samplerAnisotropy;
 }
 
-bool EVulkanInstance::checkDeviceExtensionSupport(VkPhysicalDevice device)
+bool checkDeviceExtensionSupport(VkPhysicalDevice device, const EVkPickPhysicalDevice *pPickInfo)
 {
     uint32_t extensionCount;
     vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, nullptr);
     std::vector<VkExtensionProperties> availableExtensions(extensionCount);
     vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, availableExtensions.data());
 
-    std::set<std::string> requiredExtensions(m_deviceExtensions.begin(), m_deviceExtensions.end());
+    std::set<std::string> requiredExtensions(pPickInfo->deviceExtensions.begin(), pPickInfo->deviceExtensions.end());
 
     for (const auto& extension : availableExtensions)
     {
@@ -361,7 +332,18 @@ bool EVulkanInstance::checkDeviceExtensionSupport(VkPhysicalDevice device)
     return requiredExtensions.empty();
 }
 
-void EVulkanInstance::populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo)
+VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
+    VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
+    VkDebugUtilsMessageTypeFlagsEXT messageType,
+    const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
+    void* pUserData)
+{
+    std::cerr << "validation layer: " << pCallbackData->pMessage << std::endl;
+
+    return VK_FALSE;
+}
+
+void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo)
 {
     createInfo = {};
     createInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
@@ -373,15 +355,4 @@ void EVulkanInstance::populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCrea
         | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
     createInfo.pfnUserCallback = debugCallback;
     createInfo.pUserData = nullptr;
-}
-
-VKAPI_ATTR VkBool32 VKAPI_CALL EVulkanInstance::debugCallback(
-    VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
-    VkDebugUtilsMessageTypeFlagsEXT messageType,
-    const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
-    void* pUserData)
-{
-    std::cerr << "validation layer: " << pCallbackData->pMessage << std::endl;
-
-    return VK_FALSE;
 }

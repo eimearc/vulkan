@@ -40,12 +40,26 @@ public:
     }
 
 private:
-
     const uint32_t WIDTH = 800;
     const uint32_t HEIGHT = 600;
     const int MAX_FRAMES_IN_FLIGHT = 2;
 
-    EVulkanInstance *instance=nullptr;
+    // EVulkanInstance *instance=nullptr; // Change this.
+
+    GLFWwindow *window;
+    VkSurfaceKHR surface;
+    VkInstance instance;
+    VkPhysicalDevice physicalDevice;
+    VkDebugUtilsMessengerEXT debugMessenger;
+    std::vector<const char*> validationLayers =
+    {
+        "VK_LAYER_LUNARG_standard_validation"
+    };
+    std::vector<const char*> deviceExtensions = 
+    {
+        VK_KHR_SWAPCHAIN_EXTENSION_NAME
+    };
+    bool framebufferResized = false;
 
     VkDevice device;
     VkQueue presentQueue;
@@ -72,7 +86,6 @@ private:
     std::vector<VkFence> inFlightFences;
     std::vector<VkFence> imagesInFlight;
     size_t currentFrame = 0;
-    bool framebufferResized = false;
 
     VkBuffer vertexBuffer;
     VkDeviceMemory vertexBufferMemory;
@@ -101,10 +114,9 @@ private:
     std::vector<Vertex> vertices;
     std::vector<uint16_t> indices;
 
-    // run.cpp
+    void initWindow();
     void initVulkan();
     void mainLoop();
-    void drawFrame();
     void cleanup();
 
     // swap.cpp

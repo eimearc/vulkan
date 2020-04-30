@@ -2,19 +2,34 @@
 
 void EVulkan::initVulkan()
 {
-    instance = EVulkanInstance::instance();
+    evkCreateWindow(EVkCreateWindow{}, window);
+
+    EVkCreateInstance instanceInfo = {};
+    instanceInfo.appTitle = "Vulkan App";
+    instanceInfo.requiredExtensions = getRequiredExtensions();
+    instanceInfo.validationLayers = validationLayers;
+    evkCreateInstance(&instanceInfo, &instance);
+
+    evkSetupDebugMessenger(instance, &debugMessenger);
+
+    EVkSurfaceCreate surfaceInfo{};
+    surfaceInfo.window = window;
+    evkCreateSurface(instance, &surfaceInfo, &surface);
+    
+    EVkPickPhysicalDevice pickInfo = {};
+    pickInfo.surface = surface;
+    evkPickPhysicalDevice(instance, &pickInfo, &physicalDevice);
 
     EVkDeviceCreateInfo deviceInfo = {};
-    deviceInfo.deviceExtensions = instance->m_deviceExtensions;
-    deviceInfo.validationLayers = instance->m_validationLayers;
-    deviceInfo.surface = instance->m_surface;
-    VkPhysicalDevice physicalDevice = instance->m_physicalDevice;
+    deviceInfo.deviceExtensions = deviceExtensions;
+    deviceInfo.validationLayers = validationLayers;
+    deviceInfo.surface = surface;
     evkCreateDevice(physicalDevice, &deviceInfo, &device, &graphicsQueue, &presentQueue);
 
     EVkSwapchainCreateInfo swapchainInfo = {};
-    swapchainInfo.physicalDevice = instance->m_physicalDevice;
-    swapchainInfo.surface = instance->m_surface;
-    swapchainInfo.window = instance->m_window;
+    swapchainInfo.physicalDevice = physicalDevice;
+    swapchainInfo.surface = surface;
+    swapchainInfo.window = window;
     evkCreateSwapchain(device, &swapchainInfo, &swapChain, &swapChainImages, &swapChainImageFormat, &swapChainExtent);
     
     EVkImageViewsCreateInfo imageViewsInfo = {};
@@ -24,7 +39,7 @@ void EVulkan::initVulkan()
 
     EVkRenderPassCreateInfo renderPassInfo = {};
     renderPassInfo.swapChainImageFormat = swapChainImageFormat;
-    renderPassInfo.physicalDevice = instance->m_physicalDevice;
+    renderPassInfo.physicalDevice = physicalDevice;
     evkCreateRenderPass(device, &renderPassInfo, &renderPass);
 
     EVkDescriptorSetLayoutCreateInfo descriptorSetLayoutInfo = {};
@@ -39,7 +54,7 @@ void EVulkan::initVulkan()
     evkCreateGraphicsPipeline(device, &pipelineInfo, &pipelineLayout, &graphicsPipeline);
 
     EVkDepthResourcesCreateInfo depthResourcesInfo = {};
-    depthResourcesInfo.physicalDevice = instance->m_physicalDevice;
+    depthResourcesInfo.physicalDevice = physicalDevice;
     depthResourcesInfo.swapchainExtent = swapChainExtent;
     depthResourcesInfo.swapchainImageFormat = swapChainImageFormat;
     evkCreateDepthResources(device, &depthResourcesInfo, &depthImage, &depthImageView, &depthImageMemory);
@@ -52,26 +67,26 @@ void EVulkan::initVulkan()
     evkCreateFramebuffers(device, &framebuffersInfo, &swapChainFramebuffers);
 
     EVkCommandPoolCreateInfo commandPoolInfo = {};
-    commandPoolInfo.physicalDevice = instance->m_physicalDevice;
-    commandPoolInfo.surface = instance->m_surface;
+    commandPoolInfo.physicalDevice = physicalDevice;
+    commandPoolInfo.surface = surface;
     evkCreateCommandPool(device, &commandPoolInfo, &commandPool);
 
     EVkVertexBufferCreateInfo vertexBufferInfo = {};
     vertexBufferInfo.commandPool = commandPool;
-    vertexBufferInfo.physicalDevice = instance->m_physicalDevice;
+    vertexBufferInfo.physicalDevice = physicalDevice;
     vertexBufferInfo.queue = graphicsQueue;
     vertexBufferInfo.vertices = vertices;
     evkCreateVertexBuffer(device, &vertexBufferInfo, &vertexBuffer, &vertexBufferMemory);
 
     EVkIndexBufferCreateInfo indexBufferInfo = {};
     indexBufferInfo.commandPool = commandPool;
-    indexBufferInfo.physicalDevice = instance->m_physicalDevice;
+    indexBufferInfo.physicalDevice = physicalDevice;
     indexBufferInfo.queue = graphicsQueue;
     indexBufferInfo.indices = indices;
     evkCreateIndexBuffer(device, &indexBufferInfo, &indexBuffer, &indexBufferMemory);
 
     EVkUniformBufferCreateInfo uniformBufferInfo = {};
-    uniformBufferInfo.physicalDevice = instance->m_physicalDevice;
+    uniformBufferInfo.physicalDevice = physicalDevice;
     uniformBufferInfo.swapchainImages = swapChainImages;
     evkCreateUniformBuffers(device, &uniformBufferInfo, &uniformBuffers, &uniformBuffersMemory);
 
@@ -109,25 +124,6 @@ void EVulkan::mainLoop()
 {
     int i = 0;
     std::chrono::steady_clock::time_point startTime, endTime;
-    while(!glfwWindowShouldClose(instance->m_window))
-    {
-        glfwPollEvents();
-        if ((i % 10) == 0) startTime = std::chrono::high_resolution_clock::now();
-        drawFrame();
-        if ((i % 10) == 0)
-        {
-            endTime = std::chrono::high_resolution_clock::now();
-            float time = std::chrono::duration<float, std::chrono::seconds::period>(endTime - startTime).count();
-            // std::cout << "Frame draw time: " << time << std::endl;
-        }
-        ++i;
-    }
-
-    vkDeviceWaitIdle(device);
-}
-
-void EVulkan::drawFrame()
-{
     uint32_t imageIndex;
     EVkDrawFrameInfo info = {};
     info.pInFlightFences = &inFlightFences;
@@ -141,11 +137,28 @@ void EVulkan::drawFrame()
     info.swapchainExtent = swapChainExtent;
     info.pUniformBufferMemory = &uniformBuffersMemory;
     info.pVertices = &vertices;
-    info.physicalDevice = instance->m_physicalDevice;
+    info.physicalDevice = physicalDevice;
     info.commandPool = commandPool;
     info.vertexBuffer = vertexBuffer;
     info.grid = grid;
-    evkDrawFrame(device, &info, &currentFrame, &imagesInFlight, &renderFinishedSemaphores, &imageIndex);
+
+    while(!glfwWindowShouldClose(window))
+    {
+        glfwPollEvents();
+        if ((i % 10) == 0) startTime = std::chrono::high_resolution_clock::now();
+
+        evkDrawFrame(device, &info, &currentFrame, &imagesInFlight, &renderFinishedSemaphores, &imageIndex);
+
+        if ((i % 10) == 0)
+        {
+            endTime = std::chrono::high_resolution_clock::now();
+            float time = std::chrono::duration<float, std::chrono::seconds::period>(endTime - startTime).count();
+            // std::cout << "Frame draw time: " << time << std::endl;
+        }
+        ++i;
+    }
+
+    vkDeviceWaitIdle(device);
 }
 
 void EVulkan::cleanup()
@@ -187,5 +200,12 @@ void EVulkan::cleanup()
 
     vkDestroyDevice(device, nullptr);
 
-    instance->cleanup(instance->m_instance, instance->m_window, instance->m_surface, instance->m_debugMessenger);
+    if (ENABLE_VALIDATION)
+    {
+        DestroyDebugUtilsMessengerEXT(instance, debugMessenger, nullptr);
+    }
+    vkDestroySurfaceKHR(instance, surface, nullptr);
+    vkDestroyInstance(instance, nullptr);
+    glfwDestroyWindow(window);
+    glfwTerminate();
 }

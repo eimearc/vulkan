@@ -9,6 +9,72 @@
 
 #define ENABLE_VALIDATION true
 
+struct EVkCreateWindow
+{
+    bool resizeable;
+    std::string title;
+    int width;
+    int height;
+};
+void evkCreateWindow(
+    const EVkCreateWindow params,
+    GLFWwindow *&window
+);
+
+struct EVkCreateInstance
+{
+    const char* appTitle;
+    std::vector<const char*> requiredExtensions;
+    std::vector<const char*> validationLayers;
+};
+void evkCreateInstance(
+    const EVkCreateInstance *pCreateInfo,
+    VkInstance *instance
+);
+
+void evkSetupDebugMessenger(
+    VkInstance instance,
+    VkDebugUtilsMessengerEXT *pDebugMessenger
+);
+
+struct EVkSurfaceCreate
+{
+    GLFWwindow *window;
+};
+void evkCreateSurface(
+    VkInstance instance,
+    const EVkSurfaceCreate *pCreateInfo,
+    VkSurfaceKHR *surface
+);
+
+struct EVkPickPhysicalDevice
+{
+    VkSurfaceKHR surface;
+    std::vector<const char *> deviceExtensions;
+};
+void evkPickPhysicalDevice(
+    VkInstance instance,
+    const EVkPickPhysicalDevice *pPickInfo,
+    VkPhysicalDevice *physicalDevice
+);
+bool isDeviceSuitable(
+    VkPhysicalDevice device,
+    const EVkPickPhysicalDevice *pPickInfo
+);
+bool checkDeviceExtensionSupport(
+    VkPhysicalDevice device,
+    const EVkPickPhysicalDevice *pPickInfo
+);
+
+void DestroyDebugUtilsMessengerEXT(
+    VkInstance instance,
+    VkDebugUtilsMessengerEXT debugMessenger,
+    const VkAllocationCallbacks* pAllocator
+);
+
+std::vector<const char*> getRequiredExtensions();
+void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
+
 struct EVkDeviceCreateInfo
 {
     VkSurfaceKHR surface;
