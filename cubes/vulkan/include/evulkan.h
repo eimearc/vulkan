@@ -26,8 +26,8 @@
 #include "vertex.h"
 #include "grid.h"
 #include "util.h"
-#include "renderpass.h"
-#include "instance.h"
+// #include "renderpass.h"
+// #include "instance.h"
 
 class EVulkan {
 public:
@@ -43,8 +43,6 @@ private:
     const uint32_t WIDTH = 800;
     const uint32_t HEIGHT = 600;
     const int MAX_FRAMES_IN_FLIGHT = 2;
-
-    // EVulkanInstance *instance=nullptr; // Change this.
 
     GLFWwindow *window;
     VkSurfaceKHR surface;
@@ -119,19 +117,19 @@ private:
     void mainLoop();
     void cleanup();
 
-    // swap.cpp
-    void recreateSwapChain();
-    VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
-    VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes);
-    VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
-    void cleanupSwapChain();
+    // // swap.cpp
+    // void recreateSwapChain();
+    // VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
+    // VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes);
+    // VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
+    // void cleanupSwapChain();
 
-    // render.cpp
-    bool hasStencilComponent(VkFormat format);
-    void createImage(uint32_t width, uint32_t height, VkFormat format,
-        VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties,
-        VkImage& image, VkDeviceMemory& imageMemory);
-    void transitionImageLayout(VkImage image, VkFormat format,
-        VkImageLayout oldLayout, VkImageLayout newLayout);
-    void copyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height);
+    // // render.cpp
+    // bool hasStencilComponent(VkFormat format);
+    // void createImage(uint32_t width, uint32_t height, VkFormat format,
+    //     VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties,
+    //     VkImage& image, VkDeviceMemory& imageMemory);
+    // void transitionImageLayout(VkImage image, VkFormat format,
+    //     VkImageLayout oldLayout, VkImageLayout newLayout);
+    // void copyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height);
 };

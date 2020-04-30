@@ -32,76 +32,12 @@ VkResult CreateDebugUtilsMessengerEXT(VkInstance instance,
     }
 }
 
-// EVulkanInstance::EVulkanInstance()
-// {
-//     // Device setup and stuff.
-//     VkInstance instance;
-//     GLFWwindow *window;
-//     VkSurfaceKHR surface;
-//     VkPhysicalDevice physicalDevice;
-
-//     evkCreateWindow(EVkCreateWindow{}, window);
-
-//     EVkCreateInstance instanceInfo{};
-//     instanceInfo.appTitle = "Vulkan App";
-//     instanceInfo.requiredExtensions = getRequiredExtensions();
-//     instanceInfo.validationLayers = m_validationLayers;
-
-//     evkCreateInstance(instanceInfo, &instance);
-
-//     evkSetupDebugMessenger(instance);
-
-//     EVkCreateSurface surfaceInfo{};
-//     surfaceInfo.instance = instance;
-//     surfaceInfo.window = window;
-//     evkCreateSurface(surfaceInfo, &m_surface);
-    
-//     evkPickPhysicalDevice(instance, EVkPickPhysicalDevice{}, &physicalDevice);
-
-//     m_window = window;
-//     m_instance = instance;
-//     m_physicalDevice = physicalDevice;
-// }
-
-void evkCleanup(VkInstance instance, GLFWwindow *window, VkSurfaceKHR surface, VkDebugUtilsMessengerEXT debugMessenger)
-{
-    // Device cleanup and stuff.
-    if (ENABLE_VALIDATION)
-    {
-        DestroyDebugUtilsMessengerEXT(instance, debugMessenger, nullptr);
-    }
-    vkDestroySurfaceKHR(instance, surface, nullptr);
-    vkDestroyInstance(instance, nullptr);
-    glfwDestroyWindow(window);
-    glfwTerminate();
-}
-
-// void EVulkanInstance::framebufferResizeCallback(GLFWwindow* window, int width, int height)
-// {
-//     auto app = reinterpret_cast<EVulkanInstance*>(glfwGetWindowUserPointer(window));
-//     app->m_framebufferResized = true;
-// }
-
-// void EVulkanInstance::evkCreateWindow(EVkCreateWindow params, GLFWwindow *&window)
-// {
-//     glfwInit(); // Initialize the GLFW library.
-    
-//     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API); // Don't create OpenGL context.
-//     glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
-
-//     window=glfwCreateWindow(800, 600, "Vulkan", nullptr, nullptr);
-//     glfwSetWindowUserPointer(window, this);
-//     // glfwSetFramebufferSizeCallback(window, framebufferResizeCallback);
-// }
-
 void evkCreateWindow(const EVkCreateWindow params, GLFWwindow *&window)
 {
-    glfwInit(); // Initialize the GLFW library.
-    glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API); // Don't create OpenGL context.
+    glfwInit();
+    glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
     window=glfwCreateWindow(800, 600, "Vulkan", nullptr, nullptr);
-    // glfwSetWindowUserPointer(window, this);
-    // glfwSetFramebufferSizeCallback(window, framebufferResizeCallback);
 }
 
 void evkCreateInstance(const EVkCreateInstance *pCreateInfo, VkInstance *instance)
@@ -157,36 +93,6 @@ std::vector<const char*> getRequiredExtensions()
 
     return extensions;
 }
-
-// bool checkValidationLayerSupport()
-// {
-//     uint32_t layerCount;
-//     vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
-
-//     std::vector<VkLayerProperties> availableLayers(layerCount);
-//     vkEnumerateInstanceLayerProperties(&layerCount, availableLayers.data());
-
-//     for (const char* layerName : m_validationLayers)
-//     {
-//         bool layerFound = false;
-
-//         for (const auto& layerProperties : availableLayers)
-//         {
-//             if (strcmp(layerName, layerProperties.layerName) == 0)
-//             {
-//                 layerFound = true;
-//                 break;
-//             }
-//         }
-
-//         if (!layerFound)
-//         {
-//             return false;
-//         }
-//     }
-
-//     return true;
-// }
 
 void evkSetupDebugMessenger(VkInstance instance, VkDebugUtilsMessengerEXT *pDebugMessenger)
 {
