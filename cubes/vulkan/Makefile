@@ -17,7 +17,7 @@ _DEPS_EXT = cube.h grid.h vertex.h util.h
 DEPS = $(patsubst %,$(IDIR)/%,$(_DEPS))
 DEPS += $(patsubst %,$(IDIR_EXT)/%,$(_DEPS_EXT))
 
-_OBJ =  descriptor.o instance.o render.o run.o swap.o buffer.o evulkan_core.o
+_OBJ =  descriptor.o instance.o render.o run.o buffer.o evulkan_core.o
 OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
 
 _OBJ_EXT = util.o
