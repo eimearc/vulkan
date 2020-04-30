@@ -5,6 +5,14 @@
 #include <string>
 #include <iostream>
 
+std::vector<const char*> getRequiredExtensions()
+{
+    uint32_t glfwExtensionCount = 0;
+    const char** glfwExtensions;
+    glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
+    std::vector<const char*> extensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
+    return extensions;
+}
 
 void DestroyDebugUtilsMessengerEXT(VkInstance instance,
     VkDebugUtilsMessengerEXT debugMessenger,
@@ -55,6 +63,10 @@ void evkCreateInstance(const EVkCreateInstance *pCreateInfo, VkInstance *instanc
     createInfo.pApplicationInfo = &appInfo;
     createInfo.enabledLayerCount = 0;
     auto extensions = getRequiredExtensions();
+    for (const auto &e : pCreateInfo->extensions)
+    {
+        extensions.push_back(e);
+    }
     createInfo.enabledExtensionCount = static_cast<uint32_t>(extensions.size());
     createInfo.ppEnabledExtensionNames = extensions.data();
 
@@ -76,22 +88,6 @@ void evkCreateInstance(const EVkCreateInstance *pCreateInfo, VkInstance *instanc
     {
         throw std::runtime_error("failed to create instance->");
     }
-}
-
-std::vector<const char*> getRequiredExtensions()
-{
-    uint32_t glfwExtensionCount = 0;
-    const char** glfwExtensions;
-    glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
-
-    std::vector<const char*> extensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
-
-    if (ENABLE_VALIDATION) 
-    {
-        extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME); // Macro for VK_EXT_debug_utils, used for debug messages.
-    }
-
-    return extensions;
 }
 
 void evkSetupDebugMessenger(VkInstance instance, VkDebugUtilsMessengerEXT *pDebugMessenger)

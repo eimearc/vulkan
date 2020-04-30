@@ -24,7 +24,7 @@ void evkCreateWindow(
 struct EVkCreateInstance
 {
     const char* appTitle;
-    std::vector<const char*> requiredExtensions;
+    std::vector<const char*> extensions;
     std::vector<const char*> validationLayers;
 };
 void evkCreateInstance(
@@ -72,7 +72,7 @@ void DestroyDebugUtilsMessengerEXT(
     const VkAllocationCallbacks* pAllocator
 );
 
-std::vector<const char*> getRequiredExtensions();
+// std::vector<const char*> getRequiredExtensions();
 void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
 
 struct EVkDeviceCreateInfo

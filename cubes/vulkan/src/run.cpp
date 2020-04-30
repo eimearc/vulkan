@@ -6,7 +6,7 @@ void EVulkan::initVulkan()
 
     EVkCreateInstance instanceInfo = {};
     instanceInfo.appTitle = "Vulkan App";
-    instanceInfo.requiredExtensions = getRequiredExtensions();
+    instanceInfo.extensions = {VK_EXT_DEBUG_UTILS_EXTENSION_NAME};
     instanceInfo.validationLayers = validationLayers;
     evkCreateInstance(&instanceInfo, &instance);
 
