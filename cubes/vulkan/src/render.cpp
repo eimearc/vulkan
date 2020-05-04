@@ -86,11 +86,20 @@ void thread::createSecondaryCommandBuffers(const EVkCommandBuffersCreateInfo *pC
 void evkCreateCommandBuffers(
     VkDevice device,
     const EVkCommandBuffersCreateInfo *pCreateInfo,
-    std::vector<VkCommandBuffer> *pCommandBuffers
+    std::vector<VkCommandBuffer> *pCommandBuffers,
+    VkCommandBuffer *pPrimaryCommandBuffer
 )
 {
     // Create primary command buffer.
-    VkCommandBuffer primaryCommandBuffer;
+    // VkCommandBuffer primaryCommandBuffer;
+    // vkAllocateCommandBuffers(device, &cmdBufAllocateInfo, &primaryCommandBuffer));
+
+    VkCommandBufferAllocateInfo allocInfo = {};
+    allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+    allocInfo.commandPool = pCreateInfo->commandPool;
+    allocInfo.commandBufferCount = NUM_THREADS;
+    allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+    vkAllocateCommandBuffers(device, &allocInfo, pPrimaryCommandBuffer);
 
     const size_t &size = pCreateInfo->swapchainFramebuffers.size();
     std::vector<thread> threadPool;

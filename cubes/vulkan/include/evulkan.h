@@ -77,7 +77,8 @@ private:
     VkDescriptorSetLayout descriptorSetLayout;
 
     VkCommandPool commandPool;
-    std::vector<VkCommandBuffer> commandBuffers;
+    VkCommandBuffer primaryCommandBuffer;
+    std::vector<VkCommandBuffer> secondaryCommandBuffers;
 
     std::vector<VkSemaphore> imageAvailableSemaphores;
     std::vector<VkSemaphore> renderFinishedSemaphores;

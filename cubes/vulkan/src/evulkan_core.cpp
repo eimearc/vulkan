@@ -938,7 +938,7 @@ void evkRecreateSwapChain(VkDevice device, const EVkSwapchainRecreateInfo *pCrea
     evkCreateDescriptorSets(device, &descriptorSetInfo, pCreateInfo->pDescriptorSets);
 
     EVkCommandBuffersCreateInfo commandBuffersInfo = pCreateInfo->commandBuffersCreateInfo;
-    evkCreateCommandBuffers(device, &commandBuffersInfo, pCreateInfo->pCommandBuffers);
+    evkCreateCommandBuffers(device, &commandBuffersInfo, pCreateInfo->pCommandBuffers, pCreateInfo->pPrimaryCommandBuffer);
 }
 
 void evkCleanupSwapchain(VkDevice device, const EVkSwapchainCleanupInfo *pCleanupInfo)

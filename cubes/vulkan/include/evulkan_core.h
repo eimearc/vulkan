@@ -338,7 +338,8 @@ struct EVkCommandBuffersCreateInfo
 void evkCreateCommandBuffers(
     VkDevice device,
     const EVkCommandBuffersCreateInfo *pCreateInfo,
-    std::vector<VkCommandBuffer> *pCommandBuffers
+    std::vector<VkCommandBuffer> *pCommandBuffers,
+    VkCommandBuffer *pPrimaryCommandBuffer
 );
 
 struct EVkSyncObjectsCreateInfo
@@ -402,6 +403,7 @@ struct EVkSwapchainRecreateInfo
     VkDescriptorPool *pDescriptorPool;
     std::vector<VkDescriptorSet> *pDescriptorSets;
     std::vector<VkCommandBuffer> *pCommandBuffers;
+    VkCommandBuffer *pPrimaryCommandBuffer;
 
     EVkSwapchainCreateInfo swapchainCreateInfo;
     EVkImageViewsCreateInfo imageViewsCreateInfo;

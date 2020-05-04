@@ -112,7 +112,7 @@ void EVulkan::initVulkan()
     commandBuffersInfo.swapchainExtent = swapChainExtent;
     commandBuffersInfo.swapchainFramebuffers = swapChainFramebuffers;
     commandBuffersInfo.vertexBuffer = vertexBuffer;
-    evkCreateCommandBuffers(device, &commandBuffersInfo, &commandBuffers);
+    evkCreateCommandBuffers(device, &commandBuffersInfo, &secondaryCommandBuffers, &primaryCommandBuffer);
 
     EVkSyncObjectsCreateInfo syncObjectsInfo = {};
     syncObjectsInfo.maxFramesInFlight = MAX_FRAMES_IN_FLIGHT;
@@ -130,7 +130,7 @@ void EVulkan::mainLoop()
     info.pImageAvailableSemaphores = &imageAvailableSemaphores;
     info.swapchain = swapChain;
     info.maxFramesInFlight = MAX_FRAMES_IN_FLIGHT;
-    info.pCommandBuffers = &commandBuffers;
+    info.pCommandBuffers = &secondaryCommandBuffers;
     info.graphicsQueue = graphicsQueue;
     info.presentQueue = presentQueue;
     info.pFramebufferResized = &framebufferResized;
@@ -169,7 +169,7 @@ void EVulkan::cleanup()
     cleanupInfo.depthImageMemory = depthImageMemory;
     cleanupInfo.swapchainFramebuffers = swapChainFramebuffers;
     cleanupInfo.commandPool = commandPool;
-    cleanupInfo.pCommandBuffers = &commandBuffers;
+    cleanupInfo.pCommandBuffers = &secondaryCommandBuffers;
     cleanupInfo.graphicsPipeline = graphicsPipeline;
     cleanupInfo.pipelineLayout = pipelineLayout;
     cleanupInfo.renderPass = renderPass;
