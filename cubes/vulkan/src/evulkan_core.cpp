@@ -765,7 +765,8 @@ void evkDrawFrame(
     const std::vector<VkFence> &inFlightFences = *(pDrawInfo->pInFlightFences);
     const std::vector<VkSemaphore> &imageAvailableSemaphores = *(pDrawInfo->pImageAvailableSemaphores);
     std::vector<VkFence> &imagesInFlight = *(pImagesInFlight);
-    const std::vector<VkCommandBuffer> &commandBuffers = *(pDrawInfo->pCommandBuffers);
+    // const std::vector<VkCommandBuffer> &commandBuffers = *(pDrawInfo->pCommandBuffers);
+    const VkCommandBuffer &commandBuffer = pDrawInfo->primaryCommandBuffer;
 
     vkWaitForFences(device, 1, &inFlightFences[*pCurrentFrame], VK_TRUE, UINT64_MAX);
 
@@ -822,7 +823,8 @@ void evkDrawFrame(
     submitInfo.pWaitDstStageMask = waitStages;
 
     submitInfo.commandBufferCount = 1;
-    submitInfo.pCommandBuffers = &commandBuffers[imageIndex];
+    // submitInfo.pCommandBuffers = &commandBuffers[imageIndex];
+    submitInfo.pCommandBuffers = &commandBuffer;
 
     VkSemaphore signalSemaphores[] = {(*pRenderFinishedSemaphores)[*pCurrentFrame]};
     submitInfo.signalSemaphoreCount = 1;

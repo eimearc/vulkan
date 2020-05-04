@@ -365,6 +365,7 @@ struct EVkDrawFrameInfo
     VkSwapchainKHR swapchain;
     size_t maxFramesInFlight;
     std::vector<VkCommandBuffer> *pCommandBuffers;
+    VkCommandBuffer primaryCommandBuffer;
     VkQueue graphicsQueue;
     VkQueue presentQueue;
     bool *pFramebufferResized;

@@ -143,6 +143,7 @@ void EVulkan::mainLoop()
     info.commandPool = commandPool;
     info.vertexBuffer = vertexBuffer;
     info.grid = grid;
+    info.primaryCommandBuffer = primaryCommandBuffer;
 
     while(!glfwWindowShouldClose(window))
     {
