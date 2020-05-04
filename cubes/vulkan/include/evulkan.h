@@ -76,7 +76,7 @@ private:
     VkRenderPass renderPass;
     VkDescriptorSetLayout descriptorSetLayout;
 
-    VkCommandPool commandPool;
+    std::vector<VkCommandPool> commandPools;
     std::vector<VkCommandBuffer> commandBuffers;
 
     std::vector<VkSemaphore> imageAvailableSemaphores;

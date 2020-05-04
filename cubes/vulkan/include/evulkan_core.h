@@ -9,6 +9,8 @@
 
 #define ENABLE_VALIDATION true
 
+const size_t NUM_THREADS = 1;
+
 struct EVkCreateWindow
 {
     bool resizeable;
@@ -229,17 +231,17 @@ struct EVkCommandPoolCreateInfo
     VkPhysicalDevice physicalDevice;
     VkSurfaceKHR surface;
 };
-void evkCreateCommandPool(
+void evkCreateCommandPools(
     VkDevice device,
     const EVkCommandPoolCreateInfo *pCreateInfo,
-    VkCommandPool *pCommandPool);
+    std::vector<VkCommandPool> *pCommandPool);
 
 struct EVkVertexBufferCreateInfo
 {
     std::vector<Vertex> vertices;
     VkPhysicalDevice physicalDevice;
     VkQueue queue;
-    VkCommandPool commandPool;
+    std::vector<VkCommandPool> commandPools;
 };
 void evkCreateVertexBuffer(
     VkDevice device,
@@ -252,7 +254,7 @@ struct EVkIndexBufferCreateInfo
     std::vector<uint16_t> indices;
     VkPhysicalDevice physicalDevice;
     VkQueue queue;
-    VkCommandPool commandPool;
+    std::vector<VkCommandPool> commandPools;
 };
 void evkCreateIndexBuffer(
     VkDevice device,
@@ -323,7 +325,7 @@ void evkCreateDescriptorSets(
 struct EVkCommandBuffersCreateInfo
 {
     std::vector<VkFramebuffer> swapchainFramebuffers;
-    VkCommandPool commandPool;
+    std::vector<VkCommandPool> commandPools;
     VkRenderPass renderPass;
     VkPipeline graphicsPipeline;
     VkPipelineLayout pipelineLayout;
@@ -367,7 +369,7 @@ struct EVkDrawFrameInfo
     std::vector<VkDeviceMemory> *pUniformBufferMemory;
     std::vector<Vertex> *pVertices;
     VkPhysicalDevice physicalDevice;
-    VkCommandPool commandPool;
+    std::vector<VkCommandPool> commandPools;
     VkBuffer vertexBuffer;
     Grid grid;
 };
@@ -423,7 +425,7 @@ struct EVkSwapchainCleanupInfo
     VkImageView depthImageView;
     VkDeviceMemory depthImageMemory;
     std::vector<VkFramebuffer> swapchainFramebuffers;
-    VkCommandPool commandPool;
+    std::vector<VkCommandPool> commandPools;
     std::vector<VkCommandBuffer> *pCommandBuffers;
     VkPipeline graphicsPipeline;
     VkPipelineLayout pipelineLayout;
@@ -450,7 +452,7 @@ struct EVkVertexBufferUpdateInfo
    std::vector<Vertex> *pVertices;
    Grid grid; 
    VkPhysicalDevice physicalDevice;
-   VkCommandPool commandPool;
+   std::vector<VkCommandPool> commandPools;
    VkQueue graphicsQueue;
    VkBuffer vertexBuffer;
 };

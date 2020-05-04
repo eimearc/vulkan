@@ -69,17 +69,17 @@ void EVulkan::initVulkan()
     EVkCommandPoolCreateInfo commandPoolInfo = {};
     commandPoolInfo.physicalDevice = physicalDevice;
     commandPoolInfo.surface = surface;
-    evkCreateCommandPool(device, &commandPoolInfo, &commandPool);
+    evkCreateCommandPools(device, &commandPoolInfo, &commandPools);
 
     EVkVertexBufferCreateInfo vertexBufferInfo = {};
-    vertexBufferInfo.commandPool = commandPool;
+    vertexBufferInfo.commandPools = commandPools;
     vertexBufferInfo.physicalDevice = physicalDevice;
     vertexBufferInfo.queue = graphicsQueue;
     vertexBufferInfo.vertices = vertices;
     evkCreateVertexBuffer(device, &vertexBufferInfo, &vertexBuffer, &vertexBufferMemory);
 
     EVkIndexBufferCreateInfo indexBufferInfo = {};
-    indexBufferInfo.commandPool = commandPool;
+    indexBufferInfo.commandPools = commandPools;
     indexBufferInfo.physicalDevice = physicalDevice;
     indexBufferInfo.queue = graphicsQueue;
     indexBufferInfo.indices = indices;
@@ -102,7 +102,7 @@ void EVulkan::initVulkan()
     evkCreateDescriptorSets(device, &descriptorSetInfo, &descriptorSets);
 
     EVkCommandBuffersCreateInfo commandBuffersInfo = {};
-    commandBuffersInfo.commandPool = commandPool;
+    commandBuffersInfo.commandPools = commandPools;
     commandBuffersInfo.descriptorSets = descriptorSets;
     commandBuffersInfo.graphicsPipeline = graphicsPipeline;
     commandBuffersInfo.indexBuffer = indexBuffer;
@@ -138,7 +138,7 @@ void EVulkan::mainLoop()
     info.pUniformBufferMemory = &uniformBuffersMemory;
     info.pVertices = &vertices;
     info.physicalDevice = physicalDevice;
-    info.commandPool = commandPool;
+    info.commandPools = commandPools;
     info.vertexBuffer = vertexBuffer;
     info.grid = grid;
 
@@ -168,7 +168,7 @@ void EVulkan::cleanup()
     cleanupInfo.depthImageView = depthImageView;
     cleanupInfo.depthImageMemory = depthImageMemory;
     cleanupInfo.swapchainFramebuffers = swapChainFramebuffers;
-    cleanupInfo.commandPool = commandPool;
+    cleanupInfo.commandPools = commandPools;
     cleanupInfo.pCommandBuffers = &commandBuffers;
     cleanupInfo.graphicsPipeline = graphicsPipeline;
     cleanupInfo.pipelineLayout = pipelineLayout;
@@ -196,7 +196,10 @@ void EVulkan::cleanup()
         vkDestroyFence(device, inFlightFences[i], nullptr);
     }
 
-    vkDestroyCommandPool(device, commandPool, nullptr);
+    for (size_t i = 0; i < commandPools.size(); ++i)
+    {
+        vkDestroyCommandPool(device, commandPools[i], nullptr);
+    }
 
     vkDestroyDevice(device, nullptr);
 

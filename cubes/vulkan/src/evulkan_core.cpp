@@ -723,10 +723,11 @@ void evkCreateFramebuffers(
     }
 }
 
-void evkCreateCommandPool(
+// Create one per thread.
+void evkCreateCommandPools(
     VkDevice device,
     const EVkCommandPoolCreateInfo *pCreateInfo,
-    VkCommandPool *pCommandPool)
+    std::vector<VkCommandPool> *pCommandPool)
 {
     QueueFamilyIndices queueFamilyIndices = findQueueFamilies(pCreateInfo->physicalDevice, pCreateInfo->surface);
     VkCommandPoolCreateInfo poolInfo = {};
@@ -734,9 +735,14 @@ void evkCreateCommandPool(
     poolInfo.queueFamilyIndex = queueFamilyIndices.graphicsFamily.value();
     poolInfo.flags = 0;
 
-    if (vkCreateCommandPool(device, &poolInfo, nullptr, pCommandPool) != VK_SUCCESS)
+    for (size_t i = 0; i < NUM_THREADS; ++i)
     {
-        throw std::runtime_error("failed to create command pool.");
+        VkCommandPool c;
+        if (vkCreateCommandPool(device, &poolInfo, nullptr, &c) != VK_SUCCESS)
+        {
+            throw std::runtime_error("failed to create command pool.");
+        }
+        pCommandPool->push_back(c);
     }
 }
 
@@ -823,7 +829,7 @@ void evkDrawFrame(
     EVkVertexBufferUpdateInfo vUpdateInfo = {};
     vUpdateInfo.pVertices = pDrawInfo->pVertices;
     vUpdateInfo.physicalDevice = pDrawInfo->physicalDevice;
-    vUpdateInfo.commandPool = pDrawInfo->commandPool;
+    vUpdateInfo.commandPools = pDrawInfo->commandPools;
     vUpdateInfo.graphicsQueue = pDrawInfo->graphicsQueue;
     vUpdateInfo.vertexBuffer = pDrawInfo->vertexBuffer;
     vUpdateInfo.grid = pDrawInfo->grid;
@@ -897,7 +903,7 @@ void evkRecreateSwapChain(VkDevice device, const EVkSwapchainRecreateInfo *pCrea
     cleanupInfo.depthImage = *pCreateInfo->pDepthImage;
     cleanupInfo.depthImageView = *pCreateInfo->pDepthImageView;
     cleanupInfo.swapchainFramebuffers = *pCreateInfo->pSwapchainFramebuffers;
-    cleanupInfo.commandPool = pCreateInfo->commandBuffersCreateInfo.commandPool;
+    cleanupInfo.commandPools = pCreateInfo->commandBuffersCreateInfo.commandPools;
     cleanupInfo.pCommandBuffers = pCreateInfo->pCommandBuffers;
     cleanupInfo.graphicsPipeline = *pCreateInfo->pPipeline;
     cleanupInfo.pipelineLayout = *pCreateInfo->pPipelineLayout;
@@ -953,7 +959,13 @@ void evkCleanupSwapchain(VkDevice device, const EVkSwapchainCleanupInfo *pCleanu
         vkDestroyFramebuffer(device, framebuffer, nullptr);
     }
 
-    vkFreeCommandBuffers(device, pCleanupInfo->commandPool, static_cast<uint32_t>(pCleanupInfo->pCommandBuffers->size()), pCleanupInfo->pCommandBuffers->data());
+    for (size_t i = 0; i < pCleanupInfo->commandPools.size(); ++i)
+    {
+        vkFreeCommandBuffers(
+            device, pCleanupInfo->commandPools[i],
+            static_cast<uint32_t>(pCleanupInfo->pCommandBuffers->size()),
+            pCleanupInfo->pCommandBuffers->data());
+    }
 
     vkDestroyPipeline(device, pCleanupInfo->graphicsPipeline, nullptr);
     vkDestroyPipelineLayout(device, pCleanupInfo->pipelineLayout, nullptr);
