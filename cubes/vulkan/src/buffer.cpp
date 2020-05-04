@@ -68,7 +68,7 @@ void evkCreateIndexBuffer(
         VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
         pBuffer, pBufferMemory);
 
-    copyBuffer(device, pCreateInfo->commandPools[0], pCreateInfo->queue, stagingBuffer, *pBuffer, bufferSize);
+    copyBuffer(device, pCreateInfo->commandPool, pCreateInfo->queue, stagingBuffer, *pBuffer, bufferSize);
 
     vkDestroyBuffer(device, stagingBuffer, nullptr);
     vkFreeMemory(device, stagingBufferMemory, nullptr);
@@ -136,7 +136,7 @@ void evkCreateVertexBuffer(
         pBufferMemory);
 
     // Copy the vertex data from the staging buffer to the device-local buffer.
-    copyBuffer(device, pCreateInfo->commandPools[0], pCreateInfo->queue, stagingBuffer, *pBuffer, bufferSize);
+    copyBuffer(device, pCreateInfo->commandPool, pCreateInfo->queue, stagingBuffer, *pBuffer, bufferSize);
 
     vkDestroyBuffer(device, stagingBuffer, nullptr);
     vkFreeMemory(device, stagingBufferMemory, nullptr);
@@ -189,7 +189,7 @@ void evkUpdateVertexBuffer(VkDevice device, const EVkVertexBufferUpdateInfo *pUp
     // Copy the vertex data from the staging buffer to the device-local buffer.
     copyBuffer(
         device,
-        pUpdateInfo->commandPools[0],
+        pUpdateInfo->commandPool,
         pUpdateInfo->graphicsQueue,
         stagingBuffer, pUpdateInfo->vertexBuffer, bufferSize);
 

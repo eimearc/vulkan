@@ -89,12 +89,15 @@ void evkCreateCommandBuffers(
     std::vector<VkCommandBuffer> *pCommandBuffers
 )
 {
+    // Create primary command buffer.
+    VkCommandBuffer primaryCommandBuffer;
+
     const size_t &size = pCreateInfo->swapchainFramebuffers.size();
     std::vector<thread> threadPool;
 
     for (int j = 0; j < NUM_THREADS; ++j)
     {
-        thread t(device, pCreateInfo->commandPools[j], size);
+        thread t(device, pCreateInfo->commandPool, size);
         t.createSecondaryCommandBuffers(pCreateInfo);
         threadPool.push_back(t);
     }

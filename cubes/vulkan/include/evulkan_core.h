@@ -231,17 +231,17 @@ struct EVkCommandPoolCreateInfo
     VkPhysicalDevice physicalDevice;
     VkSurfaceKHR surface;
 };
-void evkCreateCommandPools(
+void evkCreateCommandPool(
     VkDevice device,
     const EVkCommandPoolCreateInfo *pCreateInfo,
-    std::vector<VkCommandPool> *pCommandPool);
+    VkCommandPool *pCommandPool);
 
 struct EVkVertexBufferCreateInfo
 {
     std::vector<Vertex> vertices;
     VkPhysicalDevice physicalDevice;
     VkQueue queue;
-    std::vector<VkCommandPool> commandPools;
+    VkCommandPool commandPool;
 };
 void evkCreateVertexBuffer(
     VkDevice device,
@@ -254,7 +254,7 @@ struct EVkIndexBufferCreateInfo
     std::vector<uint16_t> indices;
     VkPhysicalDevice physicalDevice;
     VkQueue queue;
-    std::vector<VkCommandPool> commandPools;
+    VkCommandPool commandPool;
 };
 void evkCreateIndexBuffer(
     VkDevice device,
@@ -325,7 +325,7 @@ void evkCreateDescriptorSets(
 struct EVkCommandBuffersCreateInfo
 {
     std::vector<VkFramebuffer> swapchainFramebuffers;
-    std::vector<VkCommandPool> commandPools;
+    VkCommandPool commandPool;
     VkRenderPass renderPass;
     VkPipeline graphicsPipeline;
     VkPipelineLayout pipelineLayout;
@@ -369,7 +369,7 @@ struct EVkDrawFrameInfo
     std::vector<VkDeviceMemory> *pUniformBufferMemory;
     std::vector<Vertex> *pVertices;
     VkPhysicalDevice physicalDevice;
-    std::vector<VkCommandPool> commandPools;
+    VkCommandPool commandPool;
     VkBuffer vertexBuffer;
     Grid grid;
 };
@@ -425,7 +425,7 @@ struct EVkSwapchainCleanupInfo
     VkImageView depthImageView;
     VkDeviceMemory depthImageMemory;
     std::vector<VkFramebuffer> swapchainFramebuffers;
-    std::vector<VkCommandPool> commandPools;
+    VkCommandPool commandPool;
     std::vector<VkCommandBuffer> *pCommandBuffers;
     VkPipeline graphicsPipeline;
     VkPipelineLayout pipelineLayout;
@@ -452,7 +452,7 @@ struct EVkVertexBufferUpdateInfo
    std::vector<Vertex> *pVertices;
    Grid grid; 
    VkPhysicalDevice physicalDevice;
-   std::vector<VkCommandPool> commandPools;
+   VkCommandPool commandPool;
    VkQueue graphicsQueue;
    VkBuffer vertexBuffer;
 };
