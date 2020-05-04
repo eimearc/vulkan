@@ -69,6 +69,7 @@ void EVulkan::initVulkan()
     EVkCommandPoolCreateInfo commandPoolInfo = {};
     commandPoolInfo.physicalDevice = physicalDevice;
     commandPoolInfo.surface = surface;
+    commandPoolInfo.flags = 0;
     evkCreateCommandPool(device, &commandPoolInfo, &commandPool);
 
     EVkVertexBufferCreateInfo vertexBufferInfo = {};
@@ -112,6 +113,7 @@ void EVulkan::initVulkan()
     commandBuffersInfo.swapchainExtent = swapChainExtent;
     commandBuffersInfo.swapchainFramebuffers = swapChainFramebuffers;
     commandBuffersInfo.vertexBuffer = vertexBuffer;
+    commandBuffersInfo.poolCreateInfo = commandPoolInfo;
     evkCreateCommandBuffers(device, &commandBuffersInfo, &secondaryCommandBuffers, &primaryCommandBuffer);
 
     EVkSyncObjectsCreateInfo syncObjectsInfo = {};

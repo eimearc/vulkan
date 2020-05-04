@@ -723,22 +723,6 @@ void evkCreateFramebuffers(
     }
 }
 
-void evkCreateCommandPool(
-    VkDevice device,
-    const EVkCommandPoolCreateInfo *pCreateInfo,
-    VkCommandPool *pCommandPool)
-{
-    QueueFamilyIndices queueFamilyIndices = findQueueFamilies(pCreateInfo->physicalDevice, pCreateInfo->surface);
-    VkCommandPoolCreateInfo poolInfo = {};
-    poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-    poolInfo.queueFamilyIndex = queueFamilyIndices.graphicsFamily.value();
-    poolInfo.flags = 0;
-    if (vkCreateCommandPool(device, &poolInfo, nullptr, pCommandPool) != VK_SUCCESS)
-    {
-        throw std::runtime_error("failed to create command pool.");
-    }
-}
-
 void beginSingleTimeCommands(VkDevice device, VkCommandPool commandPool, VkCommandBuffer *pCommandBuffer)
 {
     VkCommandBufferAllocateInfo allocInfo = {};

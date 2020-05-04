@@ -11,19 +11,19 @@ struct thread
     size_t size;
     VkDevice device;
 
-    thread(VkDevice device, VkCommandPool commandPool, size_t size);
+    thread(VkDevice device, const EVkCommandPoolCreateInfo *pCreateInfo, size_t size);
     void createSecondaryCommandBuffers(const EVkCommandBuffersCreateInfo *pCreateInfo);
 };
 
-thread::thread(VkDevice _device, VkCommandPool _commandPool, size_t _size)
+thread::thread(VkDevice _device, const EVkCommandPoolCreateInfo *pCreateInfo, size_t _size)
 {
     device = _device;
-    commandPool = _commandPool;
+    evkCreateCommandPool(device, pCreateInfo, &commandPool);
     size = _size;
 
     VkCommandBufferAllocateInfo allocInfo = {};
     allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-    allocInfo.commandPool = commandPool;
+    allocInfo.commandPool = commandPool; // Need to create own command pool.
     allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
     allocInfo.commandBufferCount = size;
     commandBuffers.resize(size);
@@ -31,6 +31,22 @@ thread::thread(VkDevice _device, VkCommandPool _commandPool, size_t _size)
     if (vkAllocateCommandBuffers(device, &allocInfo, commandBuffers.data()) != VK_SUCCESS)
     {
         throw std::runtime_error("failed to allocate command buffers.");
+    }
+}
+
+void evkCreateCommandPool(
+    VkDevice device,
+    const EVkCommandPoolCreateInfo *pCreateInfo,
+    VkCommandPool *pCommandPool)
+{
+    QueueFamilyIndices queueFamilyIndices = findQueueFamilies(pCreateInfo->physicalDevice, pCreateInfo->surface);
+    VkCommandPoolCreateInfo poolInfo = {};
+    poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+    poolInfo.queueFamilyIndex = queueFamilyIndices.graphicsFamily.value();
+    poolInfo.flags = pCreateInfo->flags;
+    if (vkCreateCommandPool(device, &poolInfo, nullptr, pCommandPool) != VK_SUCCESS)
+    {
+        throw std::runtime_error("failed to create command pool.");
     }
 }
 
@@ -91,9 +107,6 @@ void evkCreateCommandBuffers(
 )
 {
     // Create primary command buffer.
-    // VkCommandBuffer primaryCommandBuffer;
-    // vkAllocateCommandBuffers(device, &cmdBufAllocateInfo, &primaryCommandBuffer));
-
     VkCommandBufferAllocateInfo allocInfo = {};
     allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
     allocInfo.commandPool = pCreateInfo->commandPool;
@@ -103,10 +116,12 @@ void evkCreateCommandBuffers(
 
     const size_t &size = pCreateInfo->swapchainFramebuffers.size();
     std::vector<thread> threadPool;
+    EVkCommandPoolCreateInfo poolCreateInfo = pCreateInfo->poolCreateInfo;
+    poolCreateInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
 
     for (int j = 0; j < NUM_THREADS; ++j)
     {
-        thread t(device, pCreateInfo->commandPool, size);
+        thread t(device, &poolCreateInfo, size);
         t.createSecondaryCommandBuffers(pCreateInfo);
         threadPool.push_back(t);
     }

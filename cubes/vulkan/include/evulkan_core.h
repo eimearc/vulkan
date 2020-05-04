@@ -230,6 +230,7 @@ struct EVkCommandPoolCreateInfo
 {
     VkPhysicalDevice physicalDevice;
     VkSurfaceKHR surface;
+    VkCommandPoolCreateFlags flags;
 };
 void evkCreateCommandPool(
     VkDevice device,
@@ -326,6 +327,7 @@ struct EVkCommandBuffersCreateInfo
 {
     std::vector<VkFramebuffer> swapchainFramebuffers;
     VkCommandPool commandPool;
+    EVkCommandPoolCreateInfo poolCreateInfo;
     VkRenderPass renderPass;
     VkPipeline graphicsPipeline;
     VkPipelineLayout pipelineLayout;
