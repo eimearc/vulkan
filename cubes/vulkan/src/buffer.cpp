@@ -162,41 +162,6 @@ void evkUpdateUniformBuffer(VkDevice device, const EVkUniformBufferUpdateInfo *p
     vkUnmapMemory(device, uniformBufferMemory[pUpdateInfo->currentImage]);
 }
 
-void evkUpdateVertexBuffer(VkDevice device, const EVkVertexBufferUpdateInfo *pUpdateInfo)
-{
-    update(*pUpdateInfo->pVertices, pUpdateInfo->grid);
-    
-    VkDeviceSize bufferSize = sizeof((pUpdateInfo->pVertices)[0]) * pUpdateInfo->pVertices->size();
-
-    // Use a host visible buffer as a temporary buffer.
-    VkBuffer stagingBuffer;
-    VkDeviceMemory stagingBufferMemory;
-    createBuffer(
-        device,
-        pUpdateInfo->physicalDevice,
-        bufferSize,
-        VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-        &stagingBuffer, &stagingBufferMemory);
-
-    // Copy vertex data to the staging buffer by mapping the buffer memory into CPU
-    // accessible memory.
-    void *data;
-    vkMapMemory(device, stagingBufferMemory, 0, bufferSize, 0, &data);
-    memcpy(data, pUpdateInfo->pVertices->data(), (size_t) bufferSize);
-    vkUnmapMemory(device, stagingBufferMemory);
-
-    // Copy the vertex data from the staging buffer to the device-local buffer.
-    copyBuffer(
-        device,
-        pUpdateInfo->commandPool,
-        pUpdateInfo->graphicsQueue,
-        stagingBuffer, pUpdateInfo->vertexBuffer, bufferSize);
-
-    vkDestroyBuffer(device, stagingBuffer, nullptr);
-    vkFreeMemory(device, stagingBufferMemory, nullptr);
-}
-
 void createBuffer(
     VkDevice device,
     VkPhysicalDevice physicalDevice,
