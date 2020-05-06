@@ -28,9 +28,8 @@ thread::thread(VkDevice _device, const EVkCommandPoolCreateInfo *pCreateInfo, si
 
 void thread::cleanup()
 {
-    // vkDeviceWaitIdle(device);
     vkFreeCommandBuffers(device, commandPool, commandBuffers.size(), commandBuffers.data());
-    std::cout << "Successfully cleaned up thread\n";
+    vkDestroyCommandPool(device, commandPool, nullptr);
 }
 
 void thread::createSecondaryCommandBuffers(const EVkCommandBuffersCreateInfo *pCreateInfo)

@@ -964,11 +964,6 @@ void evkCleanupSwapchain(VkDevice device, const EVkSwapchainCleanupInfo *pCleanu
         vkDestroyFramebuffer(device, framebuffer, nullptr);
     }
 
-    // vkFreeCommandBuffers(
-    //     device, pCleanupInfo->commandPool,
-    //     static_cast<uint32_t>(pCleanupInfo->pCommandBuffers->size()),
-    //     pCleanupInfo->pCommandBuffers->data());
-
     vkDestroyPipeline(device, pCleanupInfo->graphicsPipeline, nullptr);
     vkDestroyPipelineLayout(device, pCleanupInfo->pipelineLayout, nullptr);
     vkDestroyRenderPass(device, pCleanupInfo->renderPass, nullptr);
