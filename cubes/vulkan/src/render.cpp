@@ -34,7 +34,6 @@ void thread::cleanup()
 
 void thread::createSecondaryCommandBuffers(const EVkCommandBuffersCreateInfo *pCreateInfo)
 {
-    // Do one per cube.
     for (size_t i = 0; i < size; i++)
     {
         VkCommandBufferInheritanceInfo inheritanceInfo = {};
@@ -63,27 +62,26 @@ void thread::createSecondaryCommandBuffers(const EVkCommandBuffersCreateInfo *pC
         // Update here - update vertices.
         const size_t &numIndices = pCreateInfo->indices.size();
         const size_t myBaseIndex = index*(numIndices/NUM_THREADS);
-        std::cout << "\tNumber of indices to draw: " << pCreateInfo->indices.size() << " my index: " << index << std::endl;
-        std::cout << "Num threads: " << NUM_THREADS << " num indices each: " << numIndices/NUM_THREADS << " my base index: " << myBaseIndex << std::endl;
         vkCmdDrawIndexed(commandBuffers[i], static_cast<uint32_t>(pCreateInfo->indices.size()/2), 1, myBaseIndex, 0, 0);
 
         if (vkEndCommandBuffer(commandBuffers[i]) != VK_SUCCESS)
         {
             throw std::runtime_error("failed to record command buffer.");
         }
-        std::cout << "\tCommand buffer:" << commandBuffers[i] << std::endl;
     }
 }
 
 void evkCreateCommandBuffers(
     VkDevice device,
     const EVkCommandBuffersCreateInfo *pCreateInfo,
-    std::vector<VkCommandBuffer> *pCommandBuffers,
+    // std::vector<VkCommandBuffer> *pCommandBuffers,
     VkCommandBuffer *pPrimaryCommandBuffer,
     std::vector<thread> *pThreadPool
 )
 {
     thread::reset();
+
+    static int imageIndex = 0;
 
     // Create primary command buffer.
     VkCommandBufferAllocateInfo allocInfo = {};
@@ -155,6 +153,18 @@ void evkCreateCommandBuffers(
     std::cout << "Created command buffers\n";
 
     *pThreadPool = threadPool;
+    imageIndex = (imageIndex+1)%3;
+}
+
+void evkUpdateScene(
+    VkDevice device,
+    const EVkSceneUpdateInfo *pUpdateInfo,
+    VkCommandBuffer *pPrimaryCommandBuffer,
+    std::vector<thread> *pThreadPool
+)
+{
+    evkUpdateVertexBuffer(device, pUpdateInfo->pVertexUpdateInfo);
+    evkCreateCommandBuffers(device, pUpdateInfo->pCommandBuffersCreateInfo, pPrimaryCommandBuffer, pThreadPool);
 }
 
 void evkCreateSyncObjects(

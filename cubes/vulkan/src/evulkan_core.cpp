@@ -784,7 +784,7 @@ void evkDrawFrame(
     const std::vector<VkSemaphore> &imageAvailableSemaphores = *(pDrawInfo->pImageAvailableSemaphores);
     std::vector<VkFence> &imagesInFlight = *(pImagesInFlight);
     const VkQueue &graphicsQueue = pDrawInfo->graphicsQueue;
-    const EVkCommandBuffersCreateInfo *commandBuffersInfo = pDrawInfo->pCommandBuffersCreateInfo;
+    const EVkCommandBuffersCreateInfo *pCommandBuffersInfo = pDrawInfo->pCommandBuffersCreateInfo;
 
     vkWaitForFences(device, 1, &inFlightFences[*pCurrentFrame], VK_TRUE, UINT64_MAX);
 
@@ -829,12 +829,13 @@ void evkDrawFrame(
     vUpdateInfo.graphicsQueue = graphicsQueue;
     vUpdateInfo.vertexBuffer = pDrawInfo->vertexBuffer;
     vUpdateInfo.grid = pDrawInfo->grid;
-    evkUpdateVertexBuffer(device, &vUpdateInfo);
 
     // Update verts and command buffer here.
     std::vector<thread> threadPool;
-    evkCreateCommandBuffers(device, commandBuffersInfo, pDrawInfo->pCommandBuffers, pPrimaryCommandBuffer, &threadPool);
-    std::cout << "Number of threads in threadPool:" << threadPool.size() << std::endl;
+    EVkSceneUpdateInfo sceneUpdateInfo = {};
+    sceneUpdateInfo.pVertexUpdateInfo = &vUpdateInfo;
+    sceneUpdateInfo.pCommandBuffersCreateInfo = pCommandBuffersInfo;
+    evkUpdateScene(device, &sceneUpdateInfo, pPrimaryCommandBuffer, &threadPool);
     
     VkSubmitInfo submitInfo = {};
     submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
@@ -950,7 +951,7 @@ void evkRecreateSwapChain(VkDevice device, const EVkSwapchainRecreateInfo *pCrea
 
     EVkCommandBuffersCreateInfo commandBuffersInfo = pCreateInfo->commandBuffersCreateInfo;
     std::vector<thread> threadPool;
-    evkCreateCommandBuffers(device, &commandBuffersInfo, pCreateInfo->pCommandBuffers, pCreateInfo->pPrimaryCommandBuffer, &threadPool);
+    evkCreateCommandBuffers(device, &commandBuffersInfo, pCreateInfo->pPrimaryCommandBuffer, &threadPool);
 }
 
 void evkCleanupSwapchain(VkDevice device, const EVkSwapchainCleanupInfo *pCleanupInfo)
