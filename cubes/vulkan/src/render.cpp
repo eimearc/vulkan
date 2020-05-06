@@ -4,21 +4,6 @@
 #include <stb_image.h>
 #include <iostream>
 
-struct thread
-{
-    VkCommandPool commandPool;
-    std::vector<VkCommandBuffer> commandBuffers;
-    size_t size;
-    VkDevice device;
-    size_t index;
-
-    static size_t i;
-
-    static void reset(){std::cout << " setting i to zero\n";i=0;}
-    thread(VkDevice device, const EVkCommandPoolCreateInfo *pCreateInfo, size_t size);
-    void createSecondaryCommandBuffers(const EVkCommandBuffersCreateInfo *pCreateInfo);
-};
-
 size_t thread::i = 0;
 
 thread::thread(VkDevice _device, const EVkCommandPoolCreateInfo *pCreateInfo, size_t _size)
@@ -27,8 +12,6 @@ thread::thread(VkDevice _device, const EVkCommandPoolCreateInfo *pCreateInfo, si
     device = _device;
     evkCreateCommandPool(device, pCreateInfo, &commandPool);
     size = _size/NUM_THREADS;
-
-    std::cout << "Command pool:" << commandPool << std::endl;
 
     VkCommandBufferAllocateInfo allocInfo = {};
     allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
@@ -41,6 +24,13 @@ thread::thread(VkDevice _device, const EVkCommandPoolCreateInfo *pCreateInfo, si
     {
         throw std::runtime_error("failed to allocate command buffers.");
     }
+}
+
+void thread::cleanup()
+{
+    // vkDeviceWaitIdle(device);
+    vkFreeCommandBuffers(device, commandPool, commandBuffers.size(), commandBuffers.data());
+    std::cout << "Successfully cleaned up thread\n";
 }
 
 void thread::createSecondaryCommandBuffers(const EVkCommandBuffersCreateInfo *pCreateInfo)
@@ -90,7 +80,8 @@ void evkCreateCommandBuffers(
     VkDevice device,
     const EVkCommandBuffersCreateInfo *pCreateInfo,
     std::vector<VkCommandBuffer> *pCommandBuffers,
-    VkCommandBuffer *pPrimaryCommandBuffer
+    VkCommandBuffer *pPrimaryCommandBuffer,
+    std::vector<thread> *pThreadPool
 )
 {
     thread::reset();
@@ -163,6 +154,8 @@ void evkCreateCommandBuffers(
     }
 
     std::cout << "Created command buffers\n";
+
+    *pThreadPool = threadPool;
 }
 
 void evkCreateSyncObjects(

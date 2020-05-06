@@ -773,24 +773,18 @@ void endSingleTimeCommands(VkDevice device, VkQueue queue, VkCommandPool command
 
 void evkDrawFrame(
     VkDevice device,
-    EVkDrawFrameInfo *pDrawInfo,
+    const EVkDrawFrameInfo *pDrawInfo,
     size_t *pCurrentFrame,
     std::vector<VkFence> *pImagesInFlight,
-    std::vector<VkSemaphore> *pRenderFinishedSemaphores, uint32_t *pImageIndex)
+    std::vector<VkSemaphore> *pRenderFinishedSemaphores,
+    VkCommandBuffer *pPrimaryCommandBuffer,
+    uint32_t *pImageIndex)
 {
     const std::vector<VkFence> &inFlightFences = *(pDrawInfo->pInFlightFences);
     const std::vector<VkSemaphore> &imageAvailableSemaphores = *(pDrawInfo->pImageAvailableSemaphores);
     std::vector<VkFence> &imagesInFlight = *(pImagesInFlight);
-    const VkQueue graphicsQueue = pDrawInfo->graphicsQueue;
-    // const std::vector<VkCommandBuffer> &commandBuffers = *(pDrawInfo->pCommandBuffers);
-    VkCommandBuffer &commandBuffer = pDrawInfo->primaryCommandBuffer;
-
-    std::cout << "Queue handle before creating command buffers: \t" << graphicsQueue << std::endl;
-
+    const VkQueue &graphicsQueue = pDrawInfo->graphicsQueue;
     const EVkCommandBuffersCreateInfo *commandBuffersInfo = pDrawInfo->pCommandBuffersCreateInfo;
-    evkCreateCommandBuffers(device, commandBuffersInfo, pDrawInfo->pCommandBuffers, &commandBuffer);
-
-    std::cout << "Queue handle after creating command buffers: \t" << graphicsQueue << std::endl;
 
     vkWaitForFences(device, 1, &inFlightFences[*pCurrentFrame], VK_TRUE, UINT64_MAX);
 
@@ -838,8 +832,9 @@ void evkDrawFrame(
     evkUpdateVertexBuffer(device, &vUpdateInfo);
 
     // Update verts and command buffer here.
-
-    std::cout << "Queue: " << graphicsQueue << std::endl;
+    std::vector<thread> threadPool;
+    evkCreateCommandBuffers(device, commandBuffersInfo, pDrawInfo->pCommandBuffers, pPrimaryCommandBuffer, &threadPool);
+    std::cout << "Number of threads in threadPool:" << threadPool.size() << std::endl;
     
     VkSubmitInfo submitInfo = {};
     submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
@@ -849,8 +844,7 @@ void evkDrawFrame(
     submitInfo.pWaitSemaphores = waitSemaphores;
     submitInfo.pWaitDstStageMask = waitStages;
     submitInfo.commandBufferCount = 1;
-    // submitInfo.pCommandBuffers = &commandBuffers[imageIndex];
-    submitInfo.pCommandBuffers = &commandBuffer;
+    submitInfo.pCommandBuffers = pPrimaryCommandBuffer;
 
     VkSemaphore signalSemaphores[] = {(*pRenderFinishedSemaphores)[*pCurrentFrame]};
     submitInfo.signalSemaphoreCount = 1;
@@ -858,14 +852,10 @@ void evkDrawFrame(
 
     vkResetFences(device, 1, &inFlightFences[*pCurrentFrame]);
 
-    std::cout << "Queue handle before submitting: " << graphicsQueue << std::endl;
-
     if (vkQueueSubmit(graphicsQueue, 1, &submitInfo, inFlightFences[*pCurrentFrame]) != VK_SUCCESS)
     {
         throw std::runtime_error("failed to submit draw command buffer!");
     }
-
-    std::cout << "After queue submit\n";
 
     VkPresentInfoKHR presentInfo = {};
     presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
@@ -878,8 +868,6 @@ void evkDrawFrame(
     presentInfo.pResults = nullptr;
 
     result = vkQueuePresentKHR(pDrawInfo->presentQueue, &presentInfo);
-
-    std::cout << "Queue after vkQueuePresentKHR: " << graphicsQueue << std::endl;
 
     if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || *pDrawInfo->pFramebufferResized)
     {
@@ -894,10 +882,12 @@ void evkDrawFrame(
 
     vkQueueWaitIdle(pDrawInfo->presentQueue);
 
-    *pCurrentFrame = ((*pCurrentFrame)+1) % pDrawInfo->maxFramesInFlight;
+    for(auto& t: threadPool)
+    {
+        t.cleanup();
+    }
 
-    pDrawInfo->graphicsQueue = graphicsQueue;
-    std::cout << "Queue at end: " << graphicsQueue << " " << pDrawInfo->graphicsQueue << std::endl;
+    *pCurrentFrame = ((*pCurrentFrame)+1) % pDrawInfo->maxFramesInFlight;
 }
 
 void evkRecreateSwapChain(VkDevice device, const EVkSwapchainRecreateInfo *pCreateInfo)
@@ -959,7 +949,8 @@ void evkRecreateSwapChain(VkDevice device, const EVkSwapchainRecreateInfo *pCrea
     evkCreateDescriptorSets(device, &descriptorSetInfo, pCreateInfo->pDescriptorSets);
 
     EVkCommandBuffersCreateInfo commandBuffersInfo = pCreateInfo->commandBuffersCreateInfo;
-    evkCreateCommandBuffers(device, &commandBuffersInfo, pCreateInfo->pCommandBuffers, pCreateInfo->pPrimaryCommandBuffer);
+    std::vector<thread> threadPool;
+    evkCreateCommandBuffers(device, &commandBuffersInfo, pCreateInfo->pCommandBuffers, pCreateInfo->pPrimaryCommandBuffer, &threadPool);
 }
 
 void evkCleanupSwapchain(VkDevice device, const EVkSwapchainCleanupInfo *pCleanupInfo)

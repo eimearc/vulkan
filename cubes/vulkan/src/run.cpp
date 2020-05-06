@@ -146,7 +146,6 @@ void EVulkan::mainLoop()
     commandBuffersInfo.swapchainFramebuffers = swapChainFramebuffers;
     commandBuffersInfo.vertexBuffer = vertexBuffer;
     commandBuffersInfo.poolCreateInfo = commandPoolInfo;
-    evkCreateCommandBuffers(device, &commandBuffersInfo, &secondaryCommandBuffers, &primaryCommandBuffer);
 
     EVkDrawFrameInfo info = {};
     info.pInFlightFences = &inFlightFences;
@@ -154,7 +153,7 @@ void EVulkan::mainLoop()
     info.swapchain = swapChain;
     info.maxFramesInFlight = MAX_FRAMES_IN_FLIGHT;
     info.pCommandBuffers = &secondaryCommandBuffers;
-    info.primaryCommandBuffer = primaryCommandBuffer;
+    // info.primaryCommandBuffer = primaryCommandBuffer;
     info.graphicsQueue = graphicsQueue;
     info.presentQueue = presentQueue;
     info.pFramebufferResized = &framebufferResized;
@@ -170,11 +169,14 @@ void EVulkan::mainLoop()
     while(!glfwWindowShouldClose(window))
     {
         std::cout << "\n\nNEXT FRAME\n";
-        std::cout << "queue: " << info.graphicsQueue << std::endl;
         glfwPollEvents();
         if ((i % 10) == 0) startTime = std::chrono::high_resolution_clock::now();
 
-        evkDrawFrame(device, &info, &currentFrame, &imagesInFlight, &renderFinishedSemaphores, &imageIndex);
+        evkDrawFrame(device, &info,
+            &currentFrame, &imagesInFlight,
+            &renderFinishedSemaphores,
+            &primaryCommandBuffer,
+            &imageIndex);
 
         if ((i % 10) == 0)
         {
