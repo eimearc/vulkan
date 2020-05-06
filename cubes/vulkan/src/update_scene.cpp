@@ -1,6 +1,9 @@
 #include "evulkan_core.h"
 
 #include <iostream>
+#include <mutex>
+#include <condition_variable>
+#include <thread>
 
 size_t thread::i = 0;
 
@@ -104,30 +107,70 @@ void evkUpdateVertexBuffer(VkDevice device, const EVkVertexBufferUpdateInfo *pUp
 
     const std::vector<Vertex> &verts = pUpdateInfo->pVertices[0];
 
+    VkFence vertexCopyFence;
+    VkFenceCreateInfo fenceInfo = {};
+    fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+    fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
+    vkCreateFence(device, &fenceInfo, nullptr, &vertexCopyFence);
+
     int num_threads = 4;
+
+    std::vector<VkFence> fences(num_threads);
+
     int num_verts = verts.size();
     int num_verts_each = num_verts/num_threads;
     int offset = bufferSize/num_threads;
     int size = bufferSize/num_threads;
 
-    std::cout << pUpdateInfo->pVertices->data() << " " << &(pUpdateInfo->pVertices)[0] << '\n';
+    // std::thread t1{[&]
+    // {
+    //     for (size_t i = 0; i < num_threads; ++i)
+    //     {
+    //         std::lock_guard<std::mutex> l(m);
+    //         void *data;
+    //         vkMapMemory(device, stagingBufferMemory, i*offset, size, 0, &data);
+    //         memcpy(data, &verts[i*num_verts_each], (size_t) size);
+    //         vkUnmapMemory(device, stagingBufferMemory);
+    //     }
+    // }};
 
-    for (size_t i = 0; i < num_threads; ++i)
-    {
+    std::mutex m;
+    std::condition_variable cond;
+
+    auto f = [&](int i){
+        std::lock_guard<std::mutex> lk(m);
+        std::cout << "Hi " << i << std::endl;
         void *data;
         vkMapMemory(device, stagingBufferMemory, i*offset, size, 0, &data);
         memcpy(data, &verts[i*num_verts_each], (size_t) size);
         vkUnmapMemory(device, stagingBufferMemory);
+        cond.notify_one();
+    };
+
+    std::vector<std::thread> workers;
+    for (int i = 0; i < num_threads; ++i)
+    {
+        workers.push_back(std::thread{f,i});
+    }
+    for (auto &t : workers)
+    {
+        t.join();
     }
 
-    // vkMapMemory(device, stagingBufferMemory, offset, size, 0, &data);
-    // memcpy(data, &verts[num_verts_each], (size_t) size);
-    // vkUnmapMemory(device, stagingBufferMemory);
+    // for (size_t i = 0; i < num_threads; ++i)
+    // {
+    //     std::lock_guard<std::mutex> l(m);
+    //     void *data;
+    //     vkMapMemory(device, stagingBufferMemory, i*offset, size, 0, &data);
+    //     memcpy(data, &verts[i*num_verts_each], (size_t) size);
+    //     vkUnmapMemory(device, stagingBufferMemory);
+    // }
 
-    // void *data1;
-    // vkMapMemory(device, stagingBufferMemory, offset, size, 0, &data1);
-    // memcpy(data1, pUpdateInfo->pVertices->data(), (size_t) size);
-    // vkUnmapMemory(device, stagingBufferMemory);
+    vkDestroyFence(device, vertexCopyFence, nullptr);
+    for (size_t i=0; i < num_threads; ++i)
+    {
+        vkDestroyFence(device, fences[i], nullptr);
+    }
 
     // Copy the vertex data from the staging buffer to the device-local buffer.
     copyBuffer(
