@@ -85,6 +85,22 @@ QueueFamilyIndices getQueueFamilies(VkPhysicalDevice device, VkSurfaceKHR surfac
     return indices;
 }
 
+void evkCreateCommandPool(
+    VkDevice device,
+    const EVkCommandPoolCreateInfo *pCreateInfo,
+    VkCommandPool *pCommandPool)
+{
+    QueueFamilyIndices queueFamilyIndices = findQueueFamilies(pCreateInfo->physicalDevice, pCreateInfo->surface);
+    VkCommandPoolCreateInfo poolInfo = {};
+    poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+    poolInfo.queueFamilyIndex = queueFamilyIndices.graphicsFamily.value();
+    poolInfo.flags = pCreateInfo->flags;
+    if (vkCreateCommandPool(device, &poolInfo, nullptr, pCommandPool) != VK_SUCCESS)
+    {
+        throw std::runtime_error("failed to create command pool.");
+    }
+}
+
 void evkCreateSwapchain(
     VkDevice device,
     const EVkSwapchainCreateInfo *pCreateInfo,
@@ -844,6 +860,7 @@ void evkDrawFrame(
     VkSwapchainKHR swapChains[] = {pDrawInfo->swapchain};
     presentInfo.swapchainCount = 1;
     presentInfo.pSwapchains = swapChains;
+    std::cout << "INDEX: " << imageIndex << std::endl;
     presentInfo.pImageIndices = &imageIndex;
     presentInfo.pResults = nullptr;
 
@@ -938,10 +955,10 @@ void evkCleanupSwapchain(VkDevice device, const EVkSwapchainCleanupInfo *pCleanu
         vkDestroyFramebuffer(device, framebuffer, nullptr);
     }
 
-    vkFreeCommandBuffers(
-        device, pCleanupInfo->commandPool,
-        static_cast<uint32_t>(pCleanupInfo->pCommandBuffers->size()),
-        pCleanupInfo->pCommandBuffers->data());
+    // vkFreeCommandBuffers(
+    //     device, pCleanupInfo->commandPool,
+    //     static_cast<uint32_t>(pCleanupInfo->pCommandBuffers->size()),
+    //     pCleanupInfo->pCommandBuffers->data());
 
     vkDestroyPipeline(device, pCleanupInfo->graphicsPipeline, nullptr);
     vkDestroyPipelineLayout(device, pCleanupInfo->pipelineLayout, nullptr);

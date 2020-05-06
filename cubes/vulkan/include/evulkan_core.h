@@ -9,7 +9,7 @@
 
 #define ENABLE_VALIDATION true
 
-const size_t NUM_THREADS = 1;
+const size_t NUM_THREADS = 2;
 
 struct EVkCreateWindow
 {
