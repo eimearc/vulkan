@@ -153,7 +153,6 @@ void EVulkan::mainLoop()
     info.swapchain = swapChain;
     info.maxFramesInFlight = MAX_FRAMES_IN_FLIGHT;
     info.pCommandBuffers = &secondaryCommandBuffers;
-    // info.primaryCommandBuffer = primaryCommandBuffer;
     info.graphicsQueue = graphicsQueue;
     info.presentQueue = presentQueue;
     info.pFramebufferResized = &framebufferResized;
@@ -187,7 +186,10 @@ void EVulkan::mainLoop()
         ++i;
     }
 
-    vkDeviceWaitIdle(device);
+    if (vkDeviceWaitIdle(device)!=VK_SUCCESS)
+    {
+        throw std::runtime_error("Could not wait for vkDeviceWaitIdle");
+    }
 }
 
 void EVulkan::cleanup()

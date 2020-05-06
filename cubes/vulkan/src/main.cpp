@@ -15,5 +15,6 @@ int main()
         return EXIT_FAILURE;
     }
 
+    exit(0); // TODO: figure out why this doesn't work.
     return EXIT_SUCCESS;
 }
