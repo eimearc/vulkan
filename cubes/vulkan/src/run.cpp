@@ -26,6 +26,8 @@ void EVulkan::initVulkan()
     deviceInfo.surface = surface;
     evkCreateDevice(physicalDevice, &deviceInfo, &device, &graphicsQueue, &presentQueue);
 
+    std::cout << "Graphics Queue: "<< graphicsQueue << std::endl;
+
     EVkSwapchainCreateInfo swapchainInfo = {};
     swapchainInfo.physicalDevice = physicalDevice;
     swapchainInfo.surface = surface;
@@ -114,7 +116,7 @@ void EVulkan::initVulkan()
     commandBuffersInfo.swapchainFramebuffers = swapChainFramebuffers;
     commandBuffersInfo.vertexBuffer = vertexBuffer;
     commandBuffersInfo.poolCreateInfo = commandPoolInfo;
-    evkCreateCommandBuffers(device, &commandBuffersInfo, &secondaryCommandBuffers, &primaryCommandBuffer);
+    // evkCreateCommandBuffers(device, &commandBuffersInfo, &secondaryCommandBuffers, &primaryCommandBuffer);
 
     EVkSyncObjectsCreateInfo syncObjectsInfo = {};
     syncObjectsInfo.maxFramesInFlight = MAX_FRAMES_IN_FLIGHT;
@@ -127,12 +129,32 @@ void EVulkan::mainLoop()
     int i = 0;
     std::chrono::steady_clock::time_point startTime, endTime;
     uint32_t imageIndex;
+
+    EVkCommandPoolCreateInfo commandPoolInfo = {};
+    commandPoolInfo.physicalDevice = physicalDevice;
+    commandPoolInfo.surface = surface;
+    commandPoolInfo.flags = 0;
+    EVkCommandBuffersCreateInfo commandBuffersInfo = {};
+    commandBuffersInfo.commandPool = commandPool;
+    commandBuffersInfo.descriptorSets = descriptorSets;
+    commandBuffersInfo.graphicsPipeline = graphicsPipeline;
+    commandBuffersInfo.indexBuffer = indexBuffer;
+    commandBuffersInfo.indices = indices;
+    commandBuffersInfo.pipelineLayout = pipelineLayout;
+    commandBuffersInfo.renderPass = renderPass;
+    commandBuffersInfo.swapchainExtent = swapChainExtent;
+    commandBuffersInfo.swapchainFramebuffers = swapChainFramebuffers;
+    commandBuffersInfo.vertexBuffer = vertexBuffer;
+    commandBuffersInfo.poolCreateInfo = commandPoolInfo;
+    evkCreateCommandBuffers(device, &commandBuffersInfo, &secondaryCommandBuffers, &primaryCommandBuffer);
+
     EVkDrawFrameInfo info = {};
     info.pInFlightFences = &inFlightFences;
     info.pImageAvailableSemaphores = &imageAvailableSemaphores;
     info.swapchain = swapChain;
     info.maxFramesInFlight = MAX_FRAMES_IN_FLIGHT;
     info.pCommandBuffers = &secondaryCommandBuffers;
+    info.primaryCommandBuffer = primaryCommandBuffer;
     info.graphicsQueue = graphicsQueue;
     info.presentQueue = presentQueue;
     info.pFramebufferResized = &framebufferResized;
@@ -143,10 +165,12 @@ void EVulkan::mainLoop()
     info.commandPool = commandPool;
     info.vertexBuffer = vertexBuffer;
     info.grid = grid;
-    info.primaryCommandBuffer = primaryCommandBuffer;
+    info.pCommandBuffersCreateInfo = &commandBuffersInfo;
 
     while(!glfwWindowShouldClose(window))
     {
+        std::cout << "\n\nNEXT FRAME\n";
+        std::cout << "queue: " << info.graphicsQueue << std::endl;
         glfwPollEvents();
         if ((i % 10) == 0) startTime = std::chrono::high_resolution_clock::now();
 

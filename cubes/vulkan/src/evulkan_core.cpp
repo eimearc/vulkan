@@ -773,7 +773,7 @@ void endSingleTimeCommands(VkDevice device, VkQueue queue, VkCommandPool command
 
 void evkDrawFrame(
     VkDevice device,
-    const EVkDrawFrameInfo *pDrawInfo,
+    EVkDrawFrameInfo *pDrawInfo,
     size_t *pCurrentFrame,
     std::vector<VkFence> *pImagesInFlight,
     std::vector<VkSemaphore> *pRenderFinishedSemaphores, uint32_t *pImageIndex)
@@ -781,8 +781,16 @@ void evkDrawFrame(
     const std::vector<VkFence> &inFlightFences = *(pDrawInfo->pInFlightFences);
     const std::vector<VkSemaphore> &imageAvailableSemaphores = *(pDrawInfo->pImageAvailableSemaphores);
     std::vector<VkFence> &imagesInFlight = *(pImagesInFlight);
+    const VkQueue graphicsQueue = pDrawInfo->graphicsQueue;
     // const std::vector<VkCommandBuffer> &commandBuffers = *(pDrawInfo->pCommandBuffers);
-    const VkCommandBuffer &commandBuffer = pDrawInfo->primaryCommandBuffer;
+    VkCommandBuffer &commandBuffer = pDrawInfo->primaryCommandBuffer;
+
+    std::cout << "Queue handle before creating command buffers: \t" << graphicsQueue << std::endl;
+
+    const EVkCommandBuffersCreateInfo *commandBuffersInfo = pDrawInfo->pCommandBuffersCreateInfo;
+    evkCreateCommandBuffers(device, commandBuffersInfo, pDrawInfo->pCommandBuffers, &commandBuffer);
+
+    std::cout << "Queue handle after creating command buffers: \t" << graphicsQueue << std::endl;
 
     vkWaitForFences(device, 1, &inFlightFences[*pCurrentFrame], VK_TRUE, UINT64_MAX);
 
@@ -824,20 +832,22 @@ void evkDrawFrame(
     vUpdateInfo.pVertices = pDrawInfo->pVertices;
     vUpdateInfo.physicalDevice = pDrawInfo->physicalDevice;
     vUpdateInfo.commandPool = pDrawInfo->commandPool;
-    vUpdateInfo.graphicsQueue = pDrawInfo->graphicsQueue;
+    vUpdateInfo.graphicsQueue = graphicsQueue;
     vUpdateInfo.vertexBuffer = pDrawInfo->vertexBuffer;
     vUpdateInfo.grid = pDrawInfo->grid;
     evkUpdateVertexBuffer(device, &vUpdateInfo);
+
+    // Update verts and command buffer here.
+
+    std::cout << "Queue: " << graphicsQueue << std::endl;
     
     VkSubmitInfo submitInfo = {};
     submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-
     VkSemaphore waitSemaphores[] = {imageAvailableSemaphores[*pCurrentFrame]};
     VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
     submitInfo.waitSemaphoreCount = 1;
     submitInfo.pWaitSemaphores = waitSemaphores;
     submitInfo.pWaitDstStageMask = waitStages;
-
     submitInfo.commandBufferCount = 1;
     // submitInfo.pCommandBuffers = &commandBuffers[imageIndex];
     submitInfo.pCommandBuffers = &commandBuffer;
@@ -848,10 +858,14 @@ void evkDrawFrame(
 
     vkResetFences(device, 1, &inFlightFences[*pCurrentFrame]);
 
-    if (vkQueueSubmit(pDrawInfo->graphicsQueue, 1, &submitInfo, inFlightFences[*pCurrentFrame]) != VK_SUCCESS)
+    std::cout << "Queue handle before submitting: " << graphicsQueue << std::endl;
+
+    if (vkQueueSubmit(graphicsQueue, 1, &submitInfo, inFlightFences[*pCurrentFrame]) != VK_SUCCESS)
     {
         throw std::runtime_error("failed to submit draw command buffer!");
     }
+
+    std::cout << "After queue submit\n";
 
     VkPresentInfoKHR presentInfo = {};
     presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
@@ -860,11 +874,12 @@ void evkDrawFrame(
     VkSwapchainKHR swapChains[] = {pDrawInfo->swapchain};
     presentInfo.swapchainCount = 1;
     presentInfo.pSwapchains = swapChains;
-    std::cout << "INDEX: " << imageIndex << std::endl;
     presentInfo.pImageIndices = &imageIndex;
     presentInfo.pResults = nullptr;
 
     result = vkQueuePresentKHR(pDrawInfo->presentQueue, &presentInfo);
+
+    std::cout << "Queue after vkQueuePresentKHR: " << graphicsQueue << std::endl;
 
     if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || *pDrawInfo->pFramebufferResized)
     {
@@ -880,6 +895,9 @@ void evkDrawFrame(
     vkQueueWaitIdle(pDrawInfo->presentQueue);
 
     *pCurrentFrame = ((*pCurrentFrame)+1) % pDrawInfo->maxFramesInFlight;
+
+    pDrawInfo->graphicsQueue = graphicsQueue;
+    std::cout << "Queue at end: " << graphicsQueue << " " << pDrawInfo->graphicsQueue << std::endl;
 }
 
 void evkRecreateSwapChain(VkDevice device, const EVkSwapchainRecreateInfo *pCreateInfo)

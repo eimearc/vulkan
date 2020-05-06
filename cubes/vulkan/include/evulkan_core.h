@@ -376,10 +376,12 @@ struct EVkDrawFrameInfo
     VkCommandPool commandPool;
     VkBuffer vertexBuffer;
     Grid grid;
+    // New
+    const EVkCommandBuffersCreateInfo *pCommandBuffersCreateInfo;
 };
 void evkDrawFrame(
     VkDevice device,
-    const EVkDrawFrameInfo *pDrawInfo,
+    EVkDrawFrameInfo *pDrawInfo,
     size_t *pCurrentFrame,
     std::vector<VkFence> *pImagesInFlight,
     std::vector<VkSemaphore> *pRenderFinishedSemaphores,

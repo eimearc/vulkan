@@ -12,13 +12,17 @@ struct thread
     VkDevice device;
     size_t index;
 
+    static size_t i;
+
+    static void reset(){std::cout << " setting i to zero\n";i=0;}
     thread(VkDevice device, const EVkCommandPoolCreateInfo *pCreateInfo, size_t size);
     void createSecondaryCommandBuffers(const EVkCommandBuffersCreateInfo *pCreateInfo);
 };
 
+size_t thread::i = 0;
+
 thread::thread(VkDevice _device, const EVkCommandPoolCreateInfo *pCreateInfo, size_t _size)
 {
-    static size_t i = 0;
     index = i++;
     device = _device;
     evkCreateCommandPool(device, pCreateInfo, &commandPool);
@@ -63,13 +67,11 @@ void thread::createSecondaryCommandBuffers(const EVkCommandBuffersCreateInfo *pC
 
         VkBuffer vertexBuffers[] = {pCreateInfo->vertexBuffer};
         VkDeviceSize offsets[] = {0};
-        // Bind the vertex and index buffers during rendering operations.
         vkCmdBindVertexBuffers(commandBuffers[i], 0, 1, vertexBuffers, offsets);
         vkCmdBindIndexBuffer(commandBuffers[i], pCreateInfo->indexBuffer, 0, VK_INDEX_TYPE_UINT16);
-        // Bind the descriptor set for each swap chain image.
         vkCmdBindDescriptorSets(commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, pCreateInfo->pipelineLayout, 0, 1, &(pCreateInfo->descriptorSets[i]), 0, nullptr);
 
-        // Update here - update models.
+        // Update here - update vertices.
         const size_t &numIndices = pCreateInfo->indices.size();
         const size_t myBaseIndex = index*(numIndices/NUM_THREADS);
         std::cout << "\tNumber of indices to draw: " << pCreateInfo->indices.size() << " my index: " << index << std::endl;
@@ -91,6 +93,8 @@ void evkCreateCommandBuffers(
     VkCommandBuffer *pPrimaryCommandBuffer
 )
 {
+    thread::reset();
+
     // Create primary command buffer.
     VkCommandBufferAllocateInfo allocInfo = {};
     allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
