@@ -74,7 +74,6 @@ void DestroyDebugUtilsMessengerEXT(
     const VkAllocationCallbacks* pAllocator
 );
 
-// std::vector<const char*> getRequiredExtensions();
 void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
 
 struct EVkDeviceCreateInfo

@@ -715,8 +715,6 @@ void evkCreateFramebuffers(
 {
     pFramebuffers->resize(pCreateInfo->swapchainImageViews.size());
 
-    std::cout << "Framebuffers size: " << pCreateInfo->swapchainImageViews.size() << std::endl;
-
     for (size_t i = 0; i < pCreateInfo->swapchainImageViews.size(); i++)
     {
         std::array<VkImageView,2> attachments =
@@ -796,8 +794,6 @@ void evkDrawFrame(
         device, pDrawInfo->swapchain, UINT64_MAX,
         imageAvailableSemaphores[*pCurrentFrame],
         VK_NULL_HANDLE, &imageIndex);
-
-    std::cout << imageIndex << *pCurrentFrame << pDrawInfo->maxFramesInFlight << std::endl;
 
     if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR)
     {
