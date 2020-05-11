@@ -142,15 +142,26 @@ void evkUpdateVertexBuffer(VkDevice device, const EVkVertexBufferUpdateInfo *pUp
     const int num_verts_each = num_verts/num_threads;
     const size_t threadBufferSize = wholeBufferSize/num_threads;
 
-    for (int i = 0; i < num_threads; ++i)
+    std::vector<std::thread> workers;
+
+    auto f = [&](int i)
     {
         size_t bufferOffset = threadBufferSize*i;
         int vertsOffset = num_verts_each*i;
-
         updateVertexBuffer(
             device, pUpdateInfo->physicalDevice, pUpdateInfo->graphicsQueue,
             pUpdateInfo->commandPool, pUpdateInfo->vertexBuffer,
             verts, pUpdateInfo->grid, threadBufferSize, bufferOffset, vertsOffset, num_verts_each);
+    };
+
+    for (int i = 0; i < num_threads; ++i)
+    {
+        workers.push_back(std::thread(f,i));
+    }
+
+    for (std::thread &t : workers)
+    {
+        t.join();
     }
 }
 
