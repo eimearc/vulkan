@@ -784,7 +784,8 @@ void evkDrawFrame(
     const std::vector<VkSemaphore> &imageAvailableSemaphores = *(pDrawInfo->pImageAvailableSemaphores);
     std::vector<VkFence> &imagesInFlight = *(pImagesInFlight);
     const VkQueue &graphicsQueue = pDrawInfo->graphicsQueue;
-    const EVkCommandBuffersCreateInfo *pCommandBuffersInfo = pDrawInfo->pCommandBuffersCreateInfo;
+    EVkCommandBuffersCreateInfo *pCommandBuffersInfo = pDrawInfo->pCommandBuffersCreateInfo;
+    pCommandBuffersInfo->framebuffer = pDrawInfo->framebuffers[*pCurrentFrame];
 
     vkWaitForFences(device, 1, &inFlightFences[*pCurrentFrame], VK_TRUE, UINT64_MAX);
 

@@ -141,7 +141,7 @@ void EVulkan::mainLoop()
     commandBuffersInfo.pipelineLayout = pipelineLayout;
     commandBuffersInfo.renderPass = renderPass;
     commandBuffersInfo.swapchainExtent = swapChainExtent;
-    commandBuffersInfo.framebuffer = swapChainFramebuffers[imageIndex];
+    // commandBuffersInfo.framebuffer = swapChainFramebuffers[imageIndex];
     commandBuffersInfo.vertexBuffer = vertexBuffer;
     commandBuffersInfo.poolCreateInfo = commandPoolInfo;
 
@@ -162,6 +162,7 @@ void EVulkan::mainLoop()
     info.vertexBuffer = vertexBuffer;
     info.grid = grid;
     info.pCommandBuffersCreateInfo = &commandBuffersInfo;
+    info.framebuffers = swapChainFramebuffers;
 
     while(!glfwWindowShouldClose(window))
     {

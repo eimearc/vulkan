@@ -383,6 +383,7 @@ struct EVkDrawFrameInfo
     std::vector<VkCommandBuffer> *pCommandBuffers;
     VkQueue graphicsQueue;
     VkQueue presentQueue;
+    std::vector<VkFramebuffer> framebuffers;
     bool *pFramebufferResized;
     VkExtent2D swapchainExtent;
     std::vector<VkDeviceMemory> *pUniformBufferMemory;
@@ -391,7 +392,7 @@ struct EVkDrawFrameInfo
     VkCommandPool commandPool;
     VkBuffer vertexBuffer;
     Grid grid;
-    const EVkCommandBuffersCreateInfo *pCommandBuffersCreateInfo;
+    EVkCommandBuffersCreateInfo *pCommandBuffersCreateInfo;
 };
 void evkDrawFrame(
     VkDevice device,
