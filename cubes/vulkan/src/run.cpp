@@ -30,6 +30,7 @@ void EVulkan::initVulkan()
     swapchainInfo.physicalDevice = physicalDevice;
     swapchainInfo.surface = surface;
     swapchainInfo.window = window;
+    swapchainInfo.numImages = MAX_FRAMES_IN_FLIGHT;
     evkCreateSwapchain(device, &swapchainInfo, &swapChain, &swapChainImages, &swapChainImageFormat, &swapChainExtent);
     
     EVkImageViewsCreateInfo imageViewsInfo = {};

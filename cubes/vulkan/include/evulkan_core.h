@@ -89,6 +89,7 @@ struct EVkSwapchainCreateInfo
     VkPhysicalDevice physicalDevice;
     VkSurfaceKHR surface;
     GLFWwindow* window;
+    uint32_t numImages;
 };
 
 void evkCreateDevice(
