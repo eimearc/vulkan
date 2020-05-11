@@ -90,7 +90,7 @@ void evkUpdateVertexBuffer(VkDevice device, const EVkVertexBufferUpdateInfo *pUp
     // This can all be done across multple threads.
     VkDeviceSize bufferSize = sizeof((pUpdateInfo->pVertices)[0]) * pUpdateInfo->pVertices->size();
     const std::vector<Vertex> &verts = pUpdateInfo->pVertices[0];
-    int num_threads = 2;
+    int num_threads = 4;
     int num_verts = verts.size();
     int num_verts_each = num_verts/num_threads;
     // int offset = bufferSize/num_threads;
@@ -161,7 +161,8 @@ void evkUpdateVertexBuffer(VkDevice device, const EVkVertexBufferUpdateInfo *pUp
         beginSingleTimeCommands(device, commandPool, &commandBuffer);
         VkBufferCopy copyRegion = {};
         copyRegion.size = size;
-        copyRegion.dstOffset = i*offset;
+        copyRegion.dstOffset = offset;
+        std::cout << i << " offset:" << offset << " size:" << size << std::endl;
         vkCmdCopyBuffer(commandBuffer, stagingBuffer, dstBuffer, 1, &copyRegion);
         endSingleTimeCommands(device, pUpdateInfo->graphicsQueue, commandPool, commandBuffer);
 
