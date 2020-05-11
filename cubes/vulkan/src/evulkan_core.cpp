@@ -788,11 +788,13 @@ void evkDrawFrame(
 
     vkWaitForFences(device, 1, &inFlightFences[*pCurrentFrame], VK_TRUE, UINT64_MAX);
 
-    uint32_t &imageIndex = *pImageIndex;
+    uint32_t imageIndex;
     VkResult result = vkAcquireNextImageKHR(
         device, pDrawInfo->swapchain, UINT64_MAX,
         imageAvailableSemaphores[*pCurrentFrame],
         VK_NULL_HANDLE, &imageIndex);
+
+    std::cout << imageIndex << " " << *pCurrentFrame << std::endl;
 
     if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR)
     {
@@ -816,7 +818,7 @@ void evkDrawFrame(
 
     // Update the uniform buffers.
     EVkUniformBufferUpdateInfo updateInfo = {};
-    updateInfo.currentImage = *pImageIndex;
+    updateInfo.currentImage = imageIndex;
     updateInfo.swapchainExtent = pDrawInfo->swapchainExtent;
     updateInfo.pUniformBufferMemory = pDrawInfo->pUniformBufferMemory;
     evkUpdateUniformBuffer(device, &updateInfo);
@@ -867,6 +869,7 @@ void evkDrawFrame(
     presentInfo.swapchainCount = 1;
     presentInfo.pSwapchains = swapChains;
     presentInfo.pImageIndices = &imageIndex;
+    std::cout << imageIndex << " " << pDrawInfo->swapchain << std::endl;
     presentInfo.pResults = nullptr;
 
     result = vkQueuePresentKHR(pDrawInfo->presentQueue, &presentInfo);

@@ -325,7 +325,7 @@ void evkCreateDescriptorSets(
 
 struct EVkCommandBuffersCreateInfo
 {
-    std::vector<VkFramebuffer> swapchainFramebuffers;
+    VkFramebuffer framebuffer;
     VkCommandPool commandPool;
     EVkCommandPoolCreateInfo poolCreateInfo;
     VkRenderPass renderPass;
@@ -391,7 +391,6 @@ struct EVkDrawFrameInfo
     VkCommandPool commandPool;
     VkBuffer vertexBuffer;
     Grid grid;
-    // New
     const EVkCommandBuffersCreateInfo *pCommandBuffersCreateInfo;
 };
 void evkDrawFrame(

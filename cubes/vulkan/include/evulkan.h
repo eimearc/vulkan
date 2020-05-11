@@ -26,8 +26,6 @@
 #include "vertex.h"
 #include "grid.h"
 #include "util.h"
-// #include "renderpass.h"
-// #include "instance.h"
 
 class EVulkan {
 public:
@@ -42,7 +40,7 @@ public:
 private:
     const uint32_t WIDTH = 800;
     const uint32_t HEIGHT = 600;
-    const int MAX_FRAMES_IN_FLIGHT = 2;
+    const int MAX_FRAMES_IN_FLIGHT = 3;
 
     GLFWwindow *window;
     VkSurfaceKHR surface;

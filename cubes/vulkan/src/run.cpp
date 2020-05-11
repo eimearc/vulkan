@@ -111,7 +111,7 @@ void EVulkan::initVulkan()
     commandBuffersInfo.pipelineLayout = pipelineLayout;
     commandBuffersInfo.renderPass = renderPass;
     commandBuffersInfo.swapchainExtent = swapChainExtent;
-    commandBuffersInfo.swapchainFramebuffers = swapChainFramebuffers;
+    commandBuffersInfo.framebuffer = swapChainFramebuffers[0];
     commandBuffersInfo.vertexBuffer = vertexBuffer;
     commandBuffersInfo.poolCreateInfo = commandPoolInfo;
     // evkCreateCommandBuffers(device, &commandBuffersInfo, &secondaryCommandBuffers, &primaryCommandBuffer);
@@ -141,7 +141,7 @@ void EVulkan::mainLoop()
     commandBuffersInfo.pipelineLayout = pipelineLayout;
     commandBuffersInfo.renderPass = renderPass;
     commandBuffersInfo.swapchainExtent = swapChainExtent;
-    commandBuffersInfo.swapchainFramebuffers = swapChainFramebuffers;
+    commandBuffersInfo.framebuffer = swapChainFramebuffers[imageIndex];
     commandBuffersInfo.vertexBuffer = vertexBuffer;
     commandBuffersInfo.poolCreateInfo = commandPoolInfo;
 
