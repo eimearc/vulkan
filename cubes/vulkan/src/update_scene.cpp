@@ -90,12 +90,16 @@ void updateVertexBuffer(
     VkQueue queue,
     VkCommandPool commandPool,
     VkBuffer vertexBuffer,
-    const std::vector<Vertex> &verts,
+    std::vector<Vertex> &verts,
+    const Grid &grid,
     size_t bufferSize,
     size_t bufferOffset,
-    size_t vertsOffset
+    size_t vertsOffset,
+    size_t numVerts
     )
 {
+    update(verts, grid, vertsOffset, numVerts);
+
     // Use a host visible buffer as a staging buffer.
     VkBuffer stagingBuffer;
     VkDeviceMemory stagingBufferMemory;
@@ -130,11 +134,9 @@ void updateVertexBuffer(
 
 void evkUpdateVertexBuffer(VkDevice device, const EVkVertexBufferUpdateInfo *pUpdateInfo)
 {
-    update(*pUpdateInfo->pVertices, pUpdateInfo->grid, 0, pUpdateInfo->pVertices->size()-1);
-
     // This can all be done across multple threads.
     const VkDeviceSize wholeBufferSize = sizeof((pUpdateInfo->pVertices)[0]) * pUpdateInfo->pVertices->size();
-    const std::vector<Vertex> &verts = pUpdateInfo->pVertices[0];
+    std::vector<Vertex> &verts = pUpdateInfo->pVertices[0];
     constexpr int num_threads = 4;
     const int num_verts = verts.size();
     const int num_verts_each = num_verts/num_threads;
@@ -148,7 +150,7 @@ void evkUpdateVertexBuffer(VkDevice device, const EVkVertexBufferUpdateInfo *pUp
         updateVertexBuffer(
             device, pUpdateInfo->physicalDevice, pUpdateInfo->graphicsQueue,
             pUpdateInfo->commandPool, pUpdateInfo->vertexBuffer,
-            verts, threadBufferSize, bufferOffset, vertsOffset);
+            verts, pUpdateInfo->grid, threadBufferSize, bufferOffset, vertsOffset, num_verts_each);
     }
 }
 
