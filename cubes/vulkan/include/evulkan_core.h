@@ -478,6 +478,7 @@ struct EVkVertexBufferUpdateInfo
    VkCommandPool commandPool;
    VkQueue graphicsQueue;
    VkBuffer vertexBuffer;
+   VkSurfaceKHR surface;
 };
 void evkUpdateVertexBuffer(VkDevice device, const EVkVertexBufferUpdateInfo *pUpdateInfo);
 

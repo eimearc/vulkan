@@ -88,7 +88,8 @@ void updateVertexBuffer(
     VkDevice device,
     VkPhysicalDevice physicalDevice,
     VkQueue queue,
-    const VkCommandPool *pCommandPool,
+    VkSurfaceKHR surface,
+    VkCommandPool *pCommandPool,
     VkCommandBuffer *pCommandBuffer,
     VkBuffer *stagingBuffer,
     VkDeviceMemory *stagingBufferMemory,
@@ -101,8 +102,13 @@ void updateVertexBuffer(
     size_t numVerts
     )
 {
-    VkCommandPool commandPool = *pCommandPool;
     update(verts, grid, vertsOffset, numVerts);
+
+    EVkCommandPoolCreateInfo info = {};
+    info.physicalDevice = physicalDevice;
+    info.surface = surface;
+    // info.flags = 
+    evkCreateCommandPool(device, &info, pCommandPool);
 
     // Use a host visible buffer as a staging buffer.
     // VkBuffer stagingBuffer;
@@ -127,7 +133,7 @@ void updateVertexBuffer(
 
     VkCommandBufferAllocateInfo allocInfo = {};
     allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-    allocInfo.commandPool = commandPool;
+    allocInfo.commandPool = *pCommandPool;
     allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
     allocInfo.commandBufferCount = 1;
     vkAllocateCommandBuffers(device, &allocInfo, pCommandBuffer);
@@ -163,7 +169,7 @@ void evkUpdateVertexBuffer(VkDevice device, const EVkVertexBufferUpdateInfo *pUp
     const size_t threadBufferSize = wholeBufferSize/num_threads;
 
     std::vector<std::thread> workers;
-    // std::vector<VkCommandPool> commandPools(num_threads);
+    std::vector<VkCommandPool> commandPools(num_threads);
     std::vector<VkCommandBuffer> commandBuffers(num_threads);
     std::vector<VkBuffer> buffers(num_threads);
     std::vector<VkDeviceMemory> bufferMemory(num_threads);
@@ -173,8 +179,8 @@ void evkUpdateVertexBuffer(VkDevice device, const EVkVertexBufferUpdateInfo *pUp
         size_t bufferOffset = threadBufferSize*i;
         int vertsOffset = num_verts_each*i;
         updateVertexBuffer(
-            device, pUpdateInfo->physicalDevice, pUpdateInfo->graphicsQueue,
-            &pUpdateInfo->commandPool, &commandBuffers[i], &buffers[i], &bufferMemory[i], pUpdateInfo->vertexBuffer,
+            device, pUpdateInfo->physicalDevice, pUpdateInfo->graphicsQueue, pUpdateInfo->surface,
+            &commandPools[i], &commandBuffers[i], &buffers[i], &bufferMemory[i], pUpdateInfo->vertexBuffer,
             verts, pUpdateInfo->grid, threadBufferSize, bufferOffset, vertsOffset, num_verts_each);
         std::cout << "Allocated (after): " << commandBuffers[i] << std::endl;
     };
@@ -202,9 +208,10 @@ void evkUpdateVertexBuffer(VkDevice device, const EVkVertexBufferUpdateInfo *pUp
 
     for (size_t i = 0; i<num_threads; ++i)
     {
-        vkFreeCommandBuffers(device, pUpdateInfo->commandPool, 1, &commandBuffers[i]);
+        vkFreeCommandBuffers(device, commandPools[i], 1, &commandBuffers[i]);
         vkDestroyBuffer(device, buffers[i], nullptr);
         vkFreeMemory(device, bufferMemory[i], nullptr);
+        vkDestroyCommandPool(device, commandPools[i], nullptr);
     }
 }
 

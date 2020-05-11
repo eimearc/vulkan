@@ -829,6 +829,7 @@ void evkDrawFrame(
     vUpdateInfo.graphicsQueue = graphicsQueue;
     vUpdateInfo.vertexBuffer = pDrawInfo->vertexBuffer;
     vUpdateInfo.grid = pDrawInfo->grid;
+    vUpdateInfo.surface = pCommandBuffersInfo->poolCreateInfo.surface;
 
     // Update verts and command buffer here.
     std::vector<thread> threadPool;
