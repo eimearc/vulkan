@@ -87,104 +87,87 @@ void evkUpdateScene(
 
 void evkUpdateVertexBuffer(VkDevice device, const EVkVertexBufferUpdateInfo *pUpdateInfo)
 {
+    // This can all be done across multple threads.
     VkDeviceSize bufferSize = sizeof((pUpdateInfo->pVertices)[0]) * pUpdateInfo->pVertices->size();
-
-    auto startTime = std::chrono::high_resolution_clock::now();
-
-    // Use a host visible buffer as a temporary buffer.
-    VkBuffer stagingBuffer;
-    VkDeviceMemory stagingBufferMemory;
-    createBuffer(
-        device,
-        pUpdateInfo->physicalDevice,
-        bufferSize,
-        VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-        &stagingBuffer, &stagingBufferMemory);
-
-    // Copy vertex data to the staging buffer by mapping the buffer memory into CPU
-    // accessible memory.
-
     const std::vector<Vertex> &verts = pUpdateInfo->pVertices[0];
-
-    VkFence vertexCopyFence;
-    VkFenceCreateInfo fenceInfo = {};
-    fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
-    fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
-    vkCreateFence(device, &fenceInfo, nullptr, &vertexCopyFence);
-
-    int num_threads = 4;
-
-    std::vector<VkFence> fences(num_threads);
-
+    int num_threads = 2;
     int num_verts = verts.size();
     int num_verts_each = num_verts/num_threads;
-    int offset = bufferSize/num_threads;
+    // int offset = bufferSize/num_threads;
     int size = bufferSize/num_threads;
 
-    // std::thread t1{[&]
-    // {
-    //     for (size_t i = 0; i < num_threads; ++i)
-    //     {
-    //         std::lock_guard<std::mutex> l(m);
-    //         void *data;
-    //         vkMapMemory(device, stagingBufferMemory, i*offset, size, 0, &data);
-    //         memcpy(data, &verts[i*num_verts_each], (size_t) size);
-    //         vkUnmapMemory(device, stagingBufferMemory);
-    //     }
-    // }};
-
-    std::mutex m;
-    std::condition_variable cond;
-
-    auto f = [&](int i){
-        std::lock_guard<std::mutex> lk(m);
-        std::cout << "Hi " << i << std::endl;
-        void *data;
-        vkMapMemory(device, stagingBufferMemory, i*offset, size, 0, &data);
-        memcpy(data, &verts[i*num_verts_each], (size_t) size);
-        vkUnmapMemory(device, stagingBufferMemory);
-        cond.notify_one();
-    };
-
-    std::vector<std::thread> workers;
     for (int i = 0; i < num_threads; ++i)
     {
-        workers.push_back(std::thread{f,i});
+        int offset = (bufferSize/num_threads)*i;
+        // Use a host visible buffer as a temporary buffer.
+        VkBuffer stagingBuffer;
+        VkDeviceMemory stagingBufferMemory;
+        createBuffer(
+            device,
+            pUpdateInfo->physicalDevice,
+            bufferSize,
+            VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+            &stagingBuffer, &stagingBufferMemory);
+
+        // Copy vertex data to the staging buffer by mapping the buffer memory into CPU
+        // accessible memory.
+
+        // std::vector<VkFence> fences(num_threads);
+
+        // std::thread t1{[&]
+        // {
+        //     for (size_t i = 0; i < num_threads; ++i)
+        //     {
+        //         std::lock_guard<std::mutex> l(m);
+        //         void *data;
+        //         vkMapMemory(device, stagingBufferMemory, i*offset, size, 0, &data);
+        //         memcpy(data, &verts[i*num_verts_each], (size_t) size);
+        //         vkUnmapMemory(device, stagingBufferMemory);
+        //     }
+        // }};
+
+        // std::mutex m;
+        // std::condition_variable cond;
+
+        // auto f = [&](int i){
+        //     std::lock_guard<std::mutex> lk(m);
+        //     std::cout << "Hi " << i << std::endl;
+        //     void *data;
+        //     vkMapMemory(device, stagingBufferMemory, i*offset, size, 0, &data);
+        //     memcpy(data, &verts[i*num_verts_each], (size_t) size);
+        //     vkUnmapMemory(device, stagingBufferMemory);
+        //     cond.notify_one();
+        // };
+
+        void *data;
+        vkMapMemory(device, stagingBufferMemory, 0, size, 0, &data);
+        memcpy(data, &verts[i*num_verts_each], (size_t) size);
+        vkUnmapMemory(device, stagingBufferMemory);
+
+        // for (size_t i = 0; i < num_threads; ++i)
+        // {
+        //     std::lock_guard<std::mutex> l(m);
+        //     void *data;
+        //     vkMapMemory(device, stagingBufferMemory, i*offset, size, 0, &data);
+        //     memcpy(data, &verts[i*num_verts_each], (size_t) size);
+        //     vkUnmapMemory(device, stagingBufferMemory);
+        // }
+
+        // Copy the vertex data from the staging buffer to the device-local buffer.
+        const VkCommandPool &commandPool = pUpdateInfo->commandPool;
+        const VkBuffer &dstBuffer = pUpdateInfo->vertexBuffer;
+        VkCommandBuffer commandBuffer;
+        beginSingleTimeCommands(device, commandPool, &commandBuffer);
+        VkBufferCopy copyRegion = {};
+        copyRegion.size = size;
+        copyRegion.dstOffset = i*offset;
+        vkCmdCopyBuffer(commandBuffer, stagingBuffer, dstBuffer, 1, &copyRegion);
+        endSingleTimeCommands(device, pUpdateInfo->graphicsQueue, commandPool, commandBuffer);
+
+        vkDestroyBuffer(device, stagingBuffer, nullptr);
+        vkFreeMemory(device, stagingBufferMemory, nullptr);
     }
-    for (auto &t : workers)
-    {
-        t.join();
-    }
-
-    // for (size_t i = 0; i < num_threads; ++i)
-    // {
-    //     std::lock_guard<std::mutex> l(m);
-    //     void *data;
-    //     vkMapMemory(device, stagingBufferMemory, i*offset, size, 0, &data);
-    //     memcpy(data, &verts[i*num_verts_each], (size_t) size);
-    //     vkUnmapMemory(device, stagingBufferMemory);
-    // }
-
-    vkDestroyFence(device, vertexCopyFence, nullptr);
-    for (size_t i=0; i < num_threads; ++i)
-    {
-        vkDestroyFence(device, fences[i], nullptr);
-    }
-
-    // Copy the vertex data from the staging buffer to the device-local buffer.
-    copyBuffer(
-        device,
-        pUpdateInfo->commandPool,
-        pUpdateInfo->graphicsQueue,
-        stagingBuffer, pUpdateInfo->vertexBuffer, bufferSize);
-
-    auto endTime = std::chrono::high_resolution_clock::now();
-    float time = std::chrono::duration<float, std::chrono::seconds::period>(endTime - startTime).count();
-    std::cout << "Copy took " << time << std::endl;
-
-    vkDestroyBuffer(device, stagingBuffer, nullptr);
-    vkFreeMemory(device, stagingBufferMemory, nullptr);
 }
 
 void evkCreateCommandBuffers(
@@ -244,6 +227,8 @@ void evkCreateCommandBuffers(
         // Goes and updates the vertex buffers in own thread.
         threadPool.push_back(t);
     }
+
+    // TODO: make the above happen in parallel.
 
     std::cout << "Created secondary command buffers\n";
     std::vector<VkCommandBuffer> tmp;
