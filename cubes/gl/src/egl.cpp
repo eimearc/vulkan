@@ -170,7 +170,7 @@ void EGL::setupBuffers()
 
 void EGL::updateVertexBuffer()
 {
-    update(vertices, grid);
+    update(vertices, grid, 0, vertices.size()-1);
     glBindVertexArray(VAO);
         glBindBuffer(GL_ARRAY_BUFFER, VBO);
         glBufferData(GL_ARRAY_BUFFER, vertices.size()*sizeof(Vertex), vertices.data(), GL_STATIC_DRAW);

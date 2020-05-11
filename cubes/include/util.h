@@ -33,5 +33,5 @@ struct SwapChainSupportDetails
 };
 
 std::vector<char> readFile(const std::string& filename);
-void update(std::vector<Vertex> &vertices, const Grid &grid);
+void update(std::vector<Vertex> &vertices, const Grid &grid, size_t startOffset, size_t endOffset);
 UniformBufferObject getUBO(const uint32_t &_width, const uint32_t &_height);

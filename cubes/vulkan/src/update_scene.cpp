@@ -80,7 +80,6 @@ void evkUpdateScene(
     std::vector<thread> *pThreadPool
 )
 {
-    update(*pUpdateInfo->pVertexUpdateInfo->pVertices, pUpdateInfo->pVertexUpdateInfo->grid);
     evkUpdateVertexBuffer(device, pUpdateInfo->pVertexUpdateInfo);
     evkCreateCommandBuffers(device, pUpdateInfo->pCommandBuffersCreateInfo, pPrimaryCommandBuffer, pThreadPool);
 }
@@ -131,6 +130,8 @@ void updateVertexBuffer(
 
 void evkUpdateVertexBuffer(VkDevice device, const EVkVertexBufferUpdateInfo *pUpdateInfo)
 {
+    update(*pUpdateInfo->pVertices, pUpdateInfo->grid, 0, pUpdateInfo->pVertices->size()-1);
+
     // This can all be done across multple threads.
     const VkDeviceSize wholeBufferSize = sizeof((pUpdateInfo->pVertices)[0]) * pUpdateInfo->pVertices->size();
     const std::vector<Vertex> &verts = pUpdateInfo->pVertices[0];
