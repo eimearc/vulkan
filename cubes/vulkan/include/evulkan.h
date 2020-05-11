@@ -115,20 +115,4 @@ private:
     void initVulkan();
     void mainLoop();
     void cleanup();
-
-    // // swap.cpp
-    // void recreateSwapChain();
-    // VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
-    // VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes);
-    // VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
-    // void cleanupSwapChain();
-
-    // // render.cpp
-    // bool hasStencilComponent(VkFormat format);
-    // void createImage(uint32_t width, uint32_t height, VkFormat format,
-    //     VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties,
-    //     VkImage& image, VkDeviceMemory& imageMemory);
-    // void transitionImageLayout(VkImage image, VkFormat format,
-    //     VkImageLayout oldLayout, VkImageLayout newLayout);
-    // void copyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height);
 };

@@ -102,20 +102,6 @@ void EVulkan::initVulkan()
     descriptorSetInfo.uniformBuffers = uniformBuffers;
     evkCreateDescriptorSets(device, &descriptorSetInfo, &descriptorSets);
 
-    EVkCommandBuffersCreateInfo commandBuffersInfo = {};
-    commandBuffersInfo.commandPool = commandPool;
-    commandBuffersInfo.descriptorSets = descriptorSets;
-    commandBuffersInfo.graphicsPipeline = graphicsPipeline;
-    commandBuffersInfo.indexBuffer = indexBuffer;
-    commandBuffersInfo.indices = indices;
-    commandBuffersInfo.pipelineLayout = pipelineLayout;
-    commandBuffersInfo.renderPass = renderPass;
-    commandBuffersInfo.swapchainExtent = swapChainExtent;
-    commandBuffersInfo.framebuffer = swapChainFramebuffers[0];
-    commandBuffersInfo.vertexBuffer = vertexBuffer;
-    commandBuffersInfo.poolCreateInfo = commandPoolInfo;
-    // evkCreateCommandBuffers(device, &commandBuffersInfo, &secondaryCommandBuffers, &primaryCommandBuffer);
-
     EVkSyncObjectsCreateInfo syncObjectsInfo = {};
     syncObjectsInfo.maxFramesInFlight = MAX_FRAMES_IN_FLIGHT;
     syncObjectsInfo.swapchainSize = swapChainImages.size();
@@ -132,6 +118,7 @@ void EVulkan::mainLoop()
     commandPoolInfo.physicalDevice = physicalDevice;
     commandPoolInfo.surface = surface;
     commandPoolInfo.flags = 0;
+
     EVkCommandBuffersCreateInfo commandBuffersInfo = {};
     commandBuffersInfo.commandPool = commandPool;
     commandBuffersInfo.descriptorSets = descriptorSets;
@@ -141,36 +128,33 @@ void EVulkan::mainLoop()
     commandBuffersInfo.pipelineLayout = pipelineLayout;
     commandBuffersInfo.renderPass = renderPass;
     commandBuffersInfo.swapchainExtent = swapChainExtent;
-    // commandBuffersInfo.framebuffer = swapChainFramebuffers[imageIndex];
     commandBuffersInfo.vertexBuffer = vertexBuffer;
     commandBuffersInfo.poolCreateInfo = commandPoolInfo;
 
-    EVkDrawFrameInfo info = {};
-    info.pInFlightFences = &inFlightFences;
-    info.pImageAvailableSemaphores = &imageAvailableSemaphores;
-    info.swapchain = swapChain;
-    info.maxFramesInFlight = MAX_FRAMES_IN_FLIGHT;
-    info.pCommandBuffers = &secondaryCommandBuffers;
-    info.graphicsQueue = graphicsQueue;
-    info.presentQueue = presentQueue;
-    info.pFramebufferResized = &framebufferResized;
-    info.swapchainExtent = swapChainExtent;
-    info.pUniformBufferMemory = &uniformBuffersMemory;
-    info.pVertices = &vertices;
-    info.physicalDevice = physicalDevice;
-    info.commandPool = commandPool;
-    info.vertexBuffer = vertexBuffer;
-    info.grid = grid;
-    info.pCommandBuffersCreateInfo = &commandBuffersInfo;
-    info.framebuffers = swapChainFramebuffers;
+    EVkDrawFrameInfo drawInfo = {};
+    drawInfo.pInFlightFences = &inFlightFences;
+    drawInfo.pImageAvailableSemaphores = &imageAvailableSemaphores;
+    drawInfo.swapchain = swapChain;
+    drawInfo.maxFramesInFlight = MAX_FRAMES_IN_FLIGHT;
+    drawInfo.graphicsQueue = graphicsQueue;
+    drawInfo.presentQueue = presentQueue;
+    drawInfo.pFramebufferResized = &framebufferResized;
+    drawInfo.swapchainExtent = swapChainExtent;
+    drawInfo.pUniformBufferMemory = &uniformBuffersMemory;
+    drawInfo.pVertices = &vertices;
+    drawInfo.grid = grid;
+    drawInfo.physicalDevice = physicalDevice;
+    drawInfo.commandPool = commandPool;
+    drawInfo.vertexBuffer = vertexBuffer;
+    drawInfo.pCommandBuffersCreateInfo = &commandBuffersInfo;
+    drawInfo.framebuffers = swapChainFramebuffers;
 
     while(!glfwWindowShouldClose(window))
     {
-        std::cout << "\n\nNEXT FRAME\n";
         glfwPollEvents();
         if ((i % 10) == 0) startTime = std::chrono::high_resolution_clock::now();
 
-        evkDrawFrame(device, &info,
+        evkDrawFrame(device, &drawInfo,
             &currentFrame, &imagesInFlight,
             &renderFinishedSemaphores,
             &primaryCommandBuffer,
@@ -199,7 +183,6 @@ void EVulkan::cleanup()
     cleanupInfo.depthImageMemory = depthImageMemory;
     cleanupInfo.swapchainFramebuffers = swapChainFramebuffers;
     cleanupInfo.commandPool = commandPool;
-    cleanupInfo.pCommandBuffers = &secondaryCommandBuffers;
     cleanupInfo.graphicsPipeline = graphicsPipeline;
     cleanupInfo.pipelineLayout = pipelineLayout;
     cleanupInfo.renderPass = renderPass;

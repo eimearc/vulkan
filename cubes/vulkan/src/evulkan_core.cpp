@@ -795,8 +795,6 @@ void evkDrawFrame(
         imageAvailableSemaphores[*pCurrentFrame],
         VK_NULL_HANDLE, &imageIndex);
 
-    std::cout << imageIndex << " " << *pCurrentFrame << std::endl;
-
     if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR)
     {
         std::cout << "RECREATE SWAPCHAIN\n";
@@ -828,7 +826,6 @@ void evkDrawFrame(
     EVkVertexBufferUpdateInfo vUpdateInfo = {};
     vUpdateInfo.pVertices = pDrawInfo->pVertices;
     vUpdateInfo.physicalDevice = pDrawInfo->physicalDevice;
-    vUpdateInfo.commandPool = pDrawInfo->commandPool;
     vUpdateInfo.graphicsQueue = graphicsQueue;
     vUpdateInfo.vertexBuffer = pDrawInfo->vertexBuffer;
     vUpdateInfo.grid = pDrawInfo->grid;
@@ -870,7 +867,6 @@ void evkDrawFrame(
     presentInfo.swapchainCount = 1;
     presentInfo.pSwapchains = swapChains;
     presentInfo.pImageIndices = &imageIndex;
-    std::cout << imageIndex << " " << pDrawInfo->swapchain << std::endl;
     presentInfo.pResults = nullptr;
 
     result = vkQueuePresentKHR(pDrawInfo->presentQueue, &presentInfo);

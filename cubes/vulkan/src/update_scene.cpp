@@ -184,7 +184,7 @@ void evkUpdateVertexBuffer(VkDevice device, const EVkVertexBufferUpdateInfo *pUp
     }
     auto endTime = std::chrono::high_resolution_clock::now();
     float time = std::chrono::duration<float, std::chrono::seconds::period>(endTime - startTime).count();
-    std::cout << "Num threads: " << num_threads << " time:" << time << std::endl;
+    std::cout << num_threads << "," << time << std::endl;
 
     // Submit to queue.
     VkSubmitInfo submitInfo = {};
