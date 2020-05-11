@@ -85,9 +85,48 @@ void evkUpdateScene(
     evkCreateCommandBuffers(device, pUpdateInfo->pCommandBuffersCreateInfo, pPrimaryCommandBuffer, pThreadPool);
 }
 
-void updateVertexBuffer()
+void updateVertexBuffer(
+    VkDevice device,
+    VkPhysicalDevice physicalDevice,
+    VkQueue queue,
+    VkCommandPool commandPool,
+    VkBuffer vertexBuffer,
+    const std::vector<Vertex> &verts,
+    size_t bufferSize,
+    size_t bufferOffset,
+    size_t vertsOffset
+    )
 {
-    
+    // Use a host visible buffer as a staging buffer.
+    VkBuffer stagingBuffer;
+    VkDeviceMemory stagingBufferMemory;
+    createBuffer(
+        device,
+        physicalDevice,
+        bufferSize,
+        VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+        &stagingBuffer, &stagingBufferMemory);
+
+    // Copy vertex data to the staging buffer by mapping the buffer memory into CPU
+    // accessible memory.
+    void *data;
+    vkMapMemory(device, stagingBufferMemory, 0, bufferSize, 0, &data);
+    memcpy(data, &verts[vertsOffset], bufferSize);
+    vkUnmapMemory(device, stagingBufferMemory);
+
+    // Copy the vertex data from the staging buffer to the device-local buffer.
+    const VkBuffer &dstBuffer = vertexBuffer;
+    VkCommandBuffer commandBuffer;
+    beginSingleTimeCommands(device, commandPool, &commandBuffer);
+    VkBufferCopy copyRegion = {};
+    copyRegion.size = bufferSize;
+    copyRegion.dstOffset = bufferOffset;
+    vkCmdCopyBuffer(commandBuffer, stagingBuffer, dstBuffer, 1, &copyRegion);
+    endSingleTimeCommands(device, queue, commandPool, commandBuffer);
+
+    vkDestroyBuffer(device, stagingBuffer, nullptr);
+    vkFreeMemory(device, stagingBufferMemory, nullptr);
 }
 
 void evkUpdateVertexBuffer(VkDevice device, const EVkVertexBufferUpdateInfo *pUpdateInfo)
@@ -105,37 +144,10 @@ void evkUpdateVertexBuffer(VkDevice device, const EVkVertexBufferUpdateInfo *pUp
         size_t bufferOffset = threadBufferSize*i;
         int vertsOffset = num_verts_each*i;
 
-        // Use a host visible buffer as a staging buffer.
-        VkBuffer stagingBuffer;
-        VkDeviceMemory stagingBufferMemory;
-        createBuffer(
-            device,
-            pUpdateInfo->physicalDevice,
-            threadBufferSize,
-            VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-            &stagingBuffer, &stagingBufferMemory);
-
-        // Copy vertex data to the staging buffer by mapping the buffer memory into CPU
-        // accessible memory.
-        void *data;
-        vkMapMemory(device, stagingBufferMemory, 0, threadBufferSize, 0, &data);
-        memcpy(data, &verts[vertsOffset], threadBufferSize);
-        vkUnmapMemory(device, stagingBufferMemory);
-
-        // Copy the vertex data from the staging buffer to the device-local buffer.
-        const VkCommandPool &commandPool = pUpdateInfo->commandPool;
-        const VkBuffer &dstBuffer = pUpdateInfo->vertexBuffer;
-        VkCommandBuffer commandBuffer;
-        beginSingleTimeCommands(device, commandPool, &commandBuffer);
-        VkBufferCopy copyRegion = {};
-        copyRegion.size = threadBufferSize;
-        copyRegion.dstOffset = bufferOffset;
-        vkCmdCopyBuffer(commandBuffer, stagingBuffer, dstBuffer, 1, &copyRegion);
-        endSingleTimeCommands(device, pUpdateInfo->graphicsQueue, commandPool, commandBuffer);
-
-        vkDestroyBuffer(device, stagingBuffer, nullptr);
-        vkFreeMemory(device, stagingBufferMemory, nullptr);
+        updateVertexBuffer(
+            device, pUpdateInfo->physicalDevice, pUpdateInfo->graphicsQueue,
+            pUpdateInfo->commandPool, pUpdateInfo->vertexBuffer,
+            verts, threadBufferSize, bufferOffset, vertsOffset);
     }
 }
 
