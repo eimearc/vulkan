@@ -37,7 +37,7 @@ void EGL::initGL()
 
 void EGL::createGrid()
 {
-    uint16_t num = numCubes;
+    uint32_t num = numCubes;
     float gridSize = 2.0f;
     float cubeSize = (gridSize/num)*0.5;
     grid = Grid(gridSize, cubeSize, num);
@@ -52,7 +52,7 @@ void EGL::setupVertices()
     for (auto cube : grid.cubes)
     {
         std::vector<glm::vec3> verts = cube.vertices;
-        std::vector<uint16_t> ind = cube.indices;
+        std::vector<uint32_t> ind = cube.indices;
         for(size_t j = 0; j<verts.size(); ++j)
         {
             vertex.pos=verts[j];

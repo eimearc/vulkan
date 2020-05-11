@@ -43,6 +43,6 @@ struct Cube
 
     glm::vec3 center;
     std::vector<glm::vec3> vertices;
-    std::vector<uint16_t> indices;
+    std::vector<uint32_t> indices;
     glm::vec3 color={0,1,0};
 };

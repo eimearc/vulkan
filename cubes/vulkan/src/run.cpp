@@ -26,8 +26,6 @@ void EVulkan::initVulkan()
     deviceInfo.surface = surface;
     evkCreateDevice(physicalDevice, &deviceInfo, &device, &graphicsQueue, &presentQueue);
 
-    std::cout << "Graphics Queue: "<< graphicsQueue << std::endl;
-
     EVkSwapchainCreateInfo swapchainInfo = {};
     swapchainInfo.physicalDevice = physicalDevice;
     swapchainInfo.surface = surface;

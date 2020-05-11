@@ -252,7 +252,7 @@ void evkCreateVertexBuffer(
 );
 struct EVkIndexBufferCreateInfo
 {
-    std::vector<uint16_t> indices;
+    std::vector<uint32_t> indices;
     VkPhysicalDevice physicalDevice;
     VkQueue queue;
     VkCommandPool commandPool;
@@ -335,7 +335,7 @@ struct EVkCommandBuffersCreateInfo
     VkExtent2D swapchainExtent;
     VkBuffer vertexBuffer;
     VkBuffer indexBuffer;
-    std::vector<uint16_t> indices;
+    std::vector<uint32_t> indices;
 };
 
 struct thread

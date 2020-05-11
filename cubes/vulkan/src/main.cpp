@@ -8,7 +8,7 @@ int main()
 
     try
     {
-        app.run(10);
+        app.run(100);
     } catch (const std::exception& e)
     {
         std::cerr << e.what() << std::endl;

@@ -111,7 +111,7 @@ private:
     Grid grid;
     size_t numCubes = 4;
     std::vector<Vertex> vertices;
-    std::vector<uint16_t> indices;
+    std::vector<uint32_t> indices;
 
     void initWindow();
     void initVulkan();
