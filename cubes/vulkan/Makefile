@@ -9,8 +9,8 @@ SDIR = src
 SDIR_EXT = ../src
 
 CC=g++
-CFLAGS = -std=c++17 -I$(VULKAN_SDK_PATH)/include -I$(STB_INCLUDE_PATH) -I$(IDIR) -I$(IDIR_EXT)
-LDFLAGS = `pkg-config --static --libs glfw3` -L$(VULKAN_SDK_PATH)/lib -lvulkan
+CFLAGS = -std=c++17 -I$(VULKAN_SDK_PATH)/include -I$(STB_INCLUDE_PATH) -I$(STB_INCLUDE_PATH)gflags/ -I$(IDIR) -I$(IDIR_EXT)
+LDFLAGS = `pkg-config --static --libs glfw3` -L$(VULKAN_SDK_PATH)/lib -lvulkan -L/usr/local/lib/ -lgflags
 
 _DEPS = evulkan.h evulkan_core.h
 _DEPS_EXT = cube.h grid.h vertex.h util.h 
