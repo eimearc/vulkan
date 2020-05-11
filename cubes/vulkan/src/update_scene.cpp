@@ -88,7 +88,10 @@ void updateVertexBuffer(
     VkDevice device,
     VkPhysicalDevice physicalDevice,
     VkQueue queue,
-    VkCommandPool commandPool,
+    const VkCommandPool *pCommandPool,
+    VkCommandBuffer *pCommandBuffer,
+    VkBuffer *stagingBuffer,
+    VkDeviceMemory *stagingBufferMemory,
     VkBuffer vertexBuffer,
     std::vector<Vertex> &verts,
     const Grid &grid,
@@ -98,44 +101,61 @@ void updateVertexBuffer(
     size_t numVerts
     )
 {
+    VkCommandPool commandPool = *pCommandPool;
     update(verts, grid, vertsOffset, numVerts);
 
     // Use a host visible buffer as a staging buffer.
-    VkBuffer stagingBuffer;
-    VkDeviceMemory stagingBufferMemory;
+    // VkBuffer stagingBuffer;
+    // VkDeviceMemory stagingBufferMemory;
     createBuffer(
         device,
         physicalDevice,
         bufferSize,
         VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-        &stagingBuffer, &stagingBufferMemory);
+        stagingBuffer, stagingBufferMemory);
 
     // Copy vertex data to the staging buffer by mapping the buffer memory into CPU
     // accessible memory.
     void *data;
-    vkMapMemory(device, stagingBufferMemory, 0, bufferSize, 0, &data);
+    vkMapMemory(device, *stagingBufferMemory, 0, bufferSize, 0, &data);
     memcpy(data, &verts[vertsOffset], bufferSize);
-    vkUnmapMemory(device, stagingBufferMemory);
+    vkUnmapMemory(device, *stagingBufferMemory);
 
     // Copy the vertex data from the staging buffer to the device-local buffer.
     const VkBuffer &dstBuffer = vertexBuffer;
-    VkCommandBuffer commandBuffer;
-    beginSingleTimeCommands(device, commandPool, &commandBuffer);
+
+    VkCommandBufferAllocateInfo allocInfo = {};
+    allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+    allocInfo.commandPool = commandPool;
+    allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+    allocInfo.commandBufferCount = 1;
+    vkAllocateCommandBuffers(device, &allocInfo, pCommandBuffer);
+
+    std::cout << "Allocated (during): " << *pCommandBuffer << std::endl;
+
+    VkCommandBufferBeginInfo beginInfo = {};
+    beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+    beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+
+    vkBeginCommandBuffer(*pCommandBuffer, &beginInfo);
+
     VkBufferCopy copyRegion = {};
     copyRegion.size = bufferSize;
     copyRegion.dstOffset = bufferOffset;
-    vkCmdCopyBuffer(commandBuffer, stagingBuffer, dstBuffer, 1, &copyRegion);
-    endSingleTimeCommands(device, queue, commandPool, commandBuffer);
+    vkCmdCopyBuffer(*pCommandBuffer, *stagingBuffer, dstBuffer, 1, &copyRegion);
 
-    vkDestroyBuffer(device, stagingBuffer, nullptr);
-    vkFreeMemory(device, stagingBufferMemory, nullptr);
+    vkEndCommandBuffer(*pCommandBuffer);
+
+    // vkDestroyBuffer(device, stagingBuffer, nullptr);
+    // vkFreeMemory(device, stagingBufferMemory, nullptr);
 }
 
 void evkUpdateVertexBuffer(VkDevice device, const EVkVertexBufferUpdateInfo *pUpdateInfo)
 {
     // This can all be done across multple threads.
     const VkDeviceSize wholeBufferSize = sizeof((pUpdateInfo->pVertices)[0]) * pUpdateInfo->pVertices->size();
+    const VkQueue queue = pUpdateInfo->graphicsQueue;
     std::vector<Vertex> &verts = pUpdateInfo->pVertices[0];
     constexpr int num_threads = 4;
     const int num_verts = verts.size();
@@ -143,6 +163,10 @@ void evkUpdateVertexBuffer(VkDevice device, const EVkVertexBufferUpdateInfo *pUp
     const size_t threadBufferSize = wholeBufferSize/num_threads;
 
     std::vector<std::thread> workers;
+    // std::vector<VkCommandPool> commandPools(num_threads);
+    std::vector<VkCommandBuffer> commandBuffers(num_threads);
+    std::vector<VkBuffer> buffers(num_threads);
+    std::vector<VkDeviceMemory> bufferMemory(num_threads);
 
     auto f = [&](int i)
     {
@@ -150,18 +174,37 @@ void evkUpdateVertexBuffer(VkDevice device, const EVkVertexBufferUpdateInfo *pUp
         int vertsOffset = num_verts_each*i;
         updateVertexBuffer(
             device, pUpdateInfo->physicalDevice, pUpdateInfo->graphicsQueue,
-            pUpdateInfo->commandPool, pUpdateInfo->vertexBuffer,
+            &pUpdateInfo->commandPool, &commandBuffers[i], &buffers[i], &bufferMemory[i], pUpdateInfo->vertexBuffer,
             verts, pUpdateInfo->grid, threadBufferSize, bufferOffset, vertsOffset, num_verts_each);
+        std::cout << "Allocated (after): " << commandBuffers[i] << std::endl;
     };
-
     for (int i = 0; i < num_threads; ++i)
     {
         workers.push_back(std::thread(f,i));
     }
-
     for (std::thread &t : workers)
     {
         t.join();
+    }
+
+    // Submit to queue.
+    VkSubmitInfo submitInfo = {};
+    submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+    submitInfo.commandBufferCount = commandBuffers.size();
+    submitInfo.pCommandBuffers = commandBuffers.data();
+    for (const auto & cb: commandBuffers)
+    {
+        std::cout << "Command buffer: " << cb << std::endl;
+    }
+    std::cout << commandBuffers.size() << std::endl;
+    vkQueueSubmit(queue, 1, &submitInfo, VK_NULL_HANDLE);
+    vkQueueWaitIdle(queue);
+
+    for (size_t i = 0; i<num_threads; ++i)
+    {
+        vkFreeCommandBuffers(device, pUpdateInfo->commandPool, 1, &commandBuffers[i]);
+        vkDestroyBuffer(device, buffers[i], nullptr);
+        vkFreeMemory(device, bufferMemory[i], nullptr);
     }
 }
 
