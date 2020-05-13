@@ -9,6 +9,8 @@
 
 #define ENABLE_VALIDATION true
 
+const size_t NUM_THREADS = 2;
+
 struct EVkCreateWindow
 {
     bool resizeable;
@@ -72,7 +74,6 @@ void DestroyDebugUtilsMessengerEXT(
     const VkAllocationCallbacks* pAllocator
 );
 
-// std::vector<const char*> getRequiredExtensions();
 void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
 
 struct EVkDeviceCreateInfo
@@ -87,6 +88,7 @@ struct EVkSwapchainCreateInfo
     VkPhysicalDevice physicalDevice;
     VkSurfaceKHR surface;
     GLFWwindow* window;
+    uint32_t numImages;
 };
 
 void evkCreateDevice(
@@ -228,6 +230,7 @@ struct EVkCommandPoolCreateInfo
 {
     VkPhysicalDevice physicalDevice;
     VkSurfaceKHR surface;
+    VkCommandPoolCreateFlags flags;
 };
 void evkCreateCommandPool(
     VkDevice device,
@@ -249,7 +252,7 @@ void evkCreateVertexBuffer(
 );
 struct EVkIndexBufferCreateInfo
 {
-    std::vector<uint16_t> indices;
+    std::vector<uint32_t> indices;
     VkPhysicalDevice physicalDevice;
     VkQueue queue;
     VkCommandPool commandPool;
@@ -322,8 +325,9 @@ void evkCreateDescriptorSets(
 
 struct EVkCommandBuffersCreateInfo
 {
-    std::vector<VkFramebuffer> swapchainFramebuffers;
+    VkFramebuffer framebuffer;
     VkCommandPool commandPool;
+    EVkCommandPoolCreateInfo poolCreateInfo;
     VkRenderPass renderPass;
     VkPipeline graphicsPipeline;
     VkPipelineLayout pipelineLayout;
@@ -331,12 +335,29 @@ struct EVkCommandBuffersCreateInfo
     VkExtent2D swapchainExtent;
     VkBuffer vertexBuffer;
     VkBuffer indexBuffer;
-    std::vector<uint16_t> indices;
+    std::vector<uint32_t> indices;
 };
+
+struct thread
+{
+    VkCommandPool commandPool;
+    std::vector<VkCommandBuffer> commandBuffers;
+    size_t size;
+    VkDevice device;
+    size_t index;
+    static size_t i;
+
+    static void reset(){i=0;}
+    void cleanup();
+    thread(VkDevice device, const EVkCommandPoolCreateInfo *pCreateInfo, size_t size);
+    void createSecondaryCommandBuffers(const EVkCommandBuffersCreateInfo *pCreateInfo);
+};
+
 void evkCreateCommandBuffers(
     VkDevice device,
     const EVkCommandBuffersCreateInfo *pCreateInfo,
-    std::vector<VkCommandBuffer> *pCommandBuffers
+    VkCommandBuffer *pPrimaryCommandBuffer,
+    std::vector<thread> *pThreadPool
 );
 
 struct EVkSyncObjectsCreateInfo
@@ -355,21 +376,22 @@ void evkCreateSyncObjects(
 
 struct EVkDrawFrameInfo
 {
+    VkPhysicalDevice physicalDevice;
     std::vector<VkFence> *pInFlightFences;
     std::vector<VkSemaphore> *pImageAvailableSemaphores;
-    VkSwapchainKHR swapchain;
     size_t maxFramesInFlight;
-    std::vector<VkCommandBuffer> *pCommandBuffers;
     VkQueue graphicsQueue;
     VkQueue presentQueue;
-    bool *pFramebufferResized;
+    VkSwapchainKHR swapchain;
     VkExtent2D swapchainExtent;
+    std::vector<VkFramebuffer> framebuffers;
+    bool *pFramebufferResized;
     std::vector<VkDeviceMemory> *pUniformBufferMemory;
     std::vector<Vertex> *pVertices;
-    VkPhysicalDevice physicalDevice;
+    Grid grid;
     VkCommandPool commandPool;
     VkBuffer vertexBuffer;
-    Grid grid;
+    EVkCommandBuffersCreateInfo *pCommandBuffersCreateInfo;
 };
 void evkDrawFrame(
     VkDevice device,
@@ -377,6 +399,7 @@ void evkDrawFrame(
     size_t *pCurrentFrame,
     std::vector<VkFence> *pImagesInFlight,
     std::vector<VkSemaphore> *pRenderFinishedSemaphores,
+    VkCommandBuffer *pPrimaryCommandBuffer,
     uint32_t *pImageIndex
 );
 
@@ -400,6 +423,7 @@ struct EVkSwapchainRecreateInfo
     VkDescriptorPool *pDescriptorPool;
     std::vector<VkDescriptorSet> *pDescriptorSets;
     std::vector<VkCommandBuffer> *pCommandBuffers;
+    VkCommandBuffer *pPrimaryCommandBuffer;
 
     EVkSwapchainCreateInfo swapchainCreateInfo;
     EVkImageViewsCreateInfo imageViewsCreateInfo;
@@ -453,5 +477,18 @@ struct EVkVertexBufferUpdateInfo
    VkCommandPool commandPool;
    VkQueue graphicsQueue;
    VkBuffer vertexBuffer;
+   VkSurfaceKHR surface;
 };
 void evkUpdateVertexBuffer(VkDevice device, const EVkVertexBufferUpdateInfo *pUpdateInfo);
+
+struct EVkSceneUpdateInfo
+{
+   const EVkVertexBufferUpdateInfo *pVertexUpdateInfo;
+   const EVkCommandBuffersCreateInfo *pCommandBuffersCreateInfo;
+};
+void evkUpdateScene(
+    VkDevice device,
+    const EVkSceneUpdateInfo *pUpdateInfo,
+    VkCommandBuffer *pPrimaryCommandBuffer,
+    std::vector<thread> *pThreadPool
+);

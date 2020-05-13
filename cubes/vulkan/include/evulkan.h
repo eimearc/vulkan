@@ -26,8 +26,6 @@
 #include "vertex.h"
 #include "grid.h"
 #include "util.h"
-// #include "renderpass.h"
-// #include "instance.h"
 
 class EVulkan {
 public:
@@ -42,7 +40,7 @@ public:
 private:
     const uint32_t WIDTH = 800;
     const uint32_t HEIGHT = 600;
-    const int MAX_FRAMES_IN_FLIGHT = 2;
+    const int MAX_FRAMES_IN_FLIGHT = 2; // Must be greater than minImageCount.
 
     GLFWwindow *window;
     VkSurfaceKHR surface;
@@ -77,7 +75,8 @@ private:
     VkDescriptorSetLayout descriptorSetLayout;
 
     VkCommandPool commandPool;
-    std::vector<VkCommandBuffer> commandBuffers;
+    VkCommandBuffer primaryCommandBuffer;
+    std::vector<VkCommandBuffer> secondaryCommandBuffers;
 
     std::vector<VkSemaphore> imageAvailableSemaphores;
     std::vector<VkSemaphore> renderFinishedSemaphores;
@@ -110,26 +109,10 @@ private:
     Grid grid;
     size_t numCubes = 4;
     std::vector<Vertex> vertices;
-    std::vector<uint16_t> indices;
+    std::vector<uint32_t> indices;
 
     void initWindow();
     void initVulkan();
     void mainLoop();
     void cleanup();
-
-    // // swap.cpp
-    // void recreateSwapChain();
-    // VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
-    // VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes);
-    // VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
-    // void cleanupSwapChain();
-
-    // // render.cpp
-    // bool hasStencilComponent(VkFormat format);
-    // void createImage(uint32_t width, uint32_t height, VkFormat format,
-    //     VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties,
-    //     VkImage& image, VkDeviceMemory& imageMemory);
-    // void transitionImageLayout(VkImage image, VkFormat format,
-    //     VkImageLayout oldLayout, VkImageLayout newLayout);
-    // void copyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height);
 };

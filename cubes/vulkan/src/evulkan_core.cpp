@@ -85,6 +85,22 @@ QueueFamilyIndices getQueueFamilies(VkPhysicalDevice device, VkSurfaceKHR surfac
     return indices;
 }
 
+void evkCreateCommandPool(
+    VkDevice device,
+    const EVkCommandPoolCreateInfo *pCreateInfo,
+    VkCommandPool *pCommandPool)
+{
+    QueueFamilyIndices queueFamilyIndices = findQueueFamilies(pCreateInfo->physicalDevice, pCreateInfo->surface);
+    VkCommandPoolCreateInfo poolInfo = {};
+    poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+    poolInfo.queueFamilyIndex = queueFamilyIndices.graphicsFamily.value();
+    poolInfo.flags = pCreateInfo->flags;
+    if (vkCreateCommandPool(device, &poolInfo, nullptr, pCommandPool) != VK_SUCCESS)
+    {
+        throw std::runtime_error("failed to create command pool.");
+    }
+}
+
 void evkCreateSwapchain(
     VkDevice device,
     const EVkSwapchainCreateInfo *pCreateInfo,
@@ -99,10 +115,10 @@ void evkCreateSwapchain(
     VkPresentModeKHR presentMode = chooseSwapPresentMode(swapChainSupport.presentModes);
     VkExtent2D extent = chooseSwapExtent(pCreateInfo->window, swapChainSupport.capabilities);
 
-    uint32_t imageCount = swapChainSupport.capabilities.minImageCount + 1;
-    if (swapChainSupport.capabilities.maxImageCount > 0 && imageCount > swapChainSupport.capabilities.maxImageCount)
+    uint32_t imageCount = pCreateInfo->numImages;
+    if (imageCount < swapChainSupport.capabilities.minImageCount || imageCount > swapChainSupport.capabilities.maxImageCount)
     {
-        imageCount = swapChainSupport.capabilities.maxImageCount;
+        throw std::runtime_error("Please specify an image count within the swapchain capabilites.");
     }
 
     VkSwapchainCreateInfoKHR createInfo = {};
@@ -723,23 +739,6 @@ void evkCreateFramebuffers(
     }
 }
 
-void evkCreateCommandPool(
-    VkDevice device,
-    const EVkCommandPoolCreateInfo *pCreateInfo,
-    VkCommandPool *pCommandPool)
-{
-    QueueFamilyIndices queueFamilyIndices = findQueueFamilies(pCreateInfo->physicalDevice, pCreateInfo->surface);
-    VkCommandPoolCreateInfo poolInfo = {};
-    poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-    poolInfo.queueFamilyIndex = queueFamilyIndices.graphicsFamily.value();
-    poolInfo.flags = 0;
-
-    if (vkCreateCommandPool(device, &poolInfo, nullptr, pCommandPool) != VK_SUCCESS)
-    {
-        throw std::runtime_error("failed to create command pool.");
-    }
-}
-
 void beginSingleTimeCommands(VkDevice device, VkCommandPool commandPool, VkCommandBuffer *pCommandBuffer)
 {
     VkCommandBufferAllocateInfo allocInfo = {};
@@ -777,16 +776,20 @@ void evkDrawFrame(
     const EVkDrawFrameInfo *pDrawInfo,
     size_t *pCurrentFrame,
     std::vector<VkFence> *pImagesInFlight,
-    std::vector<VkSemaphore> *pRenderFinishedSemaphores, uint32_t *pImageIndex)
+    std::vector<VkSemaphore> *pRenderFinishedSemaphores,
+    VkCommandBuffer *pPrimaryCommandBuffer,
+    uint32_t *pImageIndex)
 {
     const std::vector<VkFence> &inFlightFences = *(pDrawInfo->pInFlightFences);
     const std::vector<VkSemaphore> &imageAvailableSemaphores = *(pDrawInfo->pImageAvailableSemaphores);
     std::vector<VkFence> &imagesInFlight = *(pImagesInFlight);
-    const std::vector<VkCommandBuffer> &commandBuffers = *(pDrawInfo->pCommandBuffers);
+    const VkQueue &graphicsQueue = pDrawInfo->graphicsQueue;
+    EVkCommandBuffersCreateInfo *pCommandBuffersInfo = pDrawInfo->pCommandBuffersCreateInfo;
+    pCommandBuffersInfo->framebuffer = pDrawInfo->framebuffers[*pCurrentFrame];
 
     vkWaitForFences(device, 1, &inFlightFences[*pCurrentFrame], VK_TRUE, UINT64_MAX);
 
-    uint32_t &imageIndex = *pImageIndex;
+    uint32_t imageIndex;
     VkResult result = vkAcquireNextImageKHR(
         device, pDrawInfo->swapchain, UINT64_MAX,
         imageAvailableSemaphores[*pCurrentFrame],
@@ -814,7 +817,7 @@ void evkDrawFrame(
 
     // Update the uniform buffers.
     EVkUniformBufferUpdateInfo updateInfo = {};
-    updateInfo.currentImage = *pImageIndex;
+    updateInfo.currentImage = imageIndex;
     updateInfo.swapchainExtent = pDrawInfo->swapchainExtent;
     updateInfo.pUniformBufferMemory = pDrawInfo->pUniformBufferMemory;
     evkUpdateUniformBuffer(device, &updateInfo);
@@ -823,23 +826,27 @@ void evkDrawFrame(
     EVkVertexBufferUpdateInfo vUpdateInfo = {};
     vUpdateInfo.pVertices = pDrawInfo->pVertices;
     vUpdateInfo.physicalDevice = pDrawInfo->physicalDevice;
-    vUpdateInfo.commandPool = pDrawInfo->commandPool;
-    vUpdateInfo.graphicsQueue = pDrawInfo->graphicsQueue;
+    vUpdateInfo.graphicsQueue = graphicsQueue;
     vUpdateInfo.vertexBuffer = pDrawInfo->vertexBuffer;
     vUpdateInfo.grid = pDrawInfo->grid;
-    evkUpdateVertexBuffer(device, &vUpdateInfo);
+    vUpdateInfo.surface = pCommandBuffersInfo->poolCreateInfo.surface;
+
+    // Update verts and command buffer here.
+    std::vector<thread> threadPool;
+    EVkSceneUpdateInfo sceneUpdateInfo = {};
+    sceneUpdateInfo.pVertexUpdateInfo = &vUpdateInfo;
+    sceneUpdateInfo.pCommandBuffersCreateInfo = pCommandBuffersInfo;
+    evkUpdateScene(device, &sceneUpdateInfo, pPrimaryCommandBuffer, &threadPool);
     
     VkSubmitInfo submitInfo = {};
     submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-
     VkSemaphore waitSemaphores[] = {imageAvailableSemaphores[*pCurrentFrame]};
     VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
     submitInfo.waitSemaphoreCount = 1;
     submitInfo.pWaitSemaphores = waitSemaphores;
     submitInfo.pWaitDstStageMask = waitStages;
-
     submitInfo.commandBufferCount = 1;
-    submitInfo.pCommandBuffers = &commandBuffers[imageIndex];
+    submitInfo.pCommandBuffers = pPrimaryCommandBuffer;
 
     VkSemaphore signalSemaphores[] = {(*pRenderFinishedSemaphores)[*pCurrentFrame]};
     submitInfo.signalSemaphoreCount = 1;
@@ -847,7 +854,7 @@ void evkDrawFrame(
 
     vkResetFences(device, 1, &inFlightFences[*pCurrentFrame]);
 
-    if (vkQueueSubmit(pDrawInfo->graphicsQueue, 1, &submitInfo, inFlightFences[*pCurrentFrame]) != VK_SUCCESS)
+    if (vkQueueSubmit(graphicsQueue, 1, &submitInfo, inFlightFences[*pCurrentFrame]) != VK_SUCCESS)
     {
         throw std::runtime_error("failed to submit draw command buffer!");
     }
@@ -876,6 +883,11 @@ void evkDrawFrame(
     }
 
     vkQueueWaitIdle(pDrawInfo->presentQueue);
+
+    for(auto& t: threadPool)
+    {
+        t.cleanup();
+    }
 
     *pCurrentFrame = ((*pCurrentFrame)+1) % pDrawInfo->maxFramesInFlight;
 }
@@ -939,7 +951,8 @@ void evkRecreateSwapChain(VkDevice device, const EVkSwapchainRecreateInfo *pCrea
     evkCreateDescriptorSets(device, &descriptorSetInfo, pCreateInfo->pDescriptorSets);
 
     EVkCommandBuffersCreateInfo commandBuffersInfo = pCreateInfo->commandBuffersCreateInfo;
-    evkCreateCommandBuffers(device, &commandBuffersInfo, pCreateInfo->pCommandBuffers);
+    std::vector<thread> threadPool;
+    evkCreateCommandBuffers(device, &commandBuffersInfo, pCreateInfo->pPrimaryCommandBuffer, &threadPool);
 }
 
 void evkCleanupSwapchain(VkDevice device, const EVkSwapchainCleanupInfo *pCleanupInfo)
@@ -952,8 +965,6 @@ void evkCleanupSwapchain(VkDevice device, const EVkSwapchainCleanupInfo *pCleanu
     {
         vkDestroyFramebuffer(device, framebuffer, nullptr);
     }
-
-    vkFreeCommandBuffers(device, pCleanupInfo->commandPool, static_cast<uint32_t>(pCleanupInfo->pCommandBuffers->size()), pCleanupInfo->pCommandBuffers->data());
 
     vkDestroyPipeline(device, pCleanupInfo->graphicsPipeline, nullptr);
     vkDestroyPipelineLayout(device, pCleanupInfo->pipelineLayout, nullptr);

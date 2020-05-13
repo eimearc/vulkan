@@ -30,6 +30,7 @@ void EVulkan::initVulkan()
     swapchainInfo.physicalDevice = physicalDevice;
     swapchainInfo.surface = surface;
     swapchainInfo.window = window;
+    swapchainInfo.numImages = MAX_FRAMES_IN_FLIGHT;
     evkCreateSwapchain(device, &swapchainInfo, &swapChain, &swapChainImages, &swapChainImageFormat, &swapChainExtent);
     
     EVkImageViewsCreateInfo imageViewsInfo = {};
@@ -69,6 +70,7 @@ void EVulkan::initVulkan()
     EVkCommandPoolCreateInfo commandPoolInfo = {};
     commandPoolInfo.physicalDevice = physicalDevice;
     commandPoolInfo.surface = surface;
+    commandPoolInfo.flags = 0;
     evkCreateCommandPool(device, &commandPoolInfo, &commandPool);
 
     EVkVertexBufferCreateInfo vertexBufferInfo = {};
@@ -101,19 +103,6 @@ void EVulkan::initVulkan()
     descriptorSetInfo.uniformBuffers = uniformBuffers;
     evkCreateDescriptorSets(device, &descriptorSetInfo, &descriptorSets);
 
-    EVkCommandBuffersCreateInfo commandBuffersInfo = {};
-    commandBuffersInfo.commandPool = commandPool;
-    commandBuffersInfo.descriptorSets = descriptorSets;
-    commandBuffersInfo.graphicsPipeline = graphicsPipeline;
-    commandBuffersInfo.indexBuffer = indexBuffer;
-    commandBuffersInfo.indices = indices;
-    commandBuffersInfo.pipelineLayout = pipelineLayout;
-    commandBuffersInfo.renderPass = renderPass;
-    commandBuffersInfo.swapchainExtent = swapChainExtent;
-    commandBuffersInfo.swapchainFramebuffers = swapChainFramebuffers;
-    commandBuffersInfo.vertexBuffer = vertexBuffer;
-    evkCreateCommandBuffers(device, &commandBuffersInfo, &commandBuffers);
-
     EVkSyncObjectsCreateInfo syncObjectsInfo = {};
     syncObjectsInfo.maxFramesInFlight = MAX_FRAMES_IN_FLIGHT;
     syncObjectsInfo.swapchainSize = swapChainImages.size();
@@ -125,29 +114,52 @@ void EVulkan::mainLoop()
     int i = 0;
     std::chrono::steady_clock::time_point startTime, endTime;
     uint32_t imageIndex;
-    EVkDrawFrameInfo info = {};
-    info.pInFlightFences = &inFlightFences;
-    info.pImageAvailableSemaphores = &imageAvailableSemaphores;
-    info.swapchain = swapChain;
-    info.maxFramesInFlight = MAX_FRAMES_IN_FLIGHT;
-    info.pCommandBuffers = &commandBuffers;
-    info.graphicsQueue = graphicsQueue;
-    info.presentQueue = presentQueue;
-    info.pFramebufferResized = &framebufferResized;
-    info.swapchainExtent = swapChainExtent;
-    info.pUniformBufferMemory = &uniformBuffersMemory;
-    info.pVertices = &vertices;
-    info.physicalDevice = physicalDevice;
-    info.commandPool = commandPool;
-    info.vertexBuffer = vertexBuffer;
-    info.grid = grid;
+
+    EVkCommandPoolCreateInfo commandPoolInfo = {};
+    commandPoolInfo.physicalDevice = physicalDevice;
+    commandPoolInfo.surface = surface;
+    commandPoolInfo.flags = 0;
+
+    EVkCommandBuffersCreateInfo commandBuffersInfo = {};
+    commandBuffersInfo.commandPool = commandPool;
+    commandBuffersInfo.descriptorSets = descriptorSets;
+    commandBuffersInfo.graphicsPipeline = graphicsPipeline;
+    commandBuffersInfo.indexBuffer = indexBuffer;
+    commandBuffersInfo.indices = indices;
+    commandBuffersInfo.pipelineLayout = pipelineLayout;
+    commandBuffersInfo.renderPass = renderPass;
+    commandBuffersInfo.swapchainExtent = swapChainExtent;
+    commandBuffersInfo.vertexBuffer = vertexBuffer;
+    commandBuffersInfo.poolCreateInfo = commandPoolInfo;
+
+    EVkDrawFrameInfo drawInfo = {};
+    drawInfo.pInFlightFences = &inFlightFences;
+    drawInfo.pImageAvailableSemaphores = &imageAvailableSemaphores;
+    drawInfo.swapchain = swapChain;
+    drawInfo.maxFramesInFlight = MAX_FRAMES_IN_FLIGHT;
+    drawInfo.graphicsQueue = graphicsQueue;
+    drawInfo.presentQueue = presentQueue;
+    drawInfo.pFramebufferResized = &framebufferResized;
+    drawInfo.swapchainExtent = swapChainExtent;
+    drawInfo.pUniformBufferMemory = &uniformBuffersMemory;
+    drawInfo.pVertices = &vertices;
+    drawInfo.grid = grid;
+    drawInfo.physicalDevice = physicalDevice;
+    drawInfo.commandPool = commandPool;
+    drawInfo.vertexBuffer = vertexBuffer;
+    drawInfo.pCommandBuffersCreateInfo = &commandBuffersInfo;
+    drawInfo.framebuffers = swapChainFramebuffers;
 
     while(!glfwWindowShouldClose(window))
     {
         glfwPollEvents();
         if ((i % 10) == 0) startTime = std::chrono::high_resolution_clock::now();
 
-        evkDrawFrame(device, &info, &currentFrame, &imagesInFlight, &renderFinishedSemaphores, &imageIndex);
+        evkDrawFrame(device, &drawInfo,
+            &currentFrame, &imagesInFlight,
+            &renderFinishedSemaphores,
+            &primaryCommandBuffer,
+            &imageIndex);
 
         if ((i % 10) == 0)
         {
@@ -158,7 +170,10 @@ void EVulkan::mainLoop()
         ++i;
     }
 
-    vkDeviceWaitIdle(device);
+    if (vkDeviceWaitIdle(device)!=VK_SUCCESS)
+    {
+        throw std::runtime_error("Could not wait for vkDeviceWaitIdle");
+    }
 }
 
 void EVulkan::cleanup()
@@ -169,7 +184,6 @@ void EVulkan::cleanup()
     cleanupInfo.depthImageMemory = depthImageMemory;
     cleanupInfo.swapchainFramebuffers = swapChainFramebuffers;
     cleanupInfo.commandPool = commandPool;
-    cleanupInfo.pCommandBuffers = &commandBuffers;
     cleanupInfo.graphicsPipeline = graphicsPipeline;
     cleanupInfo.pipelineLayout = pipelineLayout;
     cleanupInfo.renderPass = renderPass;

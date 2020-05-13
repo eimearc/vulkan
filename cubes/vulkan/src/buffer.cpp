@@ -10,7 +10,7 @@ void EVulkan::setupVertices()
     for (auto cube : grid.cubes)
     {
         std::vector<glm::vec3> verts = cube.vertices;
-        std::vector<uint16_t> ind = cube.indices;
+        std::vector<uint32_t> ind = cube.indices;
         for(size_t j = 0; j<verts.size(); ++j)
         {
             vertex.pos=verts[j];
@@ -29,7 +29,7 @@ void EVulkan::setupVertices()
 
 void EVulkan::createGrid()
 {
-    uint16_t num = numCubes;
+    uint32_t num = numCubes;
     float gridSize = 2.0f;
     float cubeSize = (gridSize/num)*0.5;
     grid = Grid(gridSize, cubeSize, num);
@@ -160,41 +160,6 @@ void evkUpdateUniformBuffer(VkDevice device, const EVkUniformBufferUpdateInfo *p
     vkMapMemory(device, uniformBufferMemory[pUpdateInfo->currentImage], 0, sizeof(ubo), 0, &data);
     memcpy(data, &ubo, sizeof(ubo));
     vkUnmapMemory(device, uniformBufferMemory[pUpdateInfo->currentImage]);
-}
-
-void evkUpdateVertexBuffer(VkDevice device, const EVkVertexBufferUpdateInfo *pUpdateInfo)
-{
-    update(*pUpdateInfo->pVertices, pUpdateInfo->grid);
-    
-    VkDeviceSize bufferSize = sizeof((pUpdateInfo->pVertices)[0]) * pUpdateInfo->pVertices->size();
-
-    // Use a host visible buffer as a temporary buffer.
-    VkBuffer stagingBuffer;
-    VkDeviceMemory stagingBufferMemory;
-    createBuffer(
-        device,
-        pUpdateInfo->physicalDevice,
-        bufferSize,
-        VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-        &stagingBuffer, &stagingBufferMemory);
-
-    // Copy vertex data to the staging buffer by mapping the buffer memory into CPU
-    // accessible memory.
-    void *data;
-    vkMapMemory(device, stagingBufferMemory, 0, bufferSize, 0, &data);
-    memcpy(data, pUpdateInfo->pVertices->data(), (size_t) bufferSize);
-    vkUnmapMemory(device, stagingBufferMemory);
-
-    // Copy the vertex data from the staging buffer to the device-local buffer.
-    copyBuffer(
-        device,
-        pUpdateInfo->commandPool,
-        pUpdateInfo->graphicsQueue,
-        stagingBuffer, pUpdateInfo->vertexBuffer, bufferSize);
-
-    vkDestroyBuffer(device, stagingBuffer, nullptr);
-    vkFreeMemory(device, stagingBufferMemory, nullptr);
 }
 
 void createBuffer(
