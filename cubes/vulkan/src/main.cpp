@@ -1,7 +1,5 @@
 #include "evulkan.h"
 
-#include <gflags/gflags.h>
-#include "flags.h"
 #include <iostream>
 
 int main(int argc, char **argv)
@@ -13,7 +11,7 @@ int main(int argc, char **argv)
 
     try
     {
-        app.run(sqrt(FLAGS_num_cubes));
+        app.run();
     } catch (const std::exception& e)
     {
         std::cerr << e.what() << std::endl;

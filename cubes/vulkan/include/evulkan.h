@@ -26,11 +26,11 @@
 #include "vertex.h"
 #include "grid.h"
 #include "util.h"
+#include "flags.h"
 
 class EVulkan {
 public:
-    void run(size_t n=4) {
-        numCubes = n;
+    void run() {
         createGrid();
         initVulkan();
         mainLoop();
@@ -38,6 +38,7 @@ public:
     }
 
 private:
+    size_t numCubes = sqrt(FLAGS_num_cubes);
     const uint32_t WIDTH = 800;
     const uint32_t HEIGHT = 600;
     const int MAX_FRAMES_IN_FLIGHT = 2; // Must be greater than minImageCount.
@@ -107,7 +108,6 @@ private:
     void createGrid();
     void setupVertices();
     Grid grid;
-    size_t numCubes = 4;
     std::vector<Vertex> vertices;
     std::vector<uint32_t> indices;
 

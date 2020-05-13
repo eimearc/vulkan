@@ -5,7 +5,6 @@
 
 void EGL::initWindow()
 {
-    std::cout << "num cubes in egl: " << NUM_CUBES << std::endl;
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
@@ -169,9 +168,8 @@ void EGL::setupBuffers()
 
 void EGL::updateVertexBuffer()
 {
-    size_t num_threads = 4;
     const int num_verts = vertices.size();
-    const int num_verts_each = num_verts/num_threads;
+    const int num_verts_each = num_verts/NUM_THREADS;
     std::vector<std::thread> workers;
 
     auto f = [&](int i)
@@ -179,7 +177,7 @@ void EGL::updateVertexBuffer()
         update(vertices, grid, num_verts_each*i, num_verts_each);
     };
 
-    for (size_t i = 0; i < num_threads; ++i)
+    for (size_t i = 0; i < NUM_THREADS; ++i)
     {
         workers.push_back(std::thread(f,i));
     }

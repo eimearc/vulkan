@@ -23,6 +23,8 @@ public:
     
 private:
     size_t NUM_CUBES = sqrt(FLAGS_num_cubes);
+    size_t NUM_THREADS = FLAGS_num_threads;
+
     GLFWwindow* window;
     const uint32_t WIDTH = 800;
     const uint32_t HEIGHT = 600;

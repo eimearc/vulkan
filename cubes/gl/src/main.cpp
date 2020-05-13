@@ -1,8 +1,5 @@
 #include "egl.h"
 
-// #include <gflags/gflags.h>
-// #include "flags.h"
-
 int main(int argc, char **argv)
 {
     gflags::SetUsageMessage("A program for benchmarking OpenGL over multiple threads.");
