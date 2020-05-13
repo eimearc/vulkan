@@ -9,13 +9,11 @@ int main(int argc, char **argv)
     gflags::SetUsageMessage("Bob Loblaw");
     gflags::ParseCommandLineFlags(&argc, &argv, true);
 
-    std::cout << FLAGS_big_menu << std::endl;
-
     EVulkan app;
 
     try
     {
-        app.run(10);
+        app.run(sqrt(FLAGS_num_cubes));
     } catch (const std::exception& e)
     {
         std::cerr << e.what() << std::endl;
