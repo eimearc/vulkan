@@ -1,11 +1,11 @@
 #include "egl.h"
 
 #include <thread>
-
 #include "util.h"
 
 void EGL::initWindow()
 {
+    std::cout << "num cubes in egl: " << NUM_CUBES << std::endl;
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
@@ -39,10 +39,9 @@ void EGL::initGL()
 
 void EGL::createGrid()
 {
-    uint32_t num = numCubes;
     float gridSize = 2.0f;
-    float cubeSize = (gridSize/num)*0.5;
-    grid = Grid(gridSize, cubeSize, num);
+    float cubeSize = (gridSize/NUM_CUBES)*0.5;
+    grid = Grid(gridSize, cubeSize, NUM_CUBES);
     setupVertices();
 }
 

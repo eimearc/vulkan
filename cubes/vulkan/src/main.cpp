@@ -6,7 +6,7 @@
 
 int main(int argc, char **argv)
 {
-    gflags::SetUsageMessage("Bob Loblaw");
+    gflags::SetUsageMessage("A program for benchmarking Vulkan over multiple threads.");
     gflags::ParseCommandLineFlags(&argc, &argv, true);
 
     EVulkan app;

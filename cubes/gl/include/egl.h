@@ -8,13 +8,13 @@
 
 #include "grid.h"
 #include "vertex.h"
+#include "flags.h"
 
 class EGL
 {
 public:
-    void run(size_t n=4)
+    void run()
     {
-        numCubes = n;
         initWindow();
         initGL();
         mainLoop();
@@ -22,6 +22,7 @@ public:
     }
     
 private:
+    size_t NUM_CUBES = sqrt(FLAGS_num_cubes);
     GLFWwindow* window;
     const uint32_t WIDTH = 800;
     const uint32_t HEIGHT = 600;
@@ -30,7 +31,6 @@ private:
     GLuint shaderProgram;
     GLuint EBO;
     Grid grid;
-    size_t numCubes = 4;
     std::vector<Vertex> vertices;
     std::vector<unsigned int> indices;
 
