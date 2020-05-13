@@ -38,7 +38,6 @@ public:
 
 private:
     const size_t NUM_CUBES = sqrt(FLAGS_num_cubes);
-    // const size_t NUM_THREADS = sqrt(FLAGS_num_threads);
 
     const uint32_t WIDTH = 800;
     const uint32_t HEIGHT = 600;

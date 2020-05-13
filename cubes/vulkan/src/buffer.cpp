@@ -23,8 +23,6 @@ void EVulkan::setupVertices()
         }
         ++i;
     }
-    std::cout << "Num verts: " << vertices.size() << std::endl;
-    std::cout << "Num indices: " << indices.size() << std::endl;
 }
 
 void EVulkan::createGrid()

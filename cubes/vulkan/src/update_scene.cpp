@@ -149,7 +149,6 @@ void updateVertexBuffer(
 
 void evkUpdateVertexBuffer(VkDevice device, const EVkVertexBufferUpdateInfo *pUpdateInfo)
 {
-    // This can all be done across multple threads.
     const VkDeviceSize wholeBufferSize = sizeof((pUpdateInfo->pVertices)[0]) * pUpdateInfo->pVertices->size();
     const VkQueue queue = pUpdateInfo->graphicsQueue;
     std::vector<Vertex> &verts = pUpdateInfo->pVertices[0];
@@ -172,7 +171,9 @@ void evkUpdateVertexBuffer(VkDevice device, const EVkVertexBufferUpdateInfo *pUp
             &commandPools[i], &commandBuffers[i], &buffers[i], &bufferMemory[i], pUpdateInfo->vertexBuffer,
             verts, pUpdateInfo->grid, threadBufferSize, bufferOffset, vertsOffset, num_verts_each);
     };
+
     auto startTime = std::chrono::high_resolution_clock::now();
+
     for (int i = 0; i < NUM_THREADS; ++i)
     {
         workers.push_back(std::thread(f,i));
@@ -181,11 +182,10 @@ void evkUpdateVertexBuffer(VkDevice device, const EVkVertexBufferUpdateInfo *pUp
     {
         t.join();
     }
+
     auto endTime = std::chrono::high_resolution_clock::now();
     float time = std::chrono::duration<float, std::chrono::seconds::period>(endTime - startTime).count();
-    std::cout << NUM_THREADS << "," << time << std::endl;
 
-    // Submit to queue.
     VkSubmitInfo submitInfo = {};
     submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
     submitInfo.commandBufferCount = commandBuffers.size();
@@ -230,7 +230,7 @@ void evkCreateCommandBuffers(
     VkRenderPassBeginInfo renderPassInfo = {};
     renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
     renderPassInfo.renderPass = pCreateInfo->renderPass;
-    renderPassInfo.framebuffer = pCreateInfo->framebuffer; // TODO: This isn't right.
+    renderPassInfo.framebuffer = pCreateInfo->framebuffer;
     renderPassInfo.renderArea.offset = {0,0};
     renderPassInfo.renderArea.extent = pCreateInfo->swapchainExtent;
     renderPassInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
@@ -255,7 +255,6 @@ void evkCreateCommandBuffers(
     {
         thread t(device, &poolCreateInfo, 1);
         t.createSecondaryCommandBuffers(pCreateInfo);
-        // Goes and updates the vertex buffers in own thread.
         threadPool.push_back(t);
     }
 
