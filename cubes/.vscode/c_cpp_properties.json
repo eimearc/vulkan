@@ -16,7 +16,8 @@
             "name": "macOS",
             "includePath": [
                 "${workspaceFolder}/**",
-                "${workspaceFolder}/include/"
+                "${workspaceFolder}/include/",
+                "/usr/local/include"
             ],
             "defines": [],
             "macFrameworkPath": [

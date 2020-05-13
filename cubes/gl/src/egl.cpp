@@ -21,7 +21,7 @@ void EGL::initWindow()
         glfwTerminate();
     }
     glfwMakeContextCurrent(window);
-    GLenum err = glewInit(); // Crash here.
+    GLenum err = glewInit();
 	if (GLEW_OK != err)
 	{
 		std::cerr << "Error: " << glewGetErrorString(err) << std::endl;
