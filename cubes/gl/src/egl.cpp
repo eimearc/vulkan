@@ -11,7 +11,7 @@ void EGL::initWindow()
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
-    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); // uncomment this statement to fix compilation on OS X
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); // Required for compilation on OS X.
 
     window = glfwCreateWindow(WIDTH, HEIGHT, "OpenGL", NULL, NULL);
     
@@ -160,13 +160,11 @@ void EGL::setupBuffers()
         glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 1 * sizeof(Vertex), (void*)(offsetof(Vertex,color)));
         glEnableVertexAttribArray(0);
         glEnableVertexAttribArray(1);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
 
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size()*sizeof(unsigned int), indices.data(), GL_STATIC_DRAW);
-        
-        glBindBuffer(GL_ARRAY_BUFFER, 0); 
-        // remember: do NOT unbind the EBO while a VAO is active as the bound element buffer object IS stored in the VAO; keep the EBO bound.
-        //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
     glBindVertexArray(0); 
 }
 
@@ -198,12 +196,11 @@ void EGL::updateVertexBuffer()
         glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 1 * sizeof(Vertex), (void*)(offsetof(Vertex,color)));
         glEnableVertexAttribArray(0);
         glEnableVertexAttribArray(1);
+        glBindBuffer(GL_ARRAY_BUFFER, 0); 
 
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size()*sizeof(unsigned int), indices.data(), GL_STATIC_DRAW);
-        
-        glBindBuffer(GL_ARRAY_BUFFER, 0); 
-        // remember: do NOT unbind the EBO while a VAO is active as the bound element buffer object IS stored in the VAO; keep the EBO bound.
-        //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+        // Do not unbind the EBO while a VAO is active as the bound element buffer object is stored in the VAO.
+        // glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
 }
