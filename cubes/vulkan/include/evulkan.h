@@ -26,7 +26,6 @@
 #include "vertex.h"
 #include "grid.h"
 #include "util.h"
-#include "flags.h"
 
 class EVulkan {
 public:
@@ -38,7 +37,9 @@ public:
     }
 
 private:
-    size_t numCubes = sqrt(FLAGS_num_cubes);
+    const size_t NUM_CUBES = sqrt(FLAGS_num_cubes);
+    // const size_t NUM_THREADS = sqrt(FLAGS_num_threads);
+
     const uint32_t WIDTH = 800;
     const uint32_t HEIGHT = 600;
     const int MAX_FRAMES_IN_FLIGHT = 2; // Must be greater than minImageCount.

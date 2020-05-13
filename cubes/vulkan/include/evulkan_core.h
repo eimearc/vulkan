@@ -6,10 +6,11 @@
 #include <GLFW/glfw3.h>
 #include <optional>
 #include "util.h"
+#include "flags.h"
 
 #define ENABLE_VALIDATION true
 
-const size_t NUM_THREADS = 2;
+const size_t NUM_THREADS = FLAGS_num_threads;
 
 struct EVkCreateWindow
 {

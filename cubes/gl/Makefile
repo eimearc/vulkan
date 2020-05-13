@@ -34,8 +34,8 @@ $(ODIR)/%.o: $(SDIR)/%.cpp $(DEPS)
 $(ODIR_EXT)/%.o: $(SDIR_EXT)/%.cpp $(DEPS)
 	$(CC) $(CFLAGS) -c $< -o $@
 
-# libEGL.a: $(OBJ) $(OBJ_EXT)
-# 	ar rcs $@ $^
+libEGL.a: $(OBJ) $(OBJ_EXT)
+	ar rcs $@ $^
 
 libs: libEGL.a
 

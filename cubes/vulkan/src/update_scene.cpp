@@ -62,7 +62,7 @@ void thread::createSecondaryCommandBuffers(const EVkCommandBuffersCreateInfo *pC
     // Update here - update vertices.
     const size_t &numIndices = pCreateInfo->indices.size();
     const size_t myBaseIndex = index*(numIndices/NUM_THREADS);
-    vkCmdDrawIndexed(commandBuffers[i], static_cast<uint32_t>(pCreateInfo->indices.size()/2), 1, myBaseIndex, 0, 0);
+    vkCmdDrawIndexed(commandBuffers[i], static_cast<uint32_t>(pCreateInfo->indices.size()/NUM_THREADS), 1, myBaseIndex, 0, 0);
 
     if (vkEndCommandBuffer(commandBuffers[i]) != VK_SUCCESS)
     {
@@ -153,16 +153,15 @@ void evkUpdateVertexBuffer(VkDevice device, const EVkVertexBufferUpdateInfo *pUp
     const VkDeviceSize wholeBufferSize = sizeof((pUpdateInfo->pVertices)[0]) * pUpdateInfo->pVertices->size();
     const VkQueue queue = pUpdateInfo->graphicsQueue;
     std::vector<Vertex> &verts = pUpdateInfo->pVertices[0];
-    constexpr int num_threads = 1;
     const int num_verts = verts.size();
-    const int num_verts_each = num_verts/num_threads;
-    const size_t threadBufferSize = wholeBufferSize/num_threads;
+    const int num_verts_each = num_verts/NUM_THREADS;
+    const size_t threadBufferSize = wholeBufferSize/NUM_THREADS;
 
     std::vector<std::thread> workers;
-    std::vector<VkCommandPool> commandPools(num_threads);
-    std::vector<VkCommandBuffer> commandBuffers(num_threads);
-    std::vector<VkBuffer> buffers(num_threads);
-    std::vector<VkDeviceMemory> bufferMemory(num_threads);
+    std::vector<VkCommandPool> commandPools(NUM_THREADS);
+    std::vector<VkCommandBuffer> commandBuffers(NUM_THREADS);
+    std::vector<VkBuffer> buffers(NUM_THREADS);
+    std::vector<VkDeviceMemory> bufferMemory(NUM_THREADS);
 
     auto f = [&](int i)
     {
@@ -174,7 +173,7 @@ void evkUpdateVertexBuffer(VkDevice device, const EVkVertexBufferUpdateInfo *pUp
             verts, pUpdateInfo->grid, threadBufferSize, bufferOffset, vertsOffset, num_verts_each);
     };
     auto startTime = std::chrono::high_resolution_clock::now();
-    for (int i = 0; i < num_threads; ++i)
+    for (int i = 0; i < NUM_THREADS; ++i)
     {
         workers.push_back(std::thread(f,i));
     }
@@ -184,7 +183,7 @@ void evkUpdateVertexBuffer(VkDevice device, const EVkVertexBufferUpdateInfo *pUp
     }
     auto endTime = std::chrono::high_resolution_clock::now();
     float time = std::chrono::duration<float, std::chrono::seconds::period>(endTime - startTime).count();
-    std::cout << num_threads << "," << time << std::endl;
+    std::cout << NUM_THREADS << "," << time << std::endl;
 
     // Submit to queue.
     VkSubmitInfo submitInfo = {};
@@ -194,7 +193,7 @@ void evkUpdateVertexBuffer(VkDevice device, const EVkVertexBufferUpdateInfo *pUp
     vkQueueSubmit(queue, 1, &submitInfo, VK_NULL_HANDLE);
     vkQueueWaitIdle(queue);
 
-    for (size_t i = 0; i<num_threads; ++i)
+    for (size_t i = 0; i<NUM_THREADS; ++i)
     {
         vkFreeCommandBuffers(device, commandPools[i], 1, &commandBuffers[i]);
         vkDestroyBuffer(device, buffers[i], nullptr);
