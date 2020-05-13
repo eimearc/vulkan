@@ -1,5 +1,7 @@
 #include "egl.h"
 
+#include <thread>
+
 #include "util.h"
 
 void EGL::initWindow()
@@ -170,7 +172,25 @@ void EGL::setupBuffers()
 
 void EGL::updateVertexBuffer()
 {
-    update(vertices, grid, 0, vertices.size());
+    size_t num_threads = 4;
+    const int num_verts = vertices.size();
+    const int num_verts_each = num_verts/num_threads;
+    std::vector<std::thread> workers;
+
+    auto f = [&](int i)
+    {
+        update(vertices, grid, num_verts_each*i, num_verts_each);
+    };
+
+    for (size_t i = 0; i < num_threads; ++i)
+    {
+        workers.push_back(std::thread(f,i));
+    }
+    for (auto &w: workers)
+    {
+        w.join();
+    }
+
     glBindVertexArray(VAO);
         glBindBuffer(GL_ARRAY_BUFFER, VBO);
         glBufferData(GL_ARRAY_BUFFER, vertices.size()*sizeof(Vertex), vertices.data(), GL_STATIC_DRAW);
