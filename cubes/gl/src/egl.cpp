@@ -1,5 +1,7 @@
 #include "egl.h"
 
+#include <thread>
+
 #include "util.h"
 
 void EGL::initWindow()
@@ -9,7 +11,7 @@ void EGL::initWindow()
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
-    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); // uncomment this statement to fix compilation on OS X
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); // Required for compilation on OS X.
 
     window = glfwCreateWindow(WIDTH, HEIGHT, "OpenGL", NULL, NULL);
     
@@ -19,7 +21,7 @@ void EGL::initWindow()
         glfwTerminate();
     }
     glfwMakeContextCurrent(window);
-    GLenum err = glewInit(); // Crash here.
+    GLenum err = glewInit();
 	if (GLEW_OK != err)
 	{
 		std::cerr << "Error: " << glewGetErrorString(err) << std::endl;
@@ -158,19 +160,35 @@ void EGL::setupBuffers()
         glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 1 * sizeof(Vertex), (void*)(offsetof(Vertex,color)));
         glEnableVertexAttribArray(0);
         glEnableVertexAttribArray(1);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
 
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size()*sizeof(unsigned int), indices.data(), GL_STATIC_DRAW);
-        
-        glBindBuffer(GL_ARRAY_BUFFER, 0); 
-        // remember: do NOT unbind the EBO while a VAO is active as the bound element buffer object IS stored in the VAO; keep the EBO bound.
-        //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
     glBindVertexArray(0); 
 }
 
 void EGL::updateVertexBuffer()
 {
-    update(vertices, grid, 0, vertices.size());
+    size_t num_threads = 4;
+    const int num_verts = vertices.size();
+    const int num_verts_each = num_verts/num_threads;
+    std::vector<std::thread> workers;
+
+    auto f = [&](int i)
+    {
+        update(vertices, grid, num_verts_each*i, num_verts_each);
+    };
+
+    for (size_t i = 0; i < num_threads; ++i)
+    {
+        workers.push_back(std::thread(f,i));
+    }
+    for (auto &w: workers)
+    {
+        w.join();
+    }
+
     glBindVertexArray(VAO);
         glBindBuffer(GL_ARRAY_BUFFER, VBO);
         glBufferData(GL_ARRAY_BUFFER, vertices.size()*sizeof(Vertex), vertices.data(), GL_STATIC_DRAW);
@@ -178,12 +196,11 @@ void EGL::updateVertexBuffer()
         glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 1 * sizeof(Vertex), (void*)(offsetof(Vertex,color)));
         glEnableVertexAttribArray(0);
         glEnableVertexAttribArray(1);
+        glBindBuffer(GL_ARRAY_BUFFER, 0); 
 
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size()*sizeof(unsigned int), indices.data(), GL_STATIC_DRAW);
-        
-        glBindBuffer(GL_ARRAY_BUFFER, 0); 
-        // remember: do NOT unbind the EBO while a VAO is active as the bound element buffer object IS stored in the VAO; keep the EBO bound.
-        //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+        // Do not unbind the EBO while a VAO is active as the bound element buffer object is stored in the VAO.
+        // glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
 }
