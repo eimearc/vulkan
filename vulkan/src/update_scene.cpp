@@ -75,10 +75,12 @@ void evkUpdateScene(
     VkDevice device,
     const EVkSceneUpdateInfo *pUpdateInfo,
     VkCommandBuffer *pPrimaryCommandBuffer,
-    std::vector<thread> *pThreadPool
+    std::vector<thread> *pThreadPool,
+    Bench &bench
 )
 {
     evkUpdateVertexBuffer(device, pUpdateInfo->pVertexUpdateInfo);
+    bench.updateVBO(0.0123f);
     evkCreateCommandBuffers(device, pUpdateInfo->pCommandBuffersCreateInfo, pPrimaryCommandBuffer, pThreadPool);
 }
 

@@ -778,7 +778,8 @@ void evkDrawFrame(
     std::vector<VkFence> *pImagesInFlight,
     std::vector<VkSemaphore> *pRenderFinishedSemaphores,
     VkCommandBuffer *pPrimaryCommandBuffer,
-    uint32_t *pImageIndex)
+    uint32_t *pImageIndex,
+    Bench &bench)
 {
     const std::vector<VkFence> &inFlightFences = *(pDrawInfo->pInFlightFences);
     const std::vector<VkSemaphore> &imageAvailableSemaphores = *(pDrawInfo->pImageAvailableSemaphores);
@@ -836,7 +837,7 @@ void evkDrawFrame(
     EVkSceneUpdateInfo sceneUpdateInfo = {};
     sceneUpdateInfo.pVertexUpdateInfo = &vUpdateInfo;
     sceneUpdateInfo.pCommandBuffersCreateInfo = pCommandBuffersInfo;
-    evkUpdateScene(device, &sceneUpdateInfo, pPrimaryCommandBuffer, &threadPool);
+    evkUpdateScene(device, &sceneUpdateInfo, pPrimaryCommandBuffer, &threadPool, bench);
     
     VkSubmitInfo submitInfo = {};
     submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;

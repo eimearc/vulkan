@@ -7,6 +7,7 @@
 #include <optional>
 #include "util.h"
 #include "flags.h"
+#include "bench.h"
 
 #define ENABLE_VALIDATION true
 
@@ -401,7 +402,8 @@ void evkDrawFrame(
     std::vector<VkFence> *pImagesInFlight,
     std::vector<VkSemaphore> *pRenderFinishedSemaphores,
     VkCommandBuffer *pPrimaryCommandBuffer,
-    uint32_t *pImageIndex
+    uint32_t *pImageIndex,
+    Bench &bench
 );
 
 struct EVkSwapchainRecreateInfo
@@ -491,5 +493,6 @@ void evkUpdateScene(
     VkDevice device,
     const EVkSceneUpdateInfo *pUpdateInfo,
     VkCommandBuffer *pPrimaryCommandBuffer,
-    std::vector<thread> *pThreadPool
+    std::vector<thread> *pThreadPool,
+    Bench &bench
 );

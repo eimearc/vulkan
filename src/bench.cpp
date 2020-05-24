@@ -3,11 +3,6 @@
 void Bench::open(std::string file)
 {
     m_file.open(file, std::fstream::out | std::fstream::app); // TODO: Handle appends.
-    m_file<<"numCubes,";
-    m_file<<"numThreads,";
-    m_file<<"frame,";
-    m_file<<"updateVBO";
-    m_file<<"\n";
 }
 
 void Bench::close()
@@ -37,7 +32,6 @@ void Bench::updateVBO(float _time)
 
 void Bench::record()
 {
-    std::cout << "Recording\n";
     m_file<<m_numCubes<<",";
     m_file<<m_numThreads<<",";
     m_file<<m_frame<<",";
