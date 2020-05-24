@@ -6,6 +6,13 @@ void Bench::open(std::string file, bool overwrite)
     if (overwrite) std::cout << "Overwriting " << file << std::endl;
     else mode |= std::fstream::app;
     m_file.open(file, mode);
+    if (overwrite)
+    {
+        m_file<<"cubes,";
+        m_file<<"threads,";
+        m_file<<"frame,";
+        m_file<<"updateVBO\n";
+    }
 }
 
 void Bench::close()
