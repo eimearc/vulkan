@@ -155,19 +155,22 @@ void EVulkan::mainLoop()
         glfwPollEvents();
         if ((i % 10) == 0) startTime = std::chrono::high_resolution_clock::now();
 
+        file<<FLAGS_num_threads<<","<<FLAGS_num_cubes<<",";
+
         evkDrawFrame(device, &drawInfo,
             &currentFrame, &imagesInFlight,
             &renderFinishedSemaphores,
             &primaryCommandBuffer,
             &imageIndex);
 
-        if ((i % 10) == 0)
-        {
+        // if ((i % 10) == 0)
+        // {
             endTime = std::chrono::high_resolution_clock::now();
-            float time = std::chrono::duration<float, std::chrono::seconds::period>(endTime - startTime).count();
-            // std::cout << "Frame draw time: " << time << std::endl;
-        }
-        ++i;
+            float time = std::chrono::duration<float, std::chrono::milliseconds::period>(endTime - startTime).count();
+            std::cout << "Frame draw time: " << time << std::endl;
+        file<<time<<","<<time<<'\n';
+        // }
+        // ++i;
     }
 
     if (vkDeviceWaitIdle(device)!=VK_SUCCESS)

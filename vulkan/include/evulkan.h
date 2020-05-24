@@ -22,6 +22,8 @@
 #include <fstream>
 #include <array>
 #include <chrono>
+#include <fstream>
+#include <iostream>
 
 #include "vertex.h"
 #include "grid.h"
@@ -30,10 +32,13 @@
 class EVulkan {
 public:
     void run() {
+        file.open("vulkan.csv");
+        file << "threads,cubes,updateVBO,frame\n";
         createGrid();
         initVulkan();
         mainLoop();
         cleanup();
+        file.close();
     }
 
 private:
@@ -42,6 +47,8 @@ private:
     const uint32_t WIDTH = 800;
     const uint32_t HEIGHT = 600;
     const int MAX_FRAMES_IN_FLIGHT = 2; // Must be greater than minImageCount.
+
+    std::ofstream file;
 
     GLFWwindow *window;
     VkSurfaceKHR surface;

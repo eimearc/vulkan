@@ -1,3 +1,4 @@
 HelloTriangle
 *.swp
-obj/*.o
+obj/
+
