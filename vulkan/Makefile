@@ -20,7 +20,7 @@ DEPS += $(patsubst %,$(IDIR_EXT)/%,$(_DEPS_EXT))
 _OBJ =  descriptor.o instance.o render.o run.o buffer.o evulkan_core.o update_scene.o
 OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
 
-_OBJ_EXT = util.o flags.o
+_OBJ_EXT = util.o flags.o bench.o
 OBJ_EXT = $(patsubst %,$(ODIR_EXT)/%,$(_OBJ_EXT))
 
 .PHONY: test clean vulkan
