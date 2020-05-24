@@ -1,8 +1,11 @@
 #include "bench.h"
 
-void Bench::open(std::string file)
+void Bench::open(std::string file, bool overwrite)
 {
-    m_file.open(file, std::fstream::out | std::fstream::app); // TODO: Handle appends.
+    std::ios_base::openmode mode = std::fstream::out;
+    if (overwrite) std::cout << "Overwriting " << file << std::endl;
+    else mode |= std::fstream::app;
+    m_file.open(file, mode);
 }
 
 void Bench::close()

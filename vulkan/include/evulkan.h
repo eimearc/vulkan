@@ -33,7 +33,7 @@
 class EVulkan {
 public:
     void run() {
-        bench.open("vulkan.csv");
+        bench.open("vulkan.csv", FLAGS_overwrite);
         createGrid();
         initVulkan();
         mainLoop();

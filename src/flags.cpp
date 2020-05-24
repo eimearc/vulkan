@@ -29,3 +29,5 @@ static bool ValidateNumThreads(const char* flagname, int value) {
 }
 DEFINE_int32(num_threads, 1, "Number of threads to use. Must be between 1 and 4 inclusive.");
 DEFINE_validator(num_threads, &ValidateNumThreads);
+
+DEFINE_bool(overwrite, false, "If true, overwrite the old CSV file for the benchmark.");

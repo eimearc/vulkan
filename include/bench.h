@@ -10,7 +10,7 @@ class Bench
     Bench()=default;
     ~Bench()=default;
 
-    void open(std::string file);
+    void open(std::string file, bool overwrite=false);
     void numCubes(size_t _num);
     void numThreads(size_t num);
 
