@@ -156,20 +156,14 @@ void EVulkan::mainLoop()
 
         bench.numThreads(FLAGS_num_threads);
         bench.numCubes(FLAGS_num_cubes);
-
-        if ((i % 10) == 0) startTime = std::chrono::high_resolution_clock::now();
-
+        bench.start();
         evkDrawFrame(device, &drawInfo,
             &currentFrame, &imagesInFlight,
             &renderFinishedSemaphores,
             &primaryCommandBuffer,
             &imageIndex,
             bench);
-
-        endTime = std::chrono::high_resolution_clock::now();
-        float time = std::chrono::duration<float, std::chrono::milliseconds::period>(endTime - startTime).count();
-        
-        bench.frame(time);
+        bench.frameTime();
         bench.record();
     }
 

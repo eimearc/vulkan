@@ -20,14 +20,9 @@ void Bench::numThreads(size_t _num)
     m_numThreads = _num;
 }
 
-void Bench::frame(float _time)
+void Bench::start()
 {
-    m_frame = _time;
-}
-
-void Bench::updateVBO(float _time)
-{
-    m_updateVBO = _time;
+    m_start = std::chrono::high_resolution_clock::now();
 }
 
 void Bench::record()

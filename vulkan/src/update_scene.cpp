@@ -79,8 +79,9 @@ void evkUpdateScene(
     Bench &bench
 )
 {
+    bench.start();
     evkUpdateVertexBuffer(device, pUpdateInfo->pVertexUpdateInfo);
-    bench.updateVBO(0.0123f);
+    bench.updateVBOTime();
     evkCreateCommandBuffers(device, pUpdateInfo->pCommandBuffersCreateInfo, pPrimaryCommandBuffer, pThreadPool);
 }
 
