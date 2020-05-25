@@ -76,6 +76,7 @@
         "unordered_map": "cpp",
         "utility": "cpp",
         "valarray": "cpp",
-        "variant": "cpp"
+        "variant": "cpp",
+        "condition_variable": "cpp"
     }
 }

@@ -18,6 +18,6 @@ int main(int argc, char **argv)
         return EXIT_FAILURE;
     }
 
-    exit(0); // TODO: figure out why this doesn't work.
+    // exit(0); // TODO: figure out why this doesn't work.
     return EXIT_SUCCESS;
 }

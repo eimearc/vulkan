@@ -3,14 +3,16 @@
 
 #include <iostream>
 
-int main()
+int main(int argc, char **argv)
 {
+    gflags::SetUsageMessage("A program for benchmarking Vulkan and OpenGL over multiple threads.");
+    gflags::ParseCommandLineFlags(&argc, &argv, true);
     try
     {
         EGL gl;
-        gl.run(10);
+        gl.run();
         EVulkan vulkan;
-        vulkan.run(10);
+        vulkan.run();
     }
     catch(const std::exception &e)
     {

@@ -150,27 +150,28 @@ void EVulkan::mainLoop()
     drawInfo.pCommandBuffersCreateInfo = &commandBuffersInfo;
     drawInfo.framebuffers = swapChainFramebuffers;
 
+    int frameNum=0;
+    bool timed=false;
+    if (FLAGS_num_frames > 0) timed=true; 
     while(!glfwWindowShouldClose(window))
     {
         glfwPollEvents();
-        if ((i % 10) == 0) startTime = std::chrono::high_resolution_clock::now();
 
-        file<<FLAGS_num_threads<<","<<FLAGS_num_cubes<<",";
-
+        bench.numVertices(vertices.size());
+        bench.numThreads(FLAGS_num_threads);
+        bench.numCubes(FLAGS_num_cubes);
+        bench.start();
         evkDrawFrame(device, &drawInfo,
             &currentFrame, &imagesInFlight,
             &renderFinishedSemaphores,
             &primaryCommandBuffer,
-            &imageIndex);
+            &imageIndex,
+            bench);
+        bench.frameTime();
+        bench.record();
 
-        // if ((i % 10) == 0)
-        // {
-            endTime = std::chrono::high_resolution_clock::now();
-            float time = std::chrono::duration<float, std::chrono::milliseconds::period>(endTime - startTime).count();
-            std::cout << "Frame draw time: " << time << std::endl;
-        file<<time<<","<<time<<'\n';
-        // }
-        // ++i;
+        frameNum++;
+        if (timed && frameNum >= FLAGS_num_frames) break;
     }
 
     if (vkDeviceWaitIdle(device)!=VK_SUCCESS)

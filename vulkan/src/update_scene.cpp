@@ -35,6 +35,7 @@ void thread::cleanup()
 
 void thread::createSecondaryCommandBuffers(const EVkCommandBuffersCreateInfo *pCreateInfo)
 {
+    size_t NUM_THREADS=1; //TODO: Update
     int i = 0;
     VkCommandBufferInheritanceInfo inheritanceInfo = {};
     inheritanceInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_INFO;
@@ -75,10 +76,13 @@ void evkUpdateScene(
     VkDevice device,
     const EVkSceneUpdateInfo *pUpdateInfo,
     VkCommandBuffer *pPrimaryCommandBuffer,
-    std::vector<thread> *pThreadPool
+    std::vector<thread> *pThreadPool,
+    Bench &bench
 )
 {
+    bench.start();
     evkUpdateVertexBuffer(device, pUpdateInfo->pVertexUpdateInfo);
+    bench.updateVBOTime();
     evkCreateCommandBuffers(device, pUpdateInfo->pCommandBuffersCreateInfo, pPrimaryCommandBuffer, pThreadPool);
 }
 
@@ -94,12 +98,12 @@ void updateVertexBuffer(
     VkBuffer vertexBuffer,
     std::vector<Vertex> &verts,
     const Grid &grid,
-    size_t bufferSize,
     size_t bufferOffset,
     size_t vertsOffset,
     size_t numVerts
     )
 {
+    size_t bufferSize = numVerts*sizeof(verts[0]);
     update(verts, grid, vertsOffset, numVerts);
 
     EVkCommandPoolCreateInfo info = {};
@@ -149,12 +153,13 @@ void updateVertexBuffer(
 
 void evkUpdateVertexBuffer(VkDevice device, const EVkVertexBufferUpdateInfo *pUpdateInfo)
 {
+    size_t NUM_THREADS=FLAGS_num_threads;
     const VkDeviceSize wholeBufferSize = sizeof((pUpdateInfo->pVertices)[0]) * pUpdateInfo->pVertices->size();
     const VkQueue queue = pUpdateInfo->graphicsQueue;
     std::vector<Vertex> &verts = pUpdateInfo->pVertices[0];
     const int num_verts = verts.size();
-    const int num_verts_each = num_verts/NUM_THREADS;
-    const size_t threadBufferSize = wholeBufferSize/NUM_THREADS;
+    int num_verts_each = num_verts/NUM_THREADS;
+    size_t threadBufferSize = wholeBufferSize/NUM_THREADS;
 
     std::vector<std::thread> workers;
     std::vector<VkCommandPool> commandPools(NUM_THREADS);
@@ -164,16 +169,19 @@ void evkUpdateVertexBuffer(VkDevice device, const EVkVertexBufferUpdateInfo *pUp
 
     auto f = [&](int i)
     {
-        size_t bufferOffset = threadBufferSize*i;
         int vertsOffset = num_verts_each*i;
+        size_t bufferOffset=(num_verts_each*sizeof(verts[0]))*i;
+        if (i==(FLAGS_num_threads-1))
+        {
+            num_verts_each = verts.size()-(i*num_verts_each);
+        }
         updateVertexBuffer(
             device, pUpdateInfo->physicalDevice, pUpdateInfo->graphicsQueue, pUpdateInfo->surface,
             &commandPools[i], &commandBuffers[i], &buffers[i], &bufferMemory[i], pUpdateInfo->vertexBuffer,
-            verts, pUpdateInfo->grid, threadBufferSize, bufferOffset, vertsOffset, num_verts_each);
+            verts, pUpdateInfo->grid, bufferOffset, vertsOffset, num_verts_each);
     };
 
     auto startTime = std::chrono::high_resolution_clock::now();
-
     for (int i = 0; i < NUM_THREADS; ++i)
     {
         workers.push_back(std::thread(f,i));
@@ -210,6 +218,7 @@ void evkCreateCommandBuffers(
 )
 {
     thread::reset();
+    size_t NUM_THREADS=1;  // TODO: Change.
 
     static int imageIndex = 0;
 

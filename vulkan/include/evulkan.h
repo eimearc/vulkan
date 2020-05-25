@@ -28,18 +28,20 @@
 #include "vertex.h"
 #include "grid.h"
 #include "util.h"
+#include "bench.h"
 
 class EVulkan {
 public:
     void run() {
-        file.open("vulkan.csv");
-        file << "threads,cubes,updateVBO,frame\n";
+        bench.open("time_vulkan.csv", FLAGS_overwrite);
         createGrid();
         initVulkan();
         mainLoop();
         cleanup();
-        file.close();
+        bench.close();
     }
+
+~EVulkan()=default;
 
 private:
     const size_t NUM_CUBES = sqrt(FLAGS_num_cubes);
@@ -48,7 +50,7 @@ private:
     const uint32_t HEIGHT = 600;
     const int MAX_FRAMES_IN_FLIGHT = 2; // Must be greater than minImageCount.
 
-    std::ofstream file;
+    Bench bench;
 
     GLFWwindow *window;
     VkSurfaceKHR surface;
