@@ -26,6 +26,7 @@ class Args:
             a += ["-num_frames", str(self.num_frames)]
         return a
 
+# See a good convergence at 400 frames, with 40000 cubes.
 subprocess.call(["make","-j","4"])
 args = Args(400,1,40000,True)
 for i in range(1,5):

@@ -8,6 +8,7 @@ void Bench::open(std::string file, bool overwrite)
     m_file.open(file, mode);
     if (overwrite)
     {
+        m_file<<"vertices,";
         m_file<<"cubes,";
         m_file<<"threads,";
         m_file<<"frame,";
@@ -29,6 +30,11 @@ void Bench::close()
     m_file.close();
 }
 
+void Bench::numVertices(size_t _num)
+{
+    m_numVertices = _num;
+}
+
 void Bench::numCubes(size_t _num)
 {
     m_numCubes = _num;
@@ -46,6 +52,7 @@ void Bench::start()
 
 void Bench::record()
 {
+    m_file<<m_numVertices<<",";
     m_file<<m_numCubes<<",";
     m_file<<m_numThreads<<",";
     m_file<<m_frame<<",";

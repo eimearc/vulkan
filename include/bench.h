@@ -11,6 +11,7 @@ class Bench
     ~Bench();
 
     void open(std::string file, bool overwrite=false);
+    void numVertices(size_t num);
     void numCubes(size_t _num);
     void numThreads(size_t num);
 
@@ -30,6 +31,7 @@ class Bench
 
     private:
     std::fstream m_file;
+    size_t m_numVertices=0;
     size_t m_numCubes=0;
     size_t m_numThreads=0;
     std::chrono::steady_clock::time_point m_start;

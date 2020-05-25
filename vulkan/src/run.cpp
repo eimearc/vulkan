@@ -157,6 +157,7 @@ void EVulkan::mainLoop()
     {
         glfwPollEvents();
 
+        bench.numVertices(vertices.size());
         bench.numThreads(FLAGS_num_threads);
         bench.numCubes(FLAGS_num_cubes);
         bench.start();
