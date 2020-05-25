@@ -27,7 +27,7 @@ class Args:
         return a
 
 subprocess.call(["make","-j","4"])
-args = Args(50,1,250000,True)
+args = Args(400,1,40000,True)
 for i in range(1,5):
     args.num_threads = i
     if i > 1:

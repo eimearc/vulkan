@@ -98,14 +98,12 @@ void updateVertexBuffer(
     VkBuffer vertexBuffer,
     std::vector<Vertex> &verts,
     const Grid &grid,
-    size_t bufferSize,
     size_t bufferOffset,
     size_t vertsOffset,
     size_t numVerts
     )
 {
-    bufferSize = numVerts*sizeof(verts[0]);
-    std::cout << "vertsOffset:" << vertsOffset << " bufferOffset:" << bufferOffset << " bufferSize:" << bufferSize << " numVerts:" << numVerts << std::endl;
+    size_t bufferSize = numVerts*sizeof(verts[0]);
     update(verts, grid, vertsOffset, numVerts);
 
     EVkCommandPoolCreateInfo info = {};
@@ -157,7 +155,6 @@ void evkUpdateVertexBuffer(VkDevice device, const EVkVertexBufferUpdateInfo *pUp
 {
     size_t NUM_THREADS=FLAGS_num_threads;
     const VkDeviceSize wholeBufferSize = sizeof((pUpdateInfo->pVertices)[0]) * pUpdateInfo->pVertices->size();
-    std::cout << "Whole buffer size: " << wholeBufferSize << std::endl;
     const VkQueue queue = pUpdateInfo->graphicsQueue;
     std::vector<Vertex> &verts = pUpdateInfo->pVertices[0];
     const int num_verts = verts.size();
@@ -172,23 +169,19 @@ void evkUpdateVertexBuffer(VkDevice device, const EVkVertexBufferUpdateInfo *pUp
 
     auto f = [&](int i)
     {
-        size_t bufferOffset = threadBufferSize*i;
         int vertsOffset = num_verts_each*i;
-        bufferOffset=(num_verts_each*sizeof(verts[0]))*i;
+        size_t bufferOffset=(num_verts_each*sizeof(verts[0]))*i;
         if (i==(FLAGS_num_threads-1))
         {
             num_verts_each = verts.size()-(i*num_verts_each);
-            threadBufferSize = sizeof(verts[0])*num_verts_each;
         }
         updateVertexBuffer(
             device, pUpdateInfo->physicalDevice, pUpdateInfo->graphicsQueue, pUpdateInfo->surface,
             &commandPools[i], &commandBuffers[i], &buffers[i], &bufferMemory[i], pUpdateInfo->vertexBuffer,
-            verts, pUpdateInfo->grid, threadBufferSize, bufferOffset, vertsOffset, num_verts_each);
+            verts, pUpdateInfo->grid, bufferOffset, vertsOffset, num_verts_each);
     };
 
     auto startTime = std::chrono::high_resolution_clock::now();
-
-     std::cout << NUM_THREADS << std::endl;
     for (int i = 0; i < NUM_THREADS; ++i)
     {
         workers.push_back(std::thread(f,i));

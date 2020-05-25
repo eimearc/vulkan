@@ -11,10 +11,6 @@
 
 #define ENABLE_VALIDATION true
 
-// DECLARE_int32(num_threads);
-
-// size_t NUM_THREADS;
-
 struct EVkCreateWindow
 {
     bool resizeable;
