@@ -11,7 +11,9 @@
 
 #define ENABLE_VALIDATION true
 
-const size_t NUM_THREADS = FLAGS_num_threads;
+// DECLARE_int32(num_threads);
+
+// size_t NUM_THREADS;
 
 struct EVkCreateWindow
 {
