@@ -15,6 +15,15 @@ void Bench::open(std::string file, bool overwrite)
     }
 }
 
+Bench::~Bench()
+{
+    record();
+    if (m_file.is_open())
+    {
+        m_file.close();
+    }
+}
+
 void Bench::close()
 {
     m_file.close();

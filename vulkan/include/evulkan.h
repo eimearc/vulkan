@@ -41,6 +41,8 @@ public:
         bench.close();
     }
 
+~EVulkan()=default;
+
 private:
     const size_t NUM_CUBES = sqrt(FLAGS_num_cubes);
 

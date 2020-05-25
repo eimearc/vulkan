@@ -8,7 +8,7 @@ class Bench
 {
     public:
     Bench()=default;
-    ~Bench()=default;
+    ~Bench();
 
     void open(std::string file, bool overwrite=false);
     void numCubes(size_t _num);

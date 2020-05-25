@@ -150,6 +150,9 @@ void EVulkan::mainLoop()
     drawInfo.pCommandBuffersCreateInfo = &commandBuffersInfo;
     drawInfo.framebuffers = swapChainFramebuffers;
 
+    int frameNum=0;
+    bool timed=false;
+    if (FLAGS_num_frames > 0) timed=true; 
     while(!glfwWindowShouldClose(window))
     {
         glfwPollEvents();
@@ -165,6 +168,9 @@ void EVulkan::mainLoop()
             bench);
         bench.frameTime();
         bench.record();
+
+        frameNum++;
+        if (timed && frameNum >= FLAGS_num_frames) break;
     }
 
     if (vkDeviceWaitIdle(device)!=VK_SUCCESS)
