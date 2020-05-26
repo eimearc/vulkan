@@ -966,10 +966,9 @@ void evkRecreateSwapChain(VkDevice device, const EVkSwapchainRecreateInfo *pCrea
     evkCreateDescriptorSets(device, &descriptorSetInfo, pCreateInfo->pDescriptorSets);
 
     EVkCommandBuffersCreateInfo commandBuffersInfo = pCreateInfo->commandBuffersCreateInfo;
-    std::vector<thread> threadPool;
     std::vector<VkCommandPool> commandPools;
     std::vector<VkCommandBuffer> commandBuffers;
-    evkCreateCommandBuffers(device, &commandBuffersInfo, pCreateInfo->pPrimaryCommandBuffer, &threadPool, &commandBuffers, &commandPools);
+    evkCreateCommandBuffers(device, &commandBuffersInfo, pCreateInfo->pPrimaryCommandBuffer, &commandBuffers, &commandPools);
 }
 
 void evkCleanupSwapchain(VkDevice device, const EVkSwapchainCleanupInfo *pCleanupInfo)
