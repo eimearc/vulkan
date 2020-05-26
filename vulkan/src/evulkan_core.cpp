@@ -833,11 +833,16 @@ void evkDrawFrame(
     vUpdateInfo.surface = pCommandBuffersInfo->poolCreateInfo.surface;
 
     // Update verts and command buffer here.
-    std::vector<thread> threadPool;
+    // std::vector<thread> threadPool;
     EVkSceneUpdateInfo sceneUpdateInfo = {};
     sceneUpdateInfo.pVertexUpdateInfo = &vUpdateInfo;
     sceneUpdateInfo.pCommandBuffersCreateInfo = pCommandBuffersInfo;
-    evkUpdateScene(device, &sceneUpdateInfo, pPrimaryCommandBuffer, &threadPool, bench);
+    std::cout << "num threads:" << FLAGS_num_threads << std::endl;
+    std::vector<VkCommandPool> commandPools(FLAGS_num_threads);
+    std::vector<VkCommandBuffer> commandBuffers(FLAGS_num_threads);
+    sceneUpdateInfo.pCommandBuffers=&commandBuffers;
+    sceneUpdateInfo.pCommandPools=&commandPools;
+    evkUpdateScene(device, &sceneUpdateInfo, pPrimaryCommandBuffer, bench);
     
     VkSubmitInfo submitInfo = {};
     submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
@@ -885,10 +890,19 @@ void evkDrawFrame(
 
     vkQueueWaitIdle(pDrawInfo->presentQueue);
 
-    for(auto& t: threadPool)
+    // for(auto& t: threadPool)
+    // {
+    //     t.cleanup();
+    // }
+
+    for (int i = 0; i < commandPools.size(); ++i)
     {
-        t.cleanup();
+        std::cout << "Freeing " << i << std::endl;
+        vkFreeCommandBuffers(device, commandPools[i], 1, &commandBuffers[i]);
+        vkDestroyCommandPool(device, commandPools[i], nullptr);  
     }
+
+    // Need to tidy command buffers and pools here.
 
     *pCurrentFrame = ((*pCurrentFrame)+1) % pDrawInfo->maxFramesInFlight;
 }
@@ -953,7 +967,9 @@ void evkRecreateSwapChain(VkDevice device, const EVkSwapchainRecreateInfo *pCrea
 
     EVkCommandBuffersCreateInfo commandBuffersInfo = pCreateInfo->commandBuffersCreateInfo;
     std::vector<thread> threadPool;
-    evkCreateCommandBuffers(device, &commandBuffersInfo, pCreateInfo->pPrimaryCommandBuffer, &threadPool);
+    std::vector<VkCommandPool> commandPools;
+    std::vector<VkCommandBuffer> commandBuffers;
+    evkCreateCommandBuffers(device, &commandBuffersInfo, pCreateInfo->pPrimaryCommandBuffer, &threadPool, &commandBuffers, &commandPools);
 }
 
 void evkCleanupSwapchain(VkDevice device, const EVkSwapchainCleanupInfo *pCleanupInfo)

@@ -357,7 +357,9 @@ void evkCreateCommandBuffers(
     VkDevice device,
     const EVkCommandBuffersCreateInfo *pCreateInfo,
     VkCommandBuffer *pPrimaryCommandBuffer,
-    std::vector<thread> *pThreadPool
+    std::vector<thread> *pThreadPool,
+    std::vector<VkCommandBuffer> *pCommandBuffers,
+    std::vector<VkCommandPool> *pCommandPools
 );
 
 struct EVkSyncObjectsCreateInfo
@@ -486,11 +488,13 @@ struct EVkSceneUpdateInfo
 {
    const EVkVertexBufferUpdateInfo *pVertexUpdateInfo;
    const EVkCommandBuffersCreateInfo *pCommandBuffersCreateInfo;
+   std::vector<VkCommandBuffer> *pCommandBuffers;
+   std::vector<VkCommandPool> *pCommandPools;
 };
 void evkUpdateScene(
     VkDevice device,
     const EVkSceneUpdateInfo *pUpdateInfo,
     VkCommandBuffer *pPrimaryCommandBuffer,
-    std::vector<thread> *pThreadPool,
+    // std::vector<thread> *pThreadPool,
     Bench &bench
 );
