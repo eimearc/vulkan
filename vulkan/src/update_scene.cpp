@@ -5,38 +5,30 @@
 #include <condition_variable>
 #include <thread>
 
-size_t thread::i = 0;
-
-thread::thread(VkDevice _device, const EVkCommandPoolCreateInfo *pCreateInfo, size_t _size)
+void createSecondaryCommandBuffers(
+    VkDevice device,
+    const EVkCommandPoolCreateInfo *pCommandPoolCreateInfo,
+    VkCommandPool *pCommandPool,
+    VkCommandBuffer *pCommandBuffer,
+    size_t indexOffset,
+    size_t numIndices,
+    VkDescriptorSet *pDescriptorSet,
+    const EVkCommandBuffersCreateInfo *pCreateInfo
+)
 {
-    index = i++;
-    device = _device;
-    evkCreateCommandPool(device, pCreateInfo, &commandPool);
-    size = 1;
+    evkCreateCommandPool(device, pCommandPoolCreateInfo, pCommandPool);
 
     VkCommandBufferAllocateInfo allocInfo = {};
     allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-    allocInfo.commandPool = commandPool;
+    allocInfo.commandPool = *pCommandPool;
     allocInfo.level = VK_COMMAND_BUFFER_LEVEL_SECONDARY;
     allocInfo.commandBufferCount = 1;
-    commandBuffers.resize(size);
 
-    if (vkAllocateCommandBuffers(device, &allocInfo, commandBuffers.data()) != VK_SUCCESS)
+    if (vkAllocateCommandBuffers(device, &allocInfo, pCommandBuffer) != VK_SUCCESS)
     {
         throw std::runtime_error("failed to allocate command buffers.");
     }
-}
 
-void thread::cleanup()
-{
-    vkFreeCommandBuffers(device, commandPool, commandBuffers.size(), commandBuffers.data());
-    vkDestroyCommandPool(device, commandPool, nullptr);
-}
-
-void thread::createSecondaryCommandBuffers(const EVkCommandBuffersCreateInfo *pCreateInfo)
-{
-    size_t NUM_THREADS=1; //TODO: Update
-    int i = 0;
     VkCommandBufferInheritanceInfo inheritanceInfo = {};
     inheritanceInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_INFO;
     inheritanceInfo.renderPass = pCreateInfo->renderPass;
@@ -47,25 +39,22 @@ void thread::createSecondaryCommandBuffers(const EVkCommandBuffersCreateInfo *pC
     beginInfo.flags = VK_COMMAND_BUFFER_USAGE_RENDER_PASS_CONTINUE_BIT;
     beginInfo.pInheritanceInfo = &inheritanceInfo;
 
-    if (vkBeginCommandBuffer(commandBuffers[i], &beginInfo) != VK_SUCCESS)
+    if (vkBeginCommandBuffer(*pCommandBuffer, &beginInfo) != VK_SUCCESS)
     {
         throw std::runtime_error("failed to begin recording command buffer.");
     }
     
-    vkCmdBindPipeline(commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, pCreateInfo->graphicsPipeline);
+    vkCmdBindPipeline(*pCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pCreateInfo->graphicsPipeline);
 
     VkBuffer vertexBuffers[] = {pCreateInfo->vertexBuffer};
     VkDeviceSize offsets[] = {0};
-    vkCmdBindVertexBuffers(commandBuffers[i], 0, 1, vertexBuffers, offsets);
-    vkCmdBindIndexBuffer(commandBuffers[i], pCreateInfo->indexBuffer, 0, VK_INDEX_TYPE_UINT32);
-    vkCmdBindDescriptorSets(commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, pCreateInfo->pipelineLayout, 0, 1, &(pCreateInfo->descriptorSets[i]), 0, nullptr);
+    vkCmdBindVertexBuffers(*pCommandBuffer, 0, 1, vertexBuffers, offsets);
+    vkCmdBindIndexBuffer(*pCommandBuffer, pCreateInfo->indexBuffer, 0, VK_INDEX_TYPE_UINT32);
+    vkCmdBindDescriptorSets(*pCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pCreateInfo->pipelineLayout, 0, 1, &(pCreateInfo->descriptorSets[0]), 0, nullptr);
 
-    // Update here - update vertices.
-    const size_t &numIndices = pCreateInfo->indices.size();
-    const size_t myBaseIndex = index*(numIndices/NUM_THREADS);
-    vkCmdDrawIndexed(commandBuffers[i], static_cast<uint32_t>(pCreateInfo->indices.size()/NUM_THREADS), 1, myBaseIndex, 0, 0);
+    vkCmdDrawIndexed(*pCommandBuffer, numIndices, 1, indexOffset, 0, 0);
 
-    if (vkEndCommandBuffer(commandBuffers[i]) != VK_SUCCESS)
+    if (vkEndCommandBuffer(*pCommandBuffer) != VK_SUCCESS)
     {
         throw std::runtime_error("failed to record command buffer.");
     }
@@ -76,14 +65,16 @@ void evkUpdateScene(
     VkDevice device,
     const EVkSceneUpdateInfo *pUpdateInfo,
     VkCommandBuffer *pPrimaryCommandBuffer,
-    std::vector<thread> *pThreadPool,
     Bench &bench
 )
 {
     bench.start();
     evkUpdateVertexBuffer(device, pUpdateInfo->pVertexUpdateInfo);
     bench.updateVBOTime();
-    evkCreateCommandBuffers(device, pUpdateInfo->pCommandBuffersCreateInfo, pPrimaryCommandBuffer, pThreadPool);
+    evkCreateCommandBuffers(device,
+        pUpdateInfo->pCommandBuffersCreateInfo,
+        pPrimaryCommandBuffer,
+        pUpdateInfo->pCommandBuffers,pUpdateInfo->pCommandPools);
 }
 
 void updateVertexBuffer(
@@ -214,11 +205,11 @@ void evkCreateCommandBuffers(
     VkDevice device,
     const EVkCommandBuffersCreateInfo *pCreateInfo,
     VkCommandBuffer *pPrimaryCommandBuffer,
-    std::vector<thread> *pThreadPool
+    std::vector<VkCommandBuffer> *pCommandBuffers,
+    std::vector<VkCommandPool> *pCommandPools
 )
 {
-    thread::reset();
-    size_t NUM_THREADS=1;  // TODO: Change.
+    size_t NUM_THREADS=FLAGS_num_threads;
 
     static int imageIndex = 0;
 
@@ -226,7 +217,7 @@ void evkCreateCommandBuffers(
     VkCommandBufferAllocateInfo allocInfo = {};
     allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
     allocInfo.commandPool = pCreateInfo->commandPool;
-    allocInfo.commandBufferCount = NUM_THREADS;
+    allocInfo.commandBufferCount = 1;
     allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
     vkAllocateCommandBuffers(device, &allocInfo, pPrimaryCommandBuffer);
 
@@ -256,35 +247,44 @@ void evkCreateCommandBuffers(
         &renderPassInfo,
         VK_SUBPASS_CONTENTS_SECONDARY_COMMAND_BUFFERS);
 
-    std::vector<thread> threadPool;
     EVkCommandPoolCreateInfo poolCreateInfo = pCreateInfo->poolCreateInfo;
     poolCreateInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
 
-    for (int j = 0; j < NUM_THREADS; ++j)
-    {
-        thread t(device, &poolCreateInfo, 1);
-        t.createSecondaryCommandBuffers(pCreateInfo);
-        threadPool.push_back(t);
-    }
+    std::vector<std::thread> workers;
+    std::vector<VkCommandPool> &commandPools=*pCommandPools;
+    std::vector<VkCommandBuffer> &commandBuffers=*pCommandBuffers;
+    const std::vector<uint32_t> &indices = pCreateInfo->indices;
 
-    // TODO: make the above happen in parallel.
-    
-    std::vector<VkCommandBuffer> tmp;
-    for (const auto &thread : threadPool)
+    auto f =[&](int i)
     {
-        for (const auto &cb : thread.commandBuffers)
+        size_t numIndices=indices.size()/NUM_THREADS;
+        size_t indexOffset=numIndices*i;
+        if (i==(FLAGS_num_threads-1))
         {
-            tmp.push_back(cb);
+            numIndices = indices.size()-(i*numIndices);
         }
-    }
+        createSecondaryCommandBuffers(device,
+            &poolCreateInfo,&commandPools[i],&commandBuffers[i],indexOffset,numIndices,nullptr,pCreateInfo);
+    };
 
-	vkCmdExecuteCommands(primaryCommandBuffer, tmp.size(), tmp.data());
+    auto startTime = std::chrono::high_resolution_clock::now();
+    for (int i = 0; i < NUM_THREADS; ++i)
+    {
+        workers.push_back(std::thread(f,i));
+    }
+    for (std::thread &t: workers)
+    {
+        t.join();
+    }
+    auto endTime = std::chrono::high_resolution_clock::now();       
+    float time = std::chrono::duration<float, std::chrono::milliseconds::period>(endTime - startTime).count();
+
+	vkCmdExecuteCommands(primaryCommandBuffer, commandBuffers.size(), commandBuffers.data());
     vkCmdEndRenderPass(primaryCommandBuffer);
     if (vkEndCommandBuffer(primaryCommandBuffer) != VK_SUCCESS)
     {
         throw std::runtime_error("Could not end primaryCommandBuffer.");   
     }
 
-    *pThreadPool = threadPool;
     imageIndex = (imageIndex+1)%3;
 }

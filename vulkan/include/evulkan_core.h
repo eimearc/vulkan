@@ -338,26 +338,12 @@ struct EVkCommandBuffersCreateInfo
     std::vector<uint32_t> indices;
 };
 
-struct thread
-{
-    VkCommandPool commandPool;
-    std::vector<VkCommandBuffer> commandBuffers;
-    size_t size;
-    VkDevice device;
-    size_t index;
-    static size_t i;
-
-    static void reset(){i=0;}
-    void cleanup();
-    thread(VkDevice device, const EVkCommandPoolCreateInfo *pCreateInfo, size_t size);
-    void createSecondaryCommandBuffers(const EVkCommandBuffersCreateInfo *pCreateInfo);
-};
-
 void evkCreateCommandBuffers(
     VkDevice device,
     const EVkCommandBuffersCreateInfo *pCreateInfo,
     VkCommandBuffer *pPrimaryCommandBuffer,
-    std::vector<thread> *pThreadPool
+    std::vector<VkCommandBuffer> *pCommandBuffers,
+    std::vector<VkCommandPool> *pCommandPools
 );
 
 struct EVkSyncObjectsCreateInfo
@@ -486,11 +472,12 @@ struct EVkSceneUpdateInfo
 {
    const EVkVertexBufferUpdateInfo *pVertexUpdateInfo;
    const EVkCommandBuffersCreateInfo *pCommandBuffersCreateInfo;
+   std::vector<VkCommandBuffer> *pCommandBuffers;
+   std::vector<VkCommandPool> *pCommandPools;
 };
 void evkUpdateScene(
     VkDevice device,
     const EVkSceneUpdateInfo *pUpdateInfo,
     VkCommandBuffer *pPrimaryCommandBuffer,
-    std::vector<thread> *pThreadPool,
     Bench &bench
 );
