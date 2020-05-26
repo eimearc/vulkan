@@ -88,14 +88,14 @@ void updateVertexBuffer(
     VkDeviceMemory *stagingBufferMemory,
     VkBuffer vertexBuffer,
     std::vector<Vertex> &verts,
-    const Grid &grid,
+    const Grid *pGrid,
     size_t bufferOffset,
     size_t vertsOffset,
     size_t numVerts
     )
 {
     size_t bufferSize = numVerts*sizeof(verts[0]);
-    update(verts, grid, vertsOffset, numVerts);
+    update(verts, *pGrid, vertsOffset, numVerts);
 
     EVkCommandPoolCreateInfo info = {};
     info.physicalDevice = physicalDevice;
@@ -169,7 +169,7 @@ void evkUpdateVertexBuffer(VkDevice device, const EVkVertexBufferUpdateInfo *pUp
         updateVertexBuffer(
             device, pUpdateInfo->physicalDevice, pUpdateInfo->graphicsQueue, pUpdateInfo->surface,
             &commandPools[i], &commandBuffers[i], &buffers[i], &bufferMemory[i], pUpdateInfo->vertexBuffer,
-            verts, pUpdateInfo->grid, bufferOffset, vertsOffset, num_verts_each);
+            verts, pUpdateInfo->pGrid, bufferOffset, vertsOffset, num_verts_each);
     };
 
     auto startTime = std::chrono::high_resolution_clock::now();

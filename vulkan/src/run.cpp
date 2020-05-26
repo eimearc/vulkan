@@ -143,7 +143,7 @@ void EVulkan::mainLoop()
     drawInfo.swapchainExtent = swapChainExtent;
     drawInfo.pUniformBufferMemory = &uniformBuffersMemory;
     drawInfo.pVertices = &vertices;
-    drawInfo.grid = grid;
+    drawInfo.pGrid = &grid;
     drawInfo.physicalDevice = physicalDevice;
     drawInfo.commandPool = commandPool;
     drawInfo.vertexBuffer = vertexBuffer;

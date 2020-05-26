@@ -788,6 +788,7 @@ void evkDrawFrame(
     EVkCommandBuffersCreateInfo *pCommandBuffersInfo = pDrawInfo->pCommandBuffersCreateInfo;
     pCommandBuffersInfo->framebuffer = pDrawInfo->framebuffers[*pCurrentFrame];
 
+
     vkWaitForFences(device, 1, &inFlightFences[*pCurrentFrame], VK_TRUE, UINT64_MAX);
 
     uint32_t imageIndex;
@@ -829,7 +830,7 @@ void evkDrawFrame(
     vUpdateInfo.physicalDevice = pDrawInfo->physicalDevice;
     vUpdateInfo.graphicsQueue = graphicsQueue;
     vUpdateInfo.vertexBuffer = pDrawInfo->vertexBuffer;
-    vUpdateInfo.grid = pDrawInfo->grid;
+    vUpdateInfo.pGrid = pDrawInfo->pGrid;
     vUpdateInfo.surface = pCommandBuffersInfo->poolCreateInfo.surface;
 
     // Update verts and command buffer here.
@@ -888,6 +889,7 @@ void evkDrawFrame(
     }
 
     vkQueueWaitIdle(pDrawInfo->presentQueue);
+    // vkResetFences(device, 1, &imagesInFlight[*pCurrentFrame]);
 
     for (int i = 0; i < commandPools.size(); ++i)
     {

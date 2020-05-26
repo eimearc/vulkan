@@ -4,9 +4,9 @@ import subprocess
 import argparse
 
 parser = argparse.ArgumentParser(description='Vulkan and OpenGL benchmark.')
-parser.add_argument('vulkan', action='store_true',
+parser.add_argument('--vulkan', action='store_true',
                     help='Run the Vulkan program for timings')
-parser.add_argument('gl', action='store_true',
+parser.add_argument('--gl', action='store_true',
                     help='Run the OpenGL program for timings')
 parser.add_argument('-d', dest='debug', action='store_true', help='Debug mode.')
 parser.add_argument('--num_cubes', default=40000, help='Number of cubes to render.')

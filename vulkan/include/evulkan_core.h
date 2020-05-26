@@ -374,7 +374,7 @@ struct EVkDrawFrameInfo
     bool *pFramebufferResized;
     std::vector<VkDeviceMemory> *pUniformBufferMemory;
     std::vector<Vertex> *pVertices;
-    Grid grid;
+    Grid *pGrid;
     VkCommandPool commandPool;
     VkBuffer vertexBuffer;
     EVkCommandBuffersCreateInfo *pCommandBuffersCreateInfo;
@@ -459,7 +459,7 @@ void evkUpdateUniformBuffer(VkDevice device, const EVkUniformBufferUpdateInfo *p
 struct EVkVertexBufferUpdateInfo
 {
    std::vector<Vertex> *pVertices;
-   Grid grid; 
+   Grid *pGrid; 
    VkPhysicalDevice physicalDevice;
    VkCommandPool commandPool;
    VkQueue graphicsQueue;

@@ -19,7 +19,7 @@ LDFLAGS += -L/usr/local/lib/ -lgflags
 _OBJ = util.o main.o bench.o
 OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
 
-all: $(OBJ)m vulkan gl
+all: $(OBJ) vulkan gl
 
 vulkan:
 	cd vulkan && $(MAKE)
