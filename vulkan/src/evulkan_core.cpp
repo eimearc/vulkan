@@ -837,7 +837,6 @@ void evkDrawFrame(
     EVkSceneUpdateInfo sceneUpdateInfo = {};
     sceneUpdateInfo.pVertexUpdateInfo = &vUpdateInfo;
     sceneUpdateInfo.pCommandBuffersCreateInfo = pCommandBuffersInfo;
-    std::cout << "num threads:" << FLAGS_num_threads << std::endl;
     std::vector<VkCommandPool> commandPools(FLAGS_num_threads);
     std::vector<VkCommandBuffer> commandBuffers(FLAGS_num_threads);
     sceneUpdateInfo.pCommandBuffers=&commandBuffers;
@@ -890,19 +889,11 @@ void evkDrawFrame(
 
     vkQueueWaitIdle(pDrawInfo->presentQueue);
 
-    // for(auto& t: threadPool)
-    // {
-    //     t.cleanup();
-    // }
-
     for (int i = 0; i < commandPools.size(); ++i)
     {
-        std::cout << "Freeing " << i << std::endl;
         vkFreeCommandBuffers(device, commandPools[i], 1, &commandBuffers[i]);
         vkDestroyCommandPool(device, commandPools[i], nullptr);  
     }
-
-    // Need to tidy command buffers and pools here.
 
     *pCurrentFrame = ((*pCurrentFrame)+1) % pDrawInfo->maxFramesInFlight;
 }

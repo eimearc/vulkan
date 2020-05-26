@@ -247,30 +247,37 @@ void evkCreateCommandBuffers(
         &renderPassInfo,
         VK_SUBPASS_CONTENTS_SECONDARY_COMMAND_BUFFERS);
 
-    // std::vector<thread> threadPool;
     EVkCommandPoolCreateInfo poolCreateInfo = pCreateInfo->poolCreateInfo;
     poolCreateInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
 
     std::vector<std::thread> workers;
     std::vector<VkCommandPool> &commandPools=*pCommandPools;
     std::vector<VkCommandBuffer> &commandBuffers=*pCommandBuffers;
-
     const std::vector<uint32_t> &indices = pCreateInfo->indices;
 
-    for (int j = 0; j < NUM_THREADS; ++j)
+    auto f =[&](int i)
     {
         size_t numIndices=indices.size()/NUM_THREADS;
-        size_t indexOffset=numIndices*j;
-        if (j==(FLAGS_num_threads-1))
+        size_t indexOffset=numIndices*i;
+        if (i==(FLAGS_num_threads-1))
         {
-            numIndices = indices.size()-(j*numIndices);
+            numIndices = indices.size()-(i*numIndices);
         }
         createSecondaryCommandBuffers(device,
-            &poolCreateInfo,&commandPools[j],&commandBuffers[j],indexOffset,numIndices,nullptr,pCreateInfo);
-        std::cout << "Thread " << j << " " << commandBuffers[j] << std::endl;
-    }
+            &poolCreateInfo,&commandPools[i],&commandBuffers[i],indexOffset,numIndices,nullptr,pCreateInfo);
+    };
 
-    // TODO: make the above happen in parallel.
+    auto startTime = std::chrono::high_resolution_clock::now();
+    for (int i = 0; i < NUM_THREADS; ++i)
+    {
+        workers.push_back(std::thread(f,i));
+    }
+    for (std::thread &t: workers)
+    {
+        t.join();
+    }
+    auto endTime = std::chrono::high_resolution_clock::now();       
+    float time = std::chrono::duration<float, std::chrono::milliseconds::period>(endTime - startTime).count();
 
 	vkCmdExecuteCommands(primaryCommandBuffer, commandBuffers.size(), commandBuffers.data());
     vkCmdEndRenderPass(primaryCommandBuffer);
@@ -278,6 +285,6 @@ void evkCreateCommandBuffers(
     {
         throw std::runtime_error("Could not end primaryCommandBuffer.");   
     }
-    
+
     imageIndex = (imageIndex+1)%3;
 }
