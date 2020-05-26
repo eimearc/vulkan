@@ -69,8 +69,13 @@ void EGL::setupVertices()
 
 void EGL::mainLoop()
 {
+    int frameNum=0;
+    bool timed=false;
+    if (FLAGS_num_frames > 0) timed=true;
     while (!glfwWindowShouldClose(window))
     {
+        glfwPollEvents();
+
         bench.numVertices(vertices.size());
         bench.numThreads(FLAGS_num_threads);
         bench.numCubes(FLAGS_num_cubes);
@@ -87,7 +92,8 @@ void EGL::mainLoop()
         bench.frameTime(fStartTime);
         bench.record();
 
-        glfwPollEvents();
+        frameNum++;
+        if (timed && frameNum>=FLAGS_num_frames) break;
     }
 }
 
