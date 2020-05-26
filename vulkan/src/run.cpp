@@ -160,14 +160,14 @@ void EVulkan::mainLoop()
         bench.numVertices(vertices.size());
         bench.numThreads(FLAGS_num_threads);
         bench.numCubes(FLAGS_num_cubes);
-        bench.start();
+        auto startTime = bench.start();
         evkDrawFrame(device, &drawInfo,
             &currentFrame, &imagesInFlight,
             &renderFinishedSemaphores,
             &primaryCommandBuffer,
             &imageIndex,
             bench);
-        bench.frameTime();
+        bench.frameTime(startTime);
         bench.record();
 
         frameNum++;

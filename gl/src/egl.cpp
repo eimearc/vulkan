@@ -71,13 +71,22 @@ void EGL::mainLoop()
 {
     while (!glfwWindowShouldClose(window))
     {
+        bench.numVertices(vertices.size());
+        bench.numThreads(FLAGS_num_threads);
+        bench.numCubes(FLAGS_num_cubes);
+        auto fStartTime = bench.start();
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glUseProgram(shaderProgram);
+        auto vStartTime = bench.start();
         updateVertexBuffer();
+        bench.updateVBOTime(vStartTime);
         glBindVertexArray(VAO);
         glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
         glfwSwapBuffers(window);
+        bench.frameTime(fStartTime);
+        bench.record();
+
         glfwPollEvents();
     }
 }

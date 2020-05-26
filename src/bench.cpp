@@ -45,9 +45,9 @@ void Bench::numThreads(size_t _num)
     m_numThreads = _num;
 }
 
-void Bench::start()
+time_point Bench::start()
 {
-    m_start = std::chrono::high_resolution_clock::now();
+    return std::chrono::high_resolution_clock::now();
 }
 
 void Bench::record()

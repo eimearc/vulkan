@@ -9,21 +9,26 @@
 #include "grid.h"
 #include "vertex.h"
 #include "flags.h"
+#include "bench.h"
 
 class EGL
 {
 public:
     void run()
     {
+        bench.open("time_gl.csv", FLAGS_overwrite);
         initWindow();
         initGL();
         mainLoop();
-        cleanup();   
+        cleanup();
+        bench.close();
     }
     
 private:
     size_t NUM_CUBES = sqrt(FLAGS_num_cubes);
     size_t NUM_THREADS = FLAGS_num_threads;
+
+    Bench bench;
 
     GLFWwindow* window;
     const uint32_t WIDTH = 800;

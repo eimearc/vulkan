@@ -4,6 +4,8 @@
 #include <iostream>
 #include <fstream>
 
+typedef std::chrono::steady_clock::time_point time_point;
+
 class Bench
 {
     public:
@@ -15,15 +17,15 @@ class Bench
     void numCubes(size_t _num);
     void numThreads(size_t num);
 
-    void start();
-    inline void frameTime()
+    time_point start();
+    inline void frameTime(time_point _time)
     {
-        float d = duration();
+        float d = duration(_time);
         m_frame = d;
     }
-    inline void updateVBOTime()
+    inline void updateVBOTime(time_point _time)
     {
-        float d = duration();
+        float d = duration(_time);
         m_updateVBO = d;
     }
     void record();
@@ -34,14 +36,13 @@ class Bench
     size_t m_numVertices=0;
     size_t m_numCubes=0;
     size_t m_numThreads=0;
-    std::chrono::steady_clock::time_point m_start;
     float m_frame=0.0f;
     float m_updateVBO=0.0f;
 
-    float duration()
+    float duration(time_point _time)
     {
         auto end = std::chrono::high_resolution_clock::now();
-        auto duration = std::chrono::duration<float,std::chrono::milliseconds::period>(end - m_start).count();
+        auto duration = std::chrono::duration<float,std::chrono::milliseconds::period>(end - _time).count();
         return duration;
     }
 };
