@@ -343,7 +343,7 @@ void evkCreateCommandBuffers(
     const EVkCommandBuffersCreateInfo *pCreateInfo,
     VkCommandBuffer *pPrimaryCommandBuffer,
     std::vector<VkCommandBuffer> *pCommandBuffers,
-    std::vector<VkCommandPool> *pCommandPools
+    const std::vector<VkCommandPool> *pCommandPools
 );
 
 struct EVkSyncObjectsCreateInfo
@@ -378,6 +378,7 @@ struct EVkDrawFrameInfo
     VkCommandPool commandPool;
     VkBuffer vertexBuffer;
     EVkCommandBuffersCreateInfo *pCommandBuffersCreateInfo;
+    std::vector<VkCommandPool> commandPools;
 };
 void evkDrawFrame(
     VkDevice device,
@@ -462,6 +463,7 @@ struct EVkVertexBufferUpdateInfo
    Grid *pGrid; 
    VkPhysicalDevice physicalDevice;
    VkCommandPool commandPool;
+   std::vector<VkCommandPool> commandPools;
    VkQueue graphicsQueue;
    VkBuffer vertexBuffer;
    VkSurfaceKHR surface;
@@ -473,7 +475,7 @@ struct EVkSceneUpdateInfo
    const EVkVertexBufferUpdateInfo *pVertexUpdateInfo;
    const EVkCommandBuffersCreateInfo *pCommandBuffersCreateInfo;
    std::vector<VkCommandBuffer> *pCommandBuffers;
-   std::vector<VkCommandPool> *pCommandPools;
+   const std::vector<VkCommandPool> *pCommandPools;
 };
 void evkUpdateScene(
     VkDevice device,

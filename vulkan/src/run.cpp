@@ -111,6 +111,24 @@ void EVulkan::initVulkan()
 
 void EVulkan::mainLoop()
 {
+    // TODO: allocate vbo command pools here.
+    std::vector<VkCommandPool> vertexUpdateCommandPools(FLAGS_num_threads);
+    std::vector<VkCommandPool> sceneUpdateCommandPools(FLAGS_num_threads);
+    for (auto &cp : vertexUpdateCommandPools)
+    {
+        EVkCommandPoolCreateInfo info = {};
+        info.physicalDevice = physicalDevice;
+        info.surface = surface;
+        evkCreateCommandPool(device, &info, &cp);
+    }
+    // for (auto &cp : sceneUpdateCommandPools)
+    // {
+    //     EVkCommandPoolCreateInfo info = {};
+    //     info.physicalDevice = physicalDevice;
+    //     info.surface = surface;
+    //     evkCreateCommandPool(device, &info, &cp);
+    // }
+
     int i = 0;
     std::chrono::steady_clock::time_point startTime, endTime;
     uint32_t imageIndex;
@@ -149,6 +167,7 @@ void EVulkan::mainLoop()
     drawInfo.vertexBuffer = vertexBuffer;
     drawInfo.pCommandBuffersCreateInfo = &commandBuffersInfo;
     drawInfo.framebuffers = swapChainFramebuffers;
+    drawInfo.commandPools = vertexUpdateCommandPools;
 
     int frameNum=0;
     bool timed=false;
@@ -177,6 +196,11 @@ void EVulkan::mainLoop()
     if (vkDeviceWaitIdle(device)!=VK_SUCCESS)
     {
         throw std::runtime_error("Could not wait for vkDeviceWaitIdle");
+    }
+
+    for (auto &cp : vertexUpdateCommandPools)
+    {
+        vkDestroyCommandPool(device, cp, nullptr);
     }
 }
 

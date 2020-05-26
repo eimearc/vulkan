@@ -8,7 +8,7 @@
 void createSecondaryCommandBuffers(
     VkDevice device,
     const EVkCommandPoolCreateInfo *pCommandPoolCreateInfo,
-    VkCommandPool *pCommandPool,
+    const VkCommandPool *pCommandPool,
     VkCommandBuffer *pCommandBuffer,
     size_t indexOffset,
     size_t numIndices,
@@ -16,7 +16,7 @@ void createSecondaryCommandBuffers(
     const EVkCommandBuffersCreateInfo *pCreateInfo
 )
 {
-    evkCreateCommandPool(device, pCommandPoolCreateInfo, pCommandPool);
+    // evkCreateCommandPool(device, pCommandPoolCreateInfo, pCommandPool);
 
     VkCommandBufferAllocateInfo allocInfo = {};
     allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
@@ -82,7 +82,7 @@ void updateVertexBuffer(
     VkPhysicalDevice physicalDevice,
     VkQueue queue,
     VkSurfaceKHR surface,
-    VkCommandPool *pCommandPool,
+    const VkCommandPool *pCommandPool,
     VkCommandBuffer *pCommandBuffer,
     VkBuffer *stagingBuffer,
     VkDeviceMemory *stagingBufferMemory,
@@ -97,10 +97,10 @@ void updateVertexBuffer(
     size_t bufferSize = numVerts*sizeof(verts[0]);
     update(verts, *pGrid, vertsOffset, numVerts);
 
-    EVkCommandPoolCreateInfo info = {};
-    info.physicalDevice = physicalDevice;
-    info.surface = surface;
-    evkCreateCommandPool(device, &info, pCommandPool);
+    // EVkCommandPoolCreateInfo info = {};
+    // info.physicalDevice = physicalDevice;
+    // info.surface = surface;
+    // evkCreateCommandPool(device, &info, pCommandPool);
 
     // Use a host visible buffer as a staging buffer.
     createBuffer(
@@ -153,7 +153,8 @@ void evkUpdateVertexBuffer(VkDevice device, const EVkVertexBufferUpdateInfo *pUp
     size_t threadBufferSize = wholeBufferSize/NUM_THREADS;
 
     std::vector<std::thread> workers;
-    std::vector<VkCommandPool> commandPools(NUM_THREADS);
+    // std::vector<VkCommandPool> commandPools(NUM_THREADS);
+    auto &commandPools = pUpdateInfo->commandPools;
     std::vector<VkCommandBuffer> commandBuffers(NUM_THREADS);
     std::vector<VkBuffer> buffers(NUM_THREADS);
     std::vector<VkDeviceMemory> bufferMemory(NUM_THREADS);
@@ -197,7 +198,7 @@ void evkUpdateVertexBuffer(VkDevice device, const EVkVertexBufferUpdateInfo *pUp
         vkFreeCommandBuffers(device, commandPools[i], 1, &commandBuffers[i]);
         vkDestroyBuffer(device, buffers[i], nullptr);
         vkFreeMemory(device, bufferMemory[i], nullptr);
-        vkDestroyCommandPool(device, commandPools[i], nullptr);
+        // vkDestroyCommandPool(device, commandPools[i], nullptr); // TODO: Move these to outside and reuse.
     }
 }
 
@@ -206,7 +207,7 @@ void evkCreateCommandBuffers(
     const EVkCommandBuffersCreateInfo *pCreateInfo,
     VkCommandBuffer *pPrimaryCommandBuffer,
     std::vector<VkCommandBuffer> *pCommandBuffers,
-    std::vector<VkCommandPool> *pCommandPools
+    const std::vector<VkCommandPool> *pCommandPools
 )
 {
     size_t NUM_THREADS=FLAGS_num_threads;
@@ -251,7 +252,7 @@ void evkCreateCommandBuffers(
     poolCreateInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
 
     std::vector<std::thread> workers;
-    std::vector<VkCommandPool> &commandPools=*pCommandPools;
+    const std::vector<VkCommandPool> &commandPools=*pCommandPools;
     std::vector<VkCommandBuffer> &commandBuffers=*pCommandBuffers;
     const std::vector<uint32_t> &indices = pCreateInfo->indices;
 

@@ -788,7 +788,6 @@ void evkDrawFrame(
     EVkCommandBuffersCreateInfo *pCommandBuffersInfo = pDrawInfo->pCommandBuffersCreateInfo;
     pCommandBuffersInfo->framebuffer = pDrawInfo->framebuffers[*pCurrentFrame];
 
-
     vkWaitForFences(device, 1, &inFlightFences[*pCurrentFrame], VK_TRUE, UINT64_MAX);
 
     uint32_t imageIndex;
@@ -832,16 +831,18 @@ void evkDrawFrame(
     vUpdateInfo.vertexBuffer = pDrawInfo->vertexBuffer;
     vUpdateInfo.pGrid = pDrawInfo->pGrid;
     vUpdateInfo.surface = pCommandBuffersInfo->poolCreateInfo.surface;
+    vUpdateInfo.commandPools = pDrawInfo->commandPools;
 
     // Update verts and command buffer here.
     // std::vector<thread> threadPool;
     EVkSceneUpdateInfo sceneUpdateInfo = {};
     sceneUpdateInfo.pVertexUpdateInfo = &vUpdateInfo;
     sceneUpdateInfo.pCommandBuffersCreateInfo = pCommandBuffersInfo;
-    std::vector<VkCommandPool> commandPools(FLAGS_num_threads);
+    // std::vector<VkCommandPool> commandPools(FLAGS_num_threads); // Move this.
     std::vector<VkCommandBuffer> commandBuffers(FLAGS_num_threads);
     sceneUpdateInfo.pCommandBuffers=&commandBuffers;
-    sceneUpdateInfo.pCommandPools=&commandPools;
+    // sceneUpdateInfo.pCommandPools=&commandPools;
+    sceneUpdateInfo.pCommandPools=&(pDrawInfo->commandPools);
     evkUpdateScene(device, &sceneUpdateInfo, pPrimaryCommandBuffer, bench);
     
     VkSubmitInfo submitInfo = {};
@@ -889,12 +890,11 @@ void evkDrawFrame(
     }
 
     vkQueueWaitIdle(pDrawInfo->presentQueue);
-    // vkResetFences(device, 1, &imagesInFlight[*pCurrentFrame]);
 
-    for (int i = 0; i < commandPools.size(); ++i)
+    for (int i = 0; i < pDrawInfo->commandPools.size(); ++i)
     {
-        vkFreeCommandBuffers(device, commandPools[i], 1, &commandBuffers[i]);
-        vkDestroyCommandPool(device, commandPools[i], nullptr);  
+        vkFreeCommandBuffers(device, pDrawInfo->commandPools[i], 1, &commandBuffers[i]);
+        // vkDestroyCommandPool(device, commandPools[i], nullptr);  // TODO: move this out?
     }
 
     *pCurrentFrame = ((*pCurrentFrame)+1) % pDrawInfo->maxFramesInFlight;
