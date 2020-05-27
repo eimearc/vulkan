@@ -81,7 +81,8 @@
         "*.ipp": "cpp",
         "codecvt": "cpp",
         "coroutine": "cpp",
-        "future": "cpp"
+        "future": "cpp",
+        "queue": "cpp"
     },
     // "C_Cpp.intelliSenseEngine": "Tag Parser"
 }

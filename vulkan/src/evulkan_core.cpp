@@ -786,8 +786,8 @@ void evkDrawFrame(
     const std::vector<VkSemaphore> &imageAvailableSemaphores = *(pDrawInfo->pImageAvailableSemaphores);
     std::vector<VkFence> &imagesInFlight = *(pImagesInFlight);
     const VkQueue &graphicsQueue = pDrawInfo->graphicsQueue;
-    EVkCommandBuffersCreateInfo *pCommandBuffersInfo = pDrawInfo->pCommandBuffersCreateInfo;
-    pCommandBuffersInfo->framebuffer = pDrawInfo->framebuffers[*pCurrentFrame];
+    // EVkCommandBuffersCreateInfo *pCommandBuffersInfo = pDrawInfo->pCommandBuffersCreateInfo;
+    // pCommandBuffersInfo->framebuffer = pDrawInfo->framebuffers[*pCurrentFrame];
 
     vkWaitForFences(device, 1, &inFlightFences[*pCurrentFrame], VK_TRUE, UINT64_MAX);
 
@@ -831,21 +831,26 @@ void evkDrawFrame(
     vUpdateInfo.graphicsQueue = graphicsQueue;
     vUpdateInfo.vertexBuffer = pDrawInfo->vertexBuffer;
     vUpdateInfo.pGrid = pDrawInfo->pGrid;
-    vUpdateInfo.surface = pCommandBuffersInfo->poolCreateInfo.surface;
+    // vUpdateInfo.surface = pDrawInfo->surface;
     vUpdateInfo.commandPools = pDrawInfo->commandPools;
 
     // Update verts and command buffer here.
     // std::vector<thread> threadPool;
     EVkSceneUpdateInfo sceneUpdateInfo = {};
     sceneUpdateInfo.pVertexUpdateInfo = &vUpdateInfo;
-    sceneUpdateInfo.pCommandBuffersCreateInfo = pCommandBuffersInfo;
+    // sceneUpdateInfo.pCommandBuffersCreateInfo = pCommandBuffersInfo;
     // std::vector<VkCommandPool> commandPools(FLAGS_num_threads); // Move this.
-    std::vector<VkCommandBuffer> commandBuffers(FLAGS_num_threads);
-    sceneUpdateInfo.pCommandBuffers=&commandBuffers;
+    // std::vector<VkCommandBuffer> commandBuffers(FLAGS_num_threads);
+    // sceneUpdateInfo.pCommandBuffers=&commandBuffers;
     // sceneUpdateInfo.pCommandPools=&commandPools;
     sceneUpdateInfo.pCommandPools=&(pDrawInfo->commandPools);
-    evkUpdateScene(device, &sceneUpdateInfo, pPrimaryCommandBuffer, bench, threadpool);
-    
+    evkUpdateScene(device, &sceneUpdateInfo, bench, threadpool);
+
+    // evkCreateCommandBuffers(device,
+    //     pCommandBuffersInfo,
+    //     pPrimaryCommandBuffer,
+    //     &commandBuffers,&(pDrawInfo->commandPools),threadpool);
+
     VkSubmitInfo submitInfo = {};
     submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
     VkSemaphore waitSemaphores[] = {imageAvailableSemaphores[*pCurrentFrame]};
@@ -894,7 +899,7 @@ void evkDrawFrame(
 
     for (int i = 0; i < pDrawInfo->commandPools.size(); ++i)
     {
-        vkFreeCommandBuffers(device, pDrawInfo->commandPools[i], 1, &commandBuffers[i]);
+        // vkFreeCommandBuffers(device, pDrawInfo->commandPools[i], 1, &commandBuffers[i]);
         // vkDestroyCommandPool(device, commandPools[i], nullptr);  // TODO: move this out?
     }
 

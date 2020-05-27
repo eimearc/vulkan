@@ -62,7 +62,7 @@ void createSecondaryCommandBuffers(
 void evkUpdateScene(
     VkDevice device,
     const EVkSceneUpdateInfo *pUpdateInfo,
-    VkCommandBuffer *pPrimaryCommandBuffer,
+    // VkCommandBuffer *pPrimaryCommandBuffer,
     Bench &bench,
     ThreadPool &threadpool
 )
@@ -70,10 +70,10 @@ void evkUpdateScene(
     auto startTime = bench.start();
     evkUpdateVertexBuffer(device, pUpdateInfo->pVertexUpdateInfo, threadpool);
     bench.updateVBOTime(startTime);
-    evkCreateCommandBuffers(device,
-        pUpdateInfo->pCommandBuffersCreateInfo,
-        pPrimaryCommandBuffer,
-        pUpdateInfo->pCommandBuffers,pUpdateInfo->pCommandPools, threadpool);
+    // evkCreateCommandBuffers(device,
+    //     pUpdateInfo->pCommandBuffersCreateInfo,
+    //     pPrimaryCommandBuffer,
+    //     pUpdateInfo->pCommandBuffers,pUpdateInfo->pCommandPools, threadpool);
 }
 
 void evkUpdateVertexBuffer(VkDevice device, const EVkVertexBufferUpdateInfo *pUpdateInfo, ThreadPool &threadpool)
@@ -104,7 +104,7 @@ void evkUpdateVertexBuffer(VkDevice device, const EVkVertexBufferUpdateInfo *pUp
         size_t bufferSize = numVerts*sizeof(verts[0]);
         auto &stagingBuffer = buffers[i];
         auto &stagingBufferMemory = bufferMemory[i];
-        // update(verts, *pUpdateInfo->pGrid, vertsOffset, numVerts);
+        update(verts, *pUpdateInfo->pGrid, vertsOffset, numVerts);
 
         // Use a host visible buffer as a staging buffer.
         createBuffer(
@@ -167,6 +167,9 @@ void evkUpdateVertexBuffer(VkDevice device, const EVkVertexBufferUpdateInfo *pUp
     }
 }
 
+
+// Can this be done only during setup?
+// One needs to be done for each framebuffer.
 void evkCreateCommandBuffers(
     VkDevice device,
     const EVkCommandBuffersCreateInfo *pCreateInfo,
@@ -177,8 +180,6 @@ void evkCreateCommandBuffers(
 )
 {
     size_t NUM_THREADS=FLAGS_num_threads;
-
-    static int imageIndex = 0;
 
     // Create primary command buffer.
     VkCommandBufferAllocateInfo allocInfo = {};
@@ -242,11 +243,10 @@ void evkCreateCommandBuffers(
     threadpool.wait();
 
 	vkCmdExecuteCommands(primaryCommandBuffer, commandBuffers.size(), commandBuffers.data());
+
     vkCmdEndRenderPass(primaryCommandBuffer);
     if (vkEndCommandBuffer(primaryCommandBuffer) != VK_SUCCESS)
     {
         throw std::runtime_error("Could not end primaryCommandBuffer.");   
     }
-
-    imageIndex = (imageIndex+1)%3;
 }

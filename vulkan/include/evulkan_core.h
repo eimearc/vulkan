@@ -18,7 +18,7 @@
 #include <boost/asio/thread_pool.hpp>
 #include <boost/asio.hpp>
 
-#define ENABLE_VALIDATION false
+#define ENABLE_VALIDATION true
 
 struct EVkCreateWindow
 {
@@ -492,7 +492,7 @@ struct EVkSceneUpdateInfo
 void evkUpdateScene(
     VkDevice device,
     const EVkSceneUpdateInfo *pUpdateInfo,
-    VkCommandBuffer *pPrimaryCommandBuffer,
+    // VkCommandBuffer *pPrimaryCommandBuffer,
     Bench &bench,
     ThreadPool &threadpool
 );
