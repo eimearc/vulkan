@@ -14,7 +14,7 @@ LDFLAGS = `pkg-config --static --libs glfw3` -L$(VULKAN_SDK_PATH)/lib -lvulkan -
 LDFLAGS += -L/usr/local/lib/ -lboost_thread-mt
 
 _DEPS = evulkan.h evulkan_core.h
-_DEPS_EXT = cube.h grid.h vertex.h util.h flags.h
+_DEPS_EXT = cube.h grid.h vertex.h util.h flags.h threadpool.h
 DEPS = $(patsubst %,$(IDIR)/%,$(_DEPS))
 DEPS += $(patsubst %,$(IDIR_EXT)/%,$(_DEPS_EXT))
 

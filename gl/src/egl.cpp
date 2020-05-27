@@ -189,7 +189,7 @@ void EGL::updateVertexBuffer()
 
     auto f = [&](int i)
     {
-        update(vertices, grid, num_verts_each*i, num_verts_each);
+        // update(vertices, grid, num_verts_each*i, num_verts_each);
     };
 
     for (size_t i = 0; i < NUM_THREADS; ++i)

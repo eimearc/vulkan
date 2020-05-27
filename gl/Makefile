@@ -13,7 +13,7 @@ GLEW_PATH = /usr/local/lib/
 LDFLAGS = `pkg-config --static --libs glfw3` -L$(GLEW_PATH) -lGLEW -framework OpenGL  -L/usr/local/lib/ -lgflags
 
 _DEPS = egl.h
-_DEPS_EXT = cube.h grid.h vertex.h util.h flags.h bench.h
+_DEPS_EXT = cube.h grid.h vertex.h util.h flags.h bench.h threadpool.h
 DEPS = $(patsubst %,$(IDIR)/%,$(_DEPS))
 DEPS += $(patsubst %,$(IDIR_EXT)/%,$(_DEPS_EXT))
 
