@@ -779,8 +779,18 @@ void evkDrawFrame(
     std::vector<VkSemaphore> *pRenderFinishedSemaphores,
     VkCommandBuffer *pPrimaryCommandBuffer,
     uint32_t *pImageIndex,
-    Bench &bench)
+    Bench &bench,
+    boost::asio::thread_pool &threadPool)
 {
+    boost::asio::dispatch(threadPool,
+    []()
+    {
+      std::cout << "Hello world from evkDrawFrame\n";
+    });
+    // std::cout << "evkDrawFrame\n";
+    threadPool.join();
+    threadPool.stop();
+
     const std::vector<VkFence> &inFlightFences = *(pDrawInfo->pInFlightFences);
     const std::vector<VkSemaphore> &imageAvailableSemaphores = *(pDrawInfo->pImageAvailableSemaphores);
     std::vector<VkFence> &imagesInFlight = *(pImagesInFlight);

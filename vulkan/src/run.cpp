@@ -109,6 +109,11 @@ void EVulkan::initVulkan()
     evkCreateSyncObjects(device, &syncObjectsInfo, &imageAvailableSemaphores, &renderFinishedSemaphores, &inFlightFences, &imagesInFlight);
 }
 
+void test()
+{
+    std::cout << "test\n";
+}
+
 void EVulkan::mainLoop()
 {
     // TODO: allocate vbo command pools here.
@@ -172,20 +177,53 @@ void EVulkan::mainLoop()
     int frameNum=0;
     bool timed=false;
     if (FLAGS_num_frames > 0) timed=true; 
+
+    // boost::asio::io_service ioService;
+    boost::asio::thread_pool pool{1};
+    // boost::asio::thread_pool pool(4);
+
+    // boost::asio::post(pool,
+    // []()
+    // {
+    //   std::cout << "Hello world\n";
+    // });
+    // pool.join();
+
+    
+    // ioService.stop();
+
+    boost::asio::io_service ioService;
+    auto t1 = [&](){std::cout << "Hello from task1.\n";};
+    auto t2 = [&](){std::cout << "Hello from task2.\n";};
+    auto t3 = [&](){std::cout << "Hello from task3.\n";};
+
+    boost::thread_group threadpool;
+    threadpool.create_thread(boost::bind(&boost::asio::io_service::run, &ioService));
+
     while(!glfwWindowShouldClose(window))
     {
         glfwPollEvents();
+
+        ioService.reset();
+        ioService.run();
+        ioService.post(t1);
+        ioService.post(t2);
+        ioService.post(t3);
+        threadpool.join_all();
 
         bench.numVertices(vertices.size());
         bench.numThreads(FLAGS_num_threads);
         bench.numCubes(FLAGS_num_cubes);
         auto startTime = bench.start();
-        evkDrawFrame(device, &drawInfo,
+        evkDrawFrame(
+            device,
+            &drawInfo,
             &currentFrame, &imagesInFlight,
             &renderFinishedSemaphores,
             &primaryCommandBuffer,
             &imageIndex,
-            bench);
+            bench,
+            pool);
         bench.frameTime(startTime);
         bench.record();
 

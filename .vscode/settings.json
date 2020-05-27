@@ -77,8 +77,8 @@
         "utility": "cpp",
         "valarray": "cpp",
         "variant": "cpp",
-        "condition_variable": "cpp"
+        "condition_variable": "cpp",
+        "*.ipp": "cpp"
     },
-    "C_Cpp.errorSquiggles": "Enabled",
-    "C_Cpp.intelliSenseEngine": "Tag Parser"
+    // "C_Cpp.intelliSenseEngine": "Tag Parser"
 }

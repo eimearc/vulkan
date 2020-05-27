@@ -9,7 +9,15 @@
 #include "flags.h"
 #include "bench.h"
 
-#define ENABLE_VALIDATION true
+#include <boost/asio/io_service.hpp>
+#include <boost/bind.hpp>
+#include <boost/thread/thread.hpp>
+
+#include <boost/asio/thread_pool.hpp>
+#include <boost/asio.hpp>
+
+#define ENABLE_VALIDATION false
+#define MVK_CONFIG_SYNCHRONOUS_QUEUE_SUBMITS true
 
 struct EVkCreateWindow
 {
@@ -388,7 +396,8 @@ void evkDrawFrame(
     std::vector<VkSemaphore> *pRenderFinishedSemaphores,
     VkCommandBuffer *pPrimaryCommandBuffer,
     uint32_t *pImageIndex,
-    Bench &bench
+    Bench &bench,
+    boost::asio::thread_pool &threadPool
 );
 
 struct EVkSwapchainRecreateInfo

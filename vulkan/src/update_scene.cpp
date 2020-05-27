@@ -16,8 +16,6 @@ void createSecondaryCommandBuffers(
     const EVkCommandBuffersCreateInfo *pCreateInfo
 )
 {
-    // evkCreateCommandPool(device, pCommandPoolCreateInfo, pCommandPool);
-
     VkCommandBufferAllocateInfo allocInfo = {};
     allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
     allocInfo.commandPool = *pCommandPool;
@@ -77,71 +75,6 @@ void evkUpdateScene(
         pUpdateInfo->pCommandBuffers,pUpdateInfo->pCommandPools);
 }
 
-void updateVertexBuffer(
-    VkDevice device,
-    VkPhysicalDevice physicalDevice,
-    VkQueue queue,
-    VkSurfaceKHR surface,
-    const VkCommandPool *pCommandPool,
-    VkCommandBuffer *pCommandBuffer,
-    VkBuffer *stagingBuffer,
-    VkDeviceMemory *stagingBufferMemory,
-    VkBuffer vertexBuffer,
-    std::vector<Vertex> &verts,
-    const Grid *pGrid,
-    size_t bufferOffset,
-    size_t vertsOffset,
-    size_t numVerts
-    )
-{
-    size_t bufferSize = numVerts*sizeof(verts[0]);
-    update(verts, *pGrid, vertsOffset, numVerts);
-
-    // EVkCommandPoolCreateInfo info = {};
-    // info.physicalDevice = physicalDevice;
-    // info.surface = surface;
-    // evkCreateCommandPool(device, &info, pCommandPool);
-
-    // Use a host visible buffer as a staging buffer.
-    createBuffer(
-        device,
-        physicalDevice,
-        bufferSize,
-        VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-        stagingBuffer, stagingBufferMemory);
-
-    // Copy vertex data to the staging buffer by mapping the buffer memory into CPU
-    // accessible memory.
-    void *data;
-    vkMapMemory(device, *stagingBufferMemory, 0, bufferSize, 0, &data);
-    memcpy(data, &verts[vertsOffset], bufferSize);
-    vkUnmapMemory(device, *stagingBufferMemory);
-
-    // Copy the vertex data from the staging buffer to the device-local buffer.
-    const VkBuffer &dstBuffer = vertexBuffer;
-
-    VkCommandBufferAllocateInfo allocInfo = {};
-    allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-    allocInfo.commandPool = *pCommandPool;
-    allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-    allocInfo.commandBufferCount = 1;
-    vkAllocateCommandBuffers(device, &allocInfo, pCommandBuffer);
-
-    VkCommandBufferBeginInfo beginInfo = {};
-    beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-    beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
-
-    vkBeginCommandBuffer(*pCommandBuffer, &beginInfo);
-
-    VkBufferCopy copyRegion = {};
-    copyRegion.size = bufferSize;
-    copyRegion.dstOffset = bufferOffset;
-    vkCmdCopyBuffer(*pCommandBuffer, *stagingBuffer, dstBuffer, 1, &copyRegion);
-
-    vkEndCommandBuffer(*pCommandBuffer);
-}
-
 void evkUpdateVertexBuffer(VkDevice device, const EVkVertexBufferUpdateInfo *pUpdateInfo)
 {
     size_t NUM_THREADS=FLAGS_num_threads;
@@ -153,7 +86,6 @@ void evkUpdateVertexBuffer(VkDevice device, const EVkVertexBufferUpdateInfo *pUp
     size_t threadBufferSize = wholeBufferSize/NUM_THREADS;
 
     std::vector<std::thread> workers;
-    // std::vector<VkCommandPool> commandPools(NUM_THREADS);
     auto &commandPools = pUpdateInfo->commandPools;
     std::vector<VkCommandBuffer> commandBuffers(NUM_THREADS);
     std::vector<VkBuffer> buffers(NUM_THREADS);
@@ -167,10 +99,48 @@ void evkUpdateVertexBuffer(VkDevice device, const EVkVertexBufferUpdateInfo *pUp
         {
             num_verts_each = verts.size()-(i*num_verts_each);
         }
-        updateVertexBuffer(
-            device, pUpdateInfo->physicalDevice, pUpdateInfo->graphicsQueue, pUpdateInfo->surface,
-            &commandPools[i], &commandBuffers[i], &buffers[i], &bufferMemory[i], pUpdateInfo->vertexBuffer,
-            verts, pUpdateInfo->pGrid, bufferOffset, vertsOffset, num_verts_each);
+        size_t numVerts=num_verts_each;
+        size_t bufferSize = numVerts*sizeof(verts[0]);
+        auto &stagingBuffer = buffers[i];
+        auto &stagingBufferMemory = bufferMemory[i];
+        update(verts, *pUpdateInfo->pGrid, vertsOffset, numVerts);
+
+        // Use a host visible buffer as a staging buffer.
+        createBuffer(
+            device,
+            pUpdateInfo->physicalDevice,
+            bufferSize,
+            VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+            &buffers[i], &bufferMemory[i]);
+
+        // Copy vertex data to the staging buffer by mapping the buffer memory into CPU
+        // accessible memory.
+        void *data;
+        vkMapMemory(device, bufferMemory[i], 0, bufferSize, 0, &data);
+        memcpy(data, &verts[vertsOffset], bufferSize);
+        vkUnmapMemory(device, bufferMemory[i]);
+
+        // Copy the vertex data from the staging buffer to the device-local buffer.
+        VkCommandBufferAllocateInfo allocInfo = {};
+        allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+        allocInfo.commandPool = commandPools[i];
+        allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+        allocInfo.commandBufferCount = 1;
+        vkAllocateCommandBuffers(device, &allocInfo, &commandBuffers[i]);
+
+        VkCommandBufferBeginInfo beginInfo = {};
+        beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+        beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+
+        vkBeginCommandBuffer(commandBuffers[i], &beginInfo);
+
+        VkBufferCopy copyRegion = {};
+        copyRegion.size = bufferSize;
+        copyRegion.dstOffset = bufferOffset;
+        vkCmdCopyBuffer(commandBuffers[i], buffers[i], pUpdateInfo->vertexBuffer, 1, &copyRegion);
+
+        vkEndCommandBuffer(commandBuffers[i]);
     };
 
     auto startTime = std::chrono::high_resolution_clock::now();
