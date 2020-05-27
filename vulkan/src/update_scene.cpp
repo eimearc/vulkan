@@ -62,7 +62,6 @@ void createSecondaryCommandBuffers(
 void evkUpdateScene(
     VkDevice device,
     const EVkSceneUpdateInfo *pUpdateInfo,
-    // VkCommandBuffer *pPrimaryCommandBuffer,
     Bench &bench,
     ThreadPool &threadpool
 )
@@ -70,10 +69,6 @@ void evkUpdateScene(
     auto startTime = bench.start();
     evkUpdateVertexBuffer(device, pUpdateInfo->pVertexUpdateInfo, threadpool);
     bench.updateVBOTime(startTime);
-    // evkCreateCommandBuffers(device,
-    //     pUpdateInfo->pCommandBuffersCreateInfo,
-    //     pPrimaryCommandBuffer,
-    //     pUpdateInfo->pCommandBuffers,pUpdateInfo->pCommandPools, threadpool);
 }
 
 void evkUpdateVertexBuffer(VkDevice device, const EVkVertexBufferUpdateInfo *pUpdateInfo, ThreadPool &threadpool)
@@ -104,6 +99,7 @@ void evkUpdateVertexBuffer(VkDevice device, const EVkVertexBufferUpdateInfo *pUp
         size_t bufferSize = numVerts*sizeof(verts[0]);
         auto &stagingBuffer = buffers[i];
         auto &stagingBufferMemory = bufferMemory[i];
+
         update(verts, *pUpdateInfo->pGrid, vertsOffset, numVerts);
 
         // Use a host visible buffer as a staging buffer.
@@ -167,9 +163,6 @@ void evkUpdateVertexBuffer(VkDevice device, const EVkVertexBufferUpdateInfo *pUp
     }
 }
 
-
-// Can this be done only during setup?
-// One needs to be done for each framebuffer.
 void evkCreateCommandBuffers(
     VkDevice device,
     const EVkCommandBuffersCreateInfo *pCreateInfo,

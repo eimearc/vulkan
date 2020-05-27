@@ -109,21 +109,9 @@ void EVulkan::initVulkan()
     evkCreateSyncObjects(device, &syncObjectsInfo, &imageAvailableSemaphores, &renderFinishedSemaphores, &inFlightFences, &imagesInFlight);
 }
 
-void test(int i)
-{
-    std::cout << "test " << i << std::endl;
-}
-
-void functionTest()
-{
-
-}
-
 void EVulkan::mainLoop()
 {
-    // TODO: allocate vbo command pools here.
     std::vector<VkCommandPool> vertexUpdateCommandPools(FLAGS_num_threads);
-    std::vector<VkCommandPool> sceneUpdateCommandPools(FLAGS_num_threads);
     for (auto &cp : vertexUpdateCommandPools)
     {
         EVkCommandPoolCreateInfo info = {};
@@ -131,16 +119,6 @@ void EVulkan::mainLoop()
         info.surface = surface;
         evkCreateCommandPool(device, &info, &cp);
     }
-    // for (auto &cp : sceneUpdateCommandPools)
-    // {
-    //     EVkCommandPoolCreateInfo info = {};
-    //     info.physicalDevice = physicalDevice;
-    //     info.surface = surface;
-    //     evkCreateCommandPool(device, &info, &cp);
-    // }
-
-    // int i = 0;
-    std::chrono::steady_clock::time_point startTime, endTime;
     uint32_t imageIndex;
 
     EVkCommandPoolCreateInfo commandPoolInfo = {};
@@ -175,7 +153,6 @@ void EVulkan::mainLoop()
     drawInfo.physicalDevice = physicalDevice;
     drawInfo.commandPool = commandPool;
     drawInfo.vertexBuffer = vertexBuffer;
-    // drawInfo.pCommandBuffersCreateInfo = &commandBuffersInfo;
     drawInfo.framebuffers = swapChainFramebuffers;
     drawInfo.commandPools = vertexUpdateCommandPools;
 
@@ -191,9 +168,7 @@ void EVulkan::mainLoop()
     std::vector<VkCommandBuffer> primaryCommandBuffers(MAX_FRAMES_IN_FLIGHT);
     for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i)
     {
-        std::cout << i << " here\n";
         commandBuffersInfo.framebuffer=swapChainFramebuffers[i];
-        // Needs to be done once for each framebuffer.
         evkCreateCommandBuffers(device,
             &commandBuffersInfo,
             &primaryCommandBuffers[i],
@@ -202,13 +177,9 @@ void EVulkan::mainLoop()
             pool);
     }
 
-    std::cout << "Finished up setup.\n";
-
-    // int currentFrame=0;
     while(!glfwWindowShouldClose(window))
     {
         glfwPollEvents();
-        std::cout << currentFrame << &primaryCommandBuffers[currentFrame] << std::endl;
         bench.numVertices(vertices.size());
         bench.numThreads(FLAGS_num_threads);
         bench.numCubes(FLAGS_num_cubes);
@@ -227,7 +198,6 @@ void EVulkan::mainLoop()
 
         frameNum++;
         if (timed && frameNum >= FLAGS_num_frames) break;
-        // currentFrame=(currentFrame+1)%MAX_FRAMES_IN_FLIGHT;
     }
 
     if (vkDeviceWaitIdle(device)!=VK_SUCCESS)
@@ -235,15 +205,10 @@ void EVulkan::mainLoop()
         throw std::runtime_error("Could not wait for vkDeviceWaitIdle");
     }
 
-        for (int i = 0; i < vertexUpdateCommandPools.size(); ++i)
+    for (int i = 0; i < vertexUpdateCommandPools.size(); ++i)
     {
         vkFreeCommandBuffers(device, vertexUpdateCommandPools[i], 1, &commandBuffers[i]);
-        // vkDestroyCommandPool(device, commandPools[i], nullptr);  // TODO: move this out?
-    }
-
-        for (auto &cp : vertexUpdateCommandPools)
-    {
-        vkDestroyCommandPool(device, cp, nullptr);
+        vkDestroyCommandPool(device, vertexUpdateCommandPools[i], nullptr);
     }
 }
 

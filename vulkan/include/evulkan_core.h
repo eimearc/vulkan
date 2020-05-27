@@ -9,16 +9,8 @@
 #include "flags.h"
 #include "bench.h"
 #include "threadpool.h"
-#include <queue>
 
-#include <boost/asio/io_service.hpp>
-#include <boost/bind.hpp>
-#include <boost/thread/thread.hpp>
-
-#include <boost/asio/thread_pool.hpp>
-#include <boost/asio.hpp>
-
-#define ENABLE_VALIDATION true
+#define ENABLE_VALIDATION false
 
 struct EVkCreateWindow
 {
@@ -492,7 +484,6 @@ struct EVkSceneUpdateInfo
 void evkUpdateScene(
     VkDevice device,
     const EVkSceneUpdateInfo *pUpdateInfo,
-    // VkCommandBuffer *pPrimaryCommandBuffer,
     Bench &bench,
     ThreadPool &threadpool
 );
