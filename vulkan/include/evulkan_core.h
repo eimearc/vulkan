@@ -8,6 +8,7 @@
 #include "util.h"
 #include "flags.h"
 #include "bench.h"
+#include <queue>
 
 #include <boost/asio/io_service.hpp>
 #include <boost/bind.hpp>
@@ -17,7 +18,104 @@
 #include <boost/asio.hpp>
 
 #define ENABLE_VALIDATION false
-#define MVK_CONFIG_SYNCHRONOUS_QUEUE_SUBMITS true
+// #define MVK_CONFIG_SYNCHRONOUS_QUEUE_SUBMITS true
+
+
+// Taken from https://github.com/SaschaWillems/Vulkan
+class Thread
+{
+private:
+    bool destroying = false;
+    std::thread worker;
+    std::queue<std::function<void()>> jobQueue;
+    std::mutex queueMutex;
+    std::condition_variable condition;
+
+    // Loop through all remaining jobs
+    void queueLoop()
+    {
+        while (true)
+        {
+            std::function<void()> job;
+            {
+                std::unique_lock<std::mutex> lock(queueMutex);
+                condition.wait(lock, [this] { return !jobQueue.empty() || destroying; });
+                if (destroying)
+                {
+                    break;
+                }
+                job = jobQueue.front();
+            }
+
+            job();
+
+            {
+                std::lock_guard<std::mutex> lock(queueMutex);
+                jobQueue.pop();
+                condition.notify_one();
+            }
+        }
+    }
+
+public:
+    Thread()
+    {
+        worker = std::thread(&Thread::queueLoop, this);
+    }
+
+    ~Thread()
+    {
+        if (worker.joinable())
+        {
+            wait();
+            queueMutex.lock();
+            destroying = true;
+            condition.notify_one();
+            queueMutex.unlock();
+            worker.join();
+        }
+    }
+
+    // Add a new job to the thread's queue
+    void addJob(std::function<void()> function)
+    {
+        std::lock_guard<std::mutex> lock(queueMutex);
+        jobQueue.push(std::move(function));
+        condition.notify_one();
+    }
+
+    // Wait until all work items have been finished
+    void wait()
+    {
+        std::unique_lock<std::mutex> lock(queueMutex);
+        condition.wait(lock, [this]() { return jobQueue.empty(); });
+    }
+};
+
+class ThreadPool
+{
+public:
+    std::vector<std::unique_ptr<Thread>> threads;
+
+    // Sets the number of threads to be allocted in this pool
+    void setThreadCount(uint32_t count)
+    {
+        threads.clear();
+        for (auto i = 0; i < count; i++)
+        {
+            threads.push_back(std::make_unique<Thread>());
+        }
+    }
+
+    // Wait until all threads have finished their work items
+    void wait()
+    {
+        for (auto &thread : threads)
+        {
+            thread->wait();
+        }
+    }
+};
 
 struct EVkCreateWindow
 {
@@ -351,7 +449,8 @@ void evkCreateCommandBuffers(
     const EVkCommandBuffersCreateInfo *pCreateInfo,
     VkCommandBuffer *pPrimaryCommandBuffer,
     std::vector<VkCommandBuffer> *pCommandBuffers,
-    const std::vector<VkCommandPool> *pCommandPools
+    const std::vector<VkCommandPool> *pCommandPools,
+    ThreadPool &threadpool
 );
 
 struct EVkSyncObjectsCreateInfo
@@ -397,7 +496,7 @@ void evkDrawFrame(
     VkCommandBuffer *pPrimaryCommandBuffer,
     uint32_t *pImageIndex,
     Bench &bench,
-    boost::asio::thread_pool &threadPool
+    ThreadPool &threadpool
 );
 
 struct EVkSwapchainRecreateInfo
@@ -435,7 +534,8 @@ struct EVkSwapchainRecreateInfo
 };
 void evkRecreateSwapchain(
     VkDevice device,
-    const EVkSwapchainRecreateInfo *pCreateInfo
+    const EVkSwapchainRecreateInfo *pCreateInfo,
+    ThreadPool &threadpool
 );
 
 struct EVkSwapchainCleanupInfo
@@ -477,7 +577,7 @@ struct EVkVertexBufferUpdateInfo
    VkBuffer vertexBuffer;
    VkSurfaceKHR surface;
 };
-void evkUpdateVertexBuffer(VkDevice device, const EVkVertexBufferUpdateInfo *pUpdateInfo);
+void evkUpdateVertexBuffer(VkDevice device, const EVkVertexBufferUpdateInfo *pUpdateInfo, ThreadPool &threadpool);
 
 struct EVkSceneUpdateInfo
 {
@@ -490,5 +590,6 @@ void evkUpdateScene(
     VkDevice device,
     const EVkSceneUpdateInfo *pUpdateInfo,
     VkCommandBuffer *pPrimaryCommandBuffer,
-    Bench &bench
+    Bench &bench,
+    ThreadPool &threadpool
 );

@@ -78,7 +78,10 @@
         "valarray": "cpp",
         "variant": "cpp",
         "condition_variable": "cpp",
-        "*.ipp": "cpp"
+        "*.ipp": "cpp",
+        "codecvt": "cpp",
+        "coroutine": "cpp",
+        "future": "cpp"
     },
     // "C_Cpp.intelliSenseEngine": "Tag Parser"
 }

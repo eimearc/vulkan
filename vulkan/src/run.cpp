@@ -109,9 +109,14 @@ void EVulkan::initVulkan()
     evkCreateSyncObjects(device, &syncObjectsInfo, &imageAvailableSemaphores, &renderFinishedSemaphores, &inFlightFences, &imagesInFlight);
 }
 
-void test()
+void test(int i)
 {
-    std::cout << "test\n";
+    std::cout << "test " << i << std::endl;
+}
+
+void functionTest()
+{
+
 }
 
 void EVulkan::mainLoop()
@@ -178,38 +183,53 @@ void EVulkan::mainLoop()
     bool timed=false;
     if (FLAGS_num_frames > 0) timed=true; 
 
-    // boost::asio::io_service ioService;
-    boost::asio::thread_pool pool{1};
-    // boost::asio::thread_pool pool(4);
-
-    // boost::asio::post(pool,
-    // []()
-    // {
-    //   std::cout << "Hello world\n";
-    // });
-    // pool.join();
-
-    
-    // ioService.stop();
-
-    boost::asio::io_service ioService;
-    auto t1 = [&](){std::cout << "Hello from task1.\n";};
-    auto t2 = [&](){std::cout << "Hello from task2.\n";};
-    auto t3 = [&](){std::cout << "Hello from task3.\n";};
-
-    boost::thread_group threadpool;
-    threadpool.create_thread(boost::bind(&boost::asio::io_service::run, &ioService));
+    ThreadPool pool;
+    pool.setThreadCount(FLAGS_num_threads);
 
     while(!glfwWindowShouldClose(window))
     {
         glfwPollEvents();
 
-        ioService.reset();
-        ioService.run();
-        ioService.post(t1);
-        ioService.post(t2);
-        ioService.post(t3);
-        threadpool.join_all();
+        // boost::asio::io_service ioService;
+        // boost::asio::io_service::work work(ioService);
+        
+        // auto t = [](int i){std::cout << "Hello from task " << i << ".\n";};
+
+        // boost::thread_group threadpool;
+        // threadpool.create_thread(boost::bind(&boost::asio::io_service::run, &ioService));
+        // ioService.post(boost::bind(test,0));
+        // ioService.run();
+        // threadpool.join_all();
+        // ioService.stop();
+        // std::cout << "After join_all\n";
+        // work=boost::none;
+
+        // ioService.reset();
+        // std::cout << "About to run\n";
+        // ioService.run();
+        // std::cout << "About to work\n";
+        // boost::asio::io_service::work work(ioService);
+        // ioService.post(boost::bind<void>(t,1));
+        // std::cout << "\n\nWaiting for second task\n";
+        // ioService.stop();
+        // threadpool.join_all();
+        // std::cout << "After second join_all\n";
+
+        // boost::asio::io_service service;
+        // std::unique_ptr<boost::asio::io_service::work> work = std::make_unique<boost::asio::io_service::work>(boost::asio::io_service::work(service));
+
+        // // service.run();
+        // boost::thread_group pool;
+        // for (int i = 0; i< 4; ++i)
+        //     pool.create_thread([&service](){service.run();});
+
+        // for (int i = 0; i<4; ++i)
+        //     service.post([i](){std::cout << "Post " << i << " " << std::this_thread::get_id() << std::endl;});
+
+        // work.reset();
+        // pool.join_all();
+
+        // std::cout <<"\n\n\n\n";
 
         bench.numVertices(vertices.size());
         bench.numThreads(FLAGS_num_threads);

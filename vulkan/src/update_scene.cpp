@@ -63,19 +63,20 @@ void evkUpdateScene(
     VkDevice device,
     const EVkSceneUpdateInfo *pUpdateInfo,
     VkCommandBuffer *pPrimaryCommandBuffer,
-    Bench &bench
+    Bench &bench,
+    ThreadPool &threadpool
 )
 {
     auto startTime = bench.start();
-    evkUpdateVertexBuffer(device, pUpdateInfo->pVertexUpdateInfo);
+    evkUpdateVertexBuffer(device, pUpdateInfo->pVertexUpdateInfo, threadpool);
     bench.updateVBOTime(startTime);
     evkCreateCommandBuffers(device,
         pUpdateInfo->pCommandBuffersCreateInfo,
         pPrimaryCommandBuffer,
-        pUpdateInfo->pCommandBuffers,pUpdateInfo->pCommandPools);
+        pUpdateInfo->pCommandBuffers,pUpdateInfo->pCommandPools, threadpool);
 }
 
-void evkUpdateVertexBuffer(VkDevice device, const EVkVertexBufferUpdateInfo *pUpdateInfo)
+void evkUpdateVertexBuffer(VkDevice device, const EVkVertexBufferUpdateInfo *pUpdateInfo, ThreadPool &threadpool)
 {
     size_t NUM_THREADS=FLAGS_num_threads;
     const VkDeviceSize wholeBufferSize = sizeof((pUpdateInfo->pVertices)[0]) * pUpdateInfo->pVertices->size();
@@ -144,14 +145,26 @@ void evkUpdateVertexBuffer(VkDevice device, const EVkVertexBufferUpdateInfo *pUp
     };
 
     auto startTime = std::chrono::high_resolution_clock::now();
-    for (int i = 0; i < NUM_THREADS; ++i)
+    // boost::asio::io_service service;
+    // std::unique_ptr<boost::asio::io_service::work> work = std::make_unique<boost::asio::io_service::work>(boost::asio::io_service::work(service));
+    // boost::thread_group pool;
+    // for (int i = 0; i<FLAGS_num_threads; ++i)
+    //     pool.create_thread([&service](){service.run();});
+    // for (int i = 0; i<FLAGS_num_threads; ++i)
+    // {
+    //     service.post(std::bind(f,i));
+    // }
+    // work.reset();
+    // pool.join_all();
+
+    // ThreadPool pool;
+    // pool.setThreadCount(FLAGS_num_threads);
+    int i = 0;
+    for (auto &t: threadpool.threads)
     {
-        workers.push_back(std::thread(f,i));
+        t->addJob(std::bind(f,i++));
     }
-    for (std::thread &t : workers)
-    {
-        t.join();
-    }
+    threadpool.wait();
 
     auto endTime = std::chrono::high_resolution_clock::now();
     float time = std::chrono::duration<float, std::chrono::seconds::period>(endTime - startTime).count();
@@ -160,6 +173,7 @@ void evkUpdateVertexBuffer(VkDevice device, const EVkVertexBufferUpdateInfo *pUp
     submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
     submitInfo.commandBufferCount = commandBuffers.size();
     submitInfo.pCommandBuffers = commandBuffers.data();
+
     vkQueueSubmit(queue, 1, &submitInfo, VK_NULL_HANDLE);
     vkQueueWaitIdle(queue);
 
@@ -177,7 +191,8 @@ void evkCreateCommandBuffers(
     const EVkCommandBuffersCreateInfo *pCreateInfo,
     VkCommandBuffer *pPrimaryCommandBuffer,
     std::vector<VkCommandBuffer> *pCommandBuffers,
-    const std::vector<VkCommandPool> *pCommandPools
+    const std::vector<VkCommandPool> *pCommandPools,
+    ThreadPool &threadpool
 )
 {
     size_t NUM_THREADS=FLAGS_num_threads;
@@ -239,14 +254,22 @@ void evkCreateCommandBuffers(
     };
 
     auto startTime = std::chrono::high_resolution_clock::now();
-    for (int i = 0; i < NUM_THREADS; ++i)
+    // for (int i = 0; i < NUM_THREADS; ++i)
+    // {
+    //     workers.push_back(std::thread(f,i));
+    // }
+    // for (std::thread &t: workers)
+    // {
+    //     t.join();
+    // }
+
+    int i = 0;
+    for (auto &t: threadpool.threads)
     {
-        workers.push_back(std::thread(f,i));
+        t->addJob(std::bind(f,i++));
     }
-    for (std::thread &t: workers)
-    {
-        t.join();
-    }
+    threadpool.wait();
+
     auto endTime = std::chrono::high_resolution_clock::now();       
     float time = std::chrono::duration<float, std::chrono::milliseconds::period>(endTime - startTime).count();
 

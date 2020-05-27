@@ -780,17 +780,8 @@ void evkDrawFrame(
     VkCommandBuffer *pPrimaryCommandBuffer,
     uint32_t *pImageIndex,
     Bench &bench,
-    boost::asio::thread_pool &threadPool)
+    ThreadPool &threadpool)
 {
-    boost::asio::dispatch(threadPool,
-    []()
-    {
-      std::cout << "Hello world from evkDrawFrame\n";
-    });
-    // std::cout << "evkDrawFrame\n";
-    threadPool.join();
-    threadPool.stop();
-
     const std::vector<VkFence> &inFlightFences = *(pDrawInfo->pInFlightFences);
     const std::vector<VkSemaphore> &imageAvailableSemaphores = *(pDrawInfo->pImageAvailableSemaphores);
     std::vector<VkFence> &imagesInFlight = *(pImagesInFlight);
@@ -853,7 +844,7 @@ void evkDrawFrame(
     sceneUpdateInfo.pCommandBuffers=&commandBuffers;
     // sceneUpdateInfo.pCommandPools=&commandPools;
     sceneUpdateInfo.pCommandPools=&(pDrawInfo->commandPools);
-    evkUpdateScene(device, &sceneUpdateInfo, pPrimaryCommandBuffer, bench);
+    evkUpdateScene(device, &sceneUpdateInfo, pPrimaryCommandBuffer, bench, threadpool);
     
     VkSubmitInfo submitInfo = {};
     submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
@@ -910,7 +901,7 @@ void evkDrawFrame(
     *pCurrentFrame = ((*pCurrentFrame)+1) % pDrawInfo->maxFramesInFlight;
 }
 
-void evkRecreateSwapChain(VkDevice device, const EVkSwapchainRecreateInfo *pCreateInfo)
+void evkRecreateSwapChain(VkDevice device, const EVkSwapchainRecreateInfo *pCreateInfo, ThreadPool &threadpool)
 {
     int width = 0, height = 0;
     glfwGetFramebufferSize(pCreateInfo->pWindow, &width, &height);
@@ -971,7 +962,7 @@ void evkRecreateSwapChain(VkDevice device, const EVkSwapchainRecreateInfo *pCrea
     EVkCommandBuffersCreateInfo commandBuffersInfo = pCreateInfo->commandBuffersCreateInfo;
     std::vector<VkCommandPool> commandPools;
     std::vector<VkCommandBuffer> commandBuffers;
-    evkCreateCommandBuffers(device, &commandBuffersInfo, pCreateInfo->pPrimaryCommandBuffer, &commandBuffers, &commandPools);
+    evkCreateCommandBuffers(device, &commandBuffersInfo, pCreateInfo->pPrimaryCommandBuffer, &commandBuffers, &commandPools, threadpool);
 }
 
 void evkCleanupSwapchain(VkDevice device, const EVkSwapchainCleanupInfo *pCleanupInfo)
