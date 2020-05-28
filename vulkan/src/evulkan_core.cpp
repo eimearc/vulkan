@@ -844,7 +844,7 @@ void evkDrawFrame(
     // sceneUpdateInfo.pCommandBuffers=&commandBuffers;
     // sceneUpdateInfo.pCommandPools=&commandPools;
     sceneUpdateInfo.pCommandPools=&(pDrawInfo->commandPools);
-    evkUpdateScene(device, &sceneUpdateInfo, bench, threadpool);
+    // evkUpdateScene(device, &sceneUpdateInfo, bench, threadpool);
 
     // evkCreateCommandBuffers(device,
     //     pCommandBuffersInfo,

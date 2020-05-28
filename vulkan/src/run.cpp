@@ -165,6 +165,15 @@ void EVulkan::mainLoop()
 
     std::vector<VkCommandBuffer> commandBuffers(FLAGS_num_threads);
 
+    EVkVertexBufferUpdateInfo vUpdateInfo = {};
+    vUpdateInfo.pVertices = &vertices;
+    vUpdateInfo.physicalDevice = physicalDevice;
+    vUpdateInfo.graphicsQueue = graphicsQueue;
+    vUpdateInfo.vertexBuffer = vertexBuffer;
+    vUpdateInfo.pGrid = &grid;
+    vUpdateInfo.commandPools = vertexUpdateCommandPools;
+    evkUpdateVertexBuffer(device, &vUpdateInfo, pool);
+
     std::vector<VkCommandBuffer> primaryCommandBuffers(MAX_FRAMES_IN_FLIGHT);
     for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i)
     {

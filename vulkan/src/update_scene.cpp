@@ -67,7 +67,7 @@ void evkUpdateScene(
 )
 {
     auto startTime = bench.start();
-    evkUpdateVertexBuffer(device, pUpdateInfo->pVertexUpdateInfo, threadpool);
+    // evkUpdateVertexBuffer(device, pUpdateInfo->pVertexUpdateInfo, threadpool);
     bench.updateVBOTime(startTime);
 }
 

@@ -10,7 +10,7 @@
 #include "bench.h"
 #include "threadpool.h"
 
-#define ENABLE_VALIDATION false
+#define ENABLE_VALIDATION true
 
 struct EVkCreateWindow
 {
