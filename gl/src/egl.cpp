@@ -1,7 +1,6 @@
 #include "egl.h"
 
 #include <thread>
-#include "util.h"
 
 void EGL::initWindow()
 {
@@ -152,8 +151,7 @@ void EGL::setupBuffers()
 {
     // Set up MVP UBO.
     GLuint bindingPoint = 0;
-    GLuint uboBuffer;
-    UniformBufferObject ubo = getUBO(WIDTH, HEIGHT);
+    ubo = getUBO(WIDTH, HEIGHT);
     ubo.proj[1][1] *= -1; // Y is flipped.
     GLuint blockIndex = glGetUniformBlockIndex(shaderProgram, "ubo");
     glUniformBlockBinding(shaderProgram, blockIndex, bindingPoint);
@@ -183,23 +181,11 @@ void EGL::setupBuffers()
 
 void EGL::updateVertexBuffer()
 {
-    const int num_verts = vertices.size();
-    const int num_verts_each = num_verts/NUM_THREADS;
-    std::vector<std::thread> workers;
+    static int counter = 0;
 
-    auto f = [&](int i)
-    {
-        // update(vertices, grid, num_verts_each*i, num_verts_each);
-    };
-
-    for (size_t i = 0; i < NUM_THREADS; ++i)
-    {
-        workers.push_back(std::thread(f,i));
-    }
-    for (auto &w: workers)
-    {
-        w.join();
-    }
+    ubo.model=glm::rotate(glm::mat4(1.0f), 0.01f * glm::radians(90.0f)*counter, glm::vec3(1.0f,0.0f,0.0f));
+    glBindBuffer(GL_UNIFORM_BUFFER, uboBuffer);
+    glBufferData(GL_UNIFORM_BUFFER, sizeof(ubo), &ubo, GL_STATIC_DRAW);
 
     glBindVertexArray(VAO);
         glBindBuffer(GL_ARRAY_BUFFER, VBO);
@@ -215,4 +201,6 @@ void EGL::updateVertexBuffer()
         // Do not unbind the EBO while a VAO is active as the bound element buffer object is stored in the VAO.
         // glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
+
+    counter++;
 }

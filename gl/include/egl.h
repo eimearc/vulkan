@@ -10,6 +10,7 @@
 #include "vertex.h"
 #include "flags.h"
 #include "bench.h"
+#include "util.h"
 
 class EGL
 {
@@ -33,6 +34,8 @@ private:
     GLFWwindow* window;
     const uint32_t WIDTH = 800;
     const uint32_t HEIGHT = 600;
+    UniformBufferObject ubo;
+    GLuint uboBuffer;
     GLuint VAO;
     GLuint VBO;
     GLuint shaderProgram;

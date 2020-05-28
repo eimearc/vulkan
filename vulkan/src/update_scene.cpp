@@ -100,7 +100,7 @@ void evkUpdateVertexBuffer(VkDevice device, const EVkVertexBufferUpdateInfo *pUp
         auto &stagingBuffer = buffers[i];
         auto &stagingBufferMemory = bufferMemory[i];
 
-        update(verts, *pUpdateInfo->pGrid, vertsOffset, numVerts);
+        // update(verts, *pUpdateInfo->pGrid, vertsOffset, numVerts);
 
         // Use a host visible buffer as a staging buffer.
         createBuffer(
