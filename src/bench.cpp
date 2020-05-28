@@ -12,7 +12,8 @@ void Bench::open(std::string file, bool overwrite)
         m_file<<"cubes,";
         m_file<<"threads,";
         m_file<<"frame,";
-        m_file<<"updateVBO\n";
+        m_file<<"updateVBO,";
+        m_file<<"startup\n";
     }
 }
 
@@ -56,6 +57,7 @@ void Bench::record()
     m_file<<m_numCubes<<",";
     m_file<<m_numThreads<<",";
     m_file<<m_frame<<",";
-    m_file<<m_updateVBO;
+    m_file<<m_updateVBO<<",";
+    m_file<<m_startup;
     m_file<<"\n";
 }

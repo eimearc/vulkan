@@ -35,7 +35,9 @@ public:
     void run() {
         bench.open(FLAGS_file, FLAGS_overwrite);
         createGrid();
+        auto start = bench.start();
         initVulkan();
+        bench.startupTime(start);
         mainLoop();
         cleanup();
         bench.close();

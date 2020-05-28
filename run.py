@@ -13,6 +13,7 @@ parser.add_argument('-d', dest='debug', action='store_true', help='Debug mode.')
 parser.add_argument('--num_cubes', default=40000, help='Number of cubes to render.')
 parser.add_argument('--num_frames', default=1000, help='Number of frames to render.')
 parser.add_argument('--file', default='time.csv', help='The file to save the result in.')
+parser.add_argument('--num_times', default=1, type=int, help='If true, then run the program many times.')
 args = parser.parse_args()
 
 class Args:
@@ -55,13 +56,17 @@ def run_process(py_args, program=None):
     if py_args.debug:
         args=Args(100,1,16,True)
     for i in range(1,5):
-        args.num_threads = i
-        if i > 1:
-            args.overwrite=False
-        a=args.build()
-        a = [executable_path] + a
-        print(' '.join(a))
-        subprocess.call(a)
+        for j in range(0,py_args.num_times):
+            if py_args.num_times > 1 and args.num_frames > 1:
+                print("Resetting num_frames - can only have num_frames==1 when num_times > 1")
+                args.num_frames=1
+            args.num_threads = i
+            if j > 0:
+                args.overwrite=False
+            a=args.build()
+            a = [executable_path] + a
+            print(' '.join(a))
+            subprocess.call(a)
 
 # See a good convergence at 1000 frames, with 40000 cubes.
 subprocess.call(["make","-j","4"])
