@@ -19,16 +19,13 @@ LDFLAGS += -L/usr/local/lib/ -lgflags
 _OBJ = util.o main.o bench.o
 OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
 
-run: $(OBJ)
-	$(MAKE) vulkan
-	$(MAKE) gl
-	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
+all: $(OBJ) vulkan gl
 
 vulkan:
-	cd vulkan && $(MAKE) libs -j 4
+	cd vulkan && $(MAKE)
 
 gl:
-	cd gl && $(MAKE) libs
+	cd gl && $(MAKE)
 
 $(ODIR)/%.o: $(SDIR)/%.cpp
 	$(CC) $(CFLAGS) -c -o $@ $<
@@ -37,6 +34,5 @@ clean:
 	cd vulkan && $(MAKE) clean
 	cd gl && $(MAKE) clean
 	rm $(ODIR)/*.o
-	rm run
 
-.PHONY: vulkan gl
+.PHONY: vulkan gl all

@@ -36,7 +36,7 @@ void evkCreateDevice(
     createInfo.enabledExtensionCount = static_cast<uint32_t>(pCreateInfo->deviceExtensions.size());
     createInfo.ppEnabledExtensionNames = pCreateInfo->deviceExtensions.data();
 
-    if (ENABLE_VALIDATION) {
+    if (FLAGS_enable_validation) {
         createInfo.enabledLayerCount = static_cast<uint32_t>(pCreateInfo->validationLayers.size());
         createInfo.ppEnabledLayerNames = pCreateInfo->validationLayers.data();
     } else {
@@ -779,14 +779,15 @@ void evkDrawFrame(
     std::vector<VkSemaphore> *pRenderFinishedSemaphores,
     VkCommandBuffer *pPrimaryCommandBuffer,
     uint32_t *pImageIndex,
-    Bench &bench)
+    Bench &bench,
+    ThreadPool &threadpool)
 {
     const std::vector<VkFence> &inFlightFences = *(pDrawInfo->pInFlightFences);
     const std::vector<VkSemaphore> &imageAvailableSemaphores = *(pDrawInfo->pImageAvailableSemaphores);
     std::vector<VkFence> &imagesInFlight = *(pImagesInFlight);
     const VkQueue &graphicsQueue = pDrawInfo->graphicsQueue;
-    EVkCommandBuffersCreateInfo *pCommandBuffersInfo = pDrawInfo->pCommandBuffersCreateInfo;
-    pCommandBuffersInfo->framebuffer = pDrawInfo->framebuffers[*pCurrentFrame];
+    // EVkCommandBuffersCreateInfo *pCommandBuffersInfo = pDrawInfo->pCommandBuffersCreateInfo;
+    // pCommandBuffersInfo->framebuffer = pDrawInfo->framebuffers[*pCurrentFrame];
 
     vkWaitForFences(device, 1, &inFlightFences[*pCurrentFrame], VK_TRUE, UINT64_MAX);
 
@@ -829,20 +830,27 @@ void evkDrawFrame(
     vUpdateInfo.physicalDevice = pDrawInfo->physicalDevice;
     vUpdateInfo.graphicsQueue = graphicsQueue;
     vUpdateInfo.vertexBuffer = pDrawInfo->vertexBuffer;
-    vUpdateInfo.grid = pDrawInfo->grid;
-    vUpdateInfo.surface = pCommandBuffersInfo->poolCreateInfo.surface;
+    vUpdateInfo.pGrid = pDrawInfo->pGrid;
+    // vUpdateInfo.surface = pDrawInfo->surface;
+    vUpdateInfo.commandPools = pDrawInfo->commandPools;
 
     // Update verts and command buffer here.
     // std::vector<thread> threadPool;
     EVkSceneUpdateInfo sceneUpdateInfo = {};
     sceneUpdateInfo.pVertexUpdateInfo = &vUpdateInfo;
-    sceneUpdateInfo.pCommandBuffersCreateInfo = pCommandBuffersInfo;
-    std::vector<VkCommandPool> commandPools(FLAGS_num_threads);
-    std::vector<VkCommandBuffer> commandBuffers(FLAGS_num_threads);
-    sceneUpdateInfo.pCommandBuffers=&commandBuffers;
-    sceneUpdateInfo.pCommandPools=&commandPools;
-    evkUpdateScene(device, &sceneUpdateInfo, pPrimaryCommandBuffer, bench);
-    
+    // sceneUpdateInfo.pCommandBuffersCreateInfo = pCommandBuffersInfo;
+    // std::vector<VkCommandPool> commandPools(FLAGS_num_threads); // Move this.
+    // std::vector<VkCommandBuffer> commandBuffers(FLAGS_num_threads);
+    // sceneUpdateInfo.pCommandBuffers=&commandBuffers;
+    // sceneUpdateInfo.pCommandPools=&commandPools;
+    sceneUpdateInfo.pCommandPools=&(pDrawInfo->commandPools);
+    // evkUpdateScene(device, &sceneUpdateInfo, bench, threadpool);
+
+    // evkCreateCommandBuffers(device,
+    //     pCommandBuffersInfo,
+    //     pPrimaryCommandBuffer,
+    //     &commandBuffers,&(pDrawInfo->commandPools),threadpool);
+
     VkSubmitInfo submitInfo = {};
     submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
     VkSemaphore waitSemaphores[] = {imageAvailableSemaphores[*pCurrentFrame]};
@@ -889,16 +897,16 @@ void evkDrawFrame(
 
     vkQueueWaitIdle(pDrawInfo->presentQueue);
 
-    for (int i = 0; i < commandPools.size(); ++i)
+    for (int i = 0; i < pDrawInfo->commandPools.size(); ++i)
     {
-        vkFreeCommandBuffers(device, commandPools[i], 1, &commandBuffers[i]);
-        vkDestroyCommandPool(device, commandPools[i], nullptr);  
+        // vkFreeCommandBuffers(device, pDrawInfo->commandPools[i], 1, &commandBuffers[i]);
+        // vkDestroyCommandPool(device, commandPools[i], nullptr);  // TODO: move this out?
     }
 
     *pCurrentFrame = ((*pCurrentFrame)+1) % pDrawInfo->maxFramesInFlight;
 }
 
-void evkRecreateSwapChain(VkDevice device, const EVkSwapchainRecreateInfo *pCreateInfo)
+void evkRecreateSwapChain(VkDevice device, const EVkSwapchainRecreateInfo *pCreateInfo, ThreadPool &threadpool)
 {
     int width = 0, height = 0;
     glfwGetFramebufferSize(pCreateInfo->pWindow, &width, &height);
@@ -959,7 +967,7 @@ void evkRecreateSwapChain(VkDevice device, const EVkSwapchainRecreateInfo *pCrea
     EVkCommandBuffersCreateInfo commandBuffersInfo = pCreateInfo->commandBuffersCreateInfo;
     std::vector<VkCommandPool> commandPools;
     std::vector<VkCommandBuffer> commandBuffers;
-    evkCreateCommandBuffers(device, &commandBuffersInfo, pCreateInfo->pPrimaryCommandBuffer, &commandBuffers, &commandPools);
+    evkCreateCommandBuffers(device, &commandBuffersInfo, pCreateInfo->pPrimaryCommandBuffer, &commandBuffers, &commandPools, threadpool);
 }
 
 void evkCleanupSwapchain(VkDevice device, const EVkSwapchainCleanupInfo *pCleanupInfo)

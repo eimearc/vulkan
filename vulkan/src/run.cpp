@@ -111,8 +111,14 @@ void EVulkan::initVulkan()
 
 void EVulkan::mainLoop()
 {
-    int i = 0;
-    std::chrono::steady_clock::time_point startTime, endTime;
+    std::vector<VkCommandPool> vertexUpdateCommandPools(FLAGS_num_threads);
+    for (auto &cp : vertexUpdateCommandPools)
+    {
+        EVkCommandPoolCreateInfo info = {};
+        info.physicalDevice = physicalDevice;
+        info.surface = surface;
+        evkCreateCommandPool(device, &info, &cp);
+    }
     uint32_t imageIndex;
 
     EVkCommandPoolCreateInfo commandPoolInfo = {};
@@ -143,31 +149,60 @@ void EVulkan::mainLoop()
     drawInfo.swapchainExtent = swapChainExtent;
     drawInfo.pUniformBufferMemory = &uniformBuffersMemory;
     drawInfo.pVertices = &vertices;
-    drawInfo.grid = grid;
+    drawInfo.pGrid = &grid;
     drawInfo.physicalDevice = physicalDevice;
     drawInfo.commandPool = commandPool;
     drawInfo.vertexBuffer = vertexBuffer;
-    drawInfo.pCommandBuffersCreateInfo = &commandBuffersInfo;
     drawInfo.framebuffers = swapChainFramebuffers;
+    drawInfo.commandPools = vertexUpdateCommandPools;
 
     int frameNum=0;
     bool timed=false;
     if (FLAGS_num_frames > 0) timed=true; 
+
+    ThreadPool pool;
+    pool.setThreadCount(FLAGS_num_threads);
+
+    std::vector<VkCommandBuffer> commandBuffers(FLAGS_num_threads);
+
+    EVkVertexBufferUpdateInfo vUpdateInfo = {};
+    vUpdateInfo.pVertices = &vertices;
+    vUpdateInfo.physicalDevice = physicalDevice;
+    vUpdateInfo.graphicsQueue = graphicsQueue;
+    vUpdateInfo.vertexBuffer = vertexBuffer;
+    vUpdateInfo.pGrid = &grid;
+    vUpdateInfo.commandPools = vertexUpdateCommandPools;
+    evkUpdateVertexBuffer(device, &vUpdateInfo, pool);
+
+    std::vector<VkCommandBuffer> primaryCommandBuffers(MAX_FRAMES_IN_FLIGHT);
+    for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i)
+    {
+        commandBuffersInfo.framebuffer=swapChainFramebuffers[i];
+        evkCreateCommandBuffers(device,
+            &commandBuffersInfo,
+            &primaryCommandBuffers[i],
+            &commandBuffers,
+            &vertexUpdateCommandPools,
+            pool);
+    }
+
     while(!glfwWindowShouldClose(window))
     {
         glfwPollEvents();
-
         bench.numVertices(vertices.size());
         bench.numThreads(FLAGS_num_threads);
         bench.numCubes(FLAGS_num_cubes);
-        bench.start();
-        evkDrawFrame(device, &drawInfo,
+        auto startTime = bench.start();
+        evkDrawFrame(
+            device,
+            &drawInfo,
             &currentFrame, &imagesInFlight,
             &renderFinishedSemaphores,
-            &primaryCommandBuffer,
+            &primaryCommandBuffers[currentFrame],
             &imageIndex,
-            bench);
-        bench.frameTime();
+            bench,
+            pool);
+        bench.frameTime(startTime);
         bench.record();
 
         frameNum++;
@@ -177,6 +212,12 @@ void EVulkan::mainLoop()
     if (vkDeviceWaitIdle(device)!=VK_SUCCESS)
     {
         throw std::runtime_error("Could not wait for vkDeviceWaitIdle");
+    }
+
+    for (int i = 0; i < vertexUpdateCommandPools.size(); ++i)
+    {
+        vkFreeCommandBuffers(device, vertexUpdateCommandPools[i], 1, &commandBuffers[i]);
+        vkDestroyCommandPool(device, vertexUpdateCommandPools[i], nullptr);
     }
 }
 
@@ -218,7 +259,7 @@ void EVulkan::cleanup()
 
     vkDestroyDevice(device, nullptr);
 
-    if (ENABLE_VALIDATION)
+    if (FLAGS_enable_validation)
     {
         DestroyDebugUtilsMessengerEXT(instance, debugMessenger, nullptr);
     }

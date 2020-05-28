@@ -2,10 +2,14 @@
 
 #include <iostream>
 
+DEFINE_bool(enable_validation,false,"Turn on validation layers for Vulkan.");
+
 int main(int argc, char **argv)
 {
     gflags::SetUsageMessage("A program for benchmarking Vulkan over multiple threads.");
     gflags::ParseCommandLineFlags(&argc, &argv, true);
+
+    if (FLAGS_enable_validation) std::cout << "Validation layers turned on. Turn off for better performance.\n";
 
     EVulkan app;
 

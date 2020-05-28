@@ -13,14 +13,14 @@ GLEW_PATH = /usr/local/lib/
 LDFLAGS = `pkg-config --static --libs glfw3` -L$(GLEW_PATH) -lGLEW -framework OpenGL  -L/usr/local/lib/ -lgflags
 
 _DEPS = egl.h
-_DEPS_EXT = cube.h grid.h vertex.h util.h flags.h
+_DEPS_EXT = cube.h grid.h vertex.h util.h flags.h bench.h threadpool.h
 DEPS = $(patsubst %,$(IDIR)/%,$(_DEPS))
 DEPS += $(patsubst %,$(IDIR_EXT)/%,$(_DEPS_EXT))
 
 _OBJ = egl.o
 OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
 
-_OBJ_EXT = util.o flags.o
+_OBJ_EXT = util.o flags.o bench.o
 OBJ_EXT = $(patsubst %,$(ODIR_EXT)/%,$(_OBJ_EXT))
 
 .PHONY: test clean
