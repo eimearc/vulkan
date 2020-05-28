@@ -19,6 +19,7 @@ class Args:
     num_frames=-1
     num_threads=1
     num_cubes=16
+    fileName="time.csv"
     overwrite=False
 
     def __init__(self, f=-1, t=1, c=16, o=False):
@@ -30,7 +31,8 @@ class Args:
     def build(self):
         a = [
             "-num_cubes", str(self.num_cubes),
-            "-num_threads", str(self.num_threads)
+            "-num_threads", str(self.num_threads),
+            "-file", self.fileName
         ]
         if self.overwrite:
             a += ["-overwrite"]
@@ -42,12 +44,12 @@ def run_process(py_args, program=None):
     args=Args(py_args.num_frames,1,py_args.num_cubes,True)
     executable_path="./gl/gl"
     fileName=path.join("csv",program,py_args.file)
-    print(fileName)
     if path.exists(fileName):
         cont = input("File {} already exists. Overwrite? [y/n] ".format(fileName))
         if not (cont=='y'):
             print("Exiting.")
             exit(0)
+    args.fileName=fileName
     if program=="vulkan":
         executable_path="./vulkan/vulkan"
     if py_args.debug:
