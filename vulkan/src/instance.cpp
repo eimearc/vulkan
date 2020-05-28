@@ -125,7 +125,7 @@ void evkPickPhysicalDevice(VkInstance instance, const EVkPickPhysicalDevice *pPi
 
     for (const auto& device : devices)
     {
-        if (isDeviceSuitable(device, pPickInfo))
+        if (isDeviceSuitable(device, pPickInfo->surface, pPickInfo->deviceExtensions))
         {
             *physicalDevice = device;
             break;
@@ -194,66 +194,4 @@ QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device, const EVkPickPhysi
     }
 
     return indices;
-}
-
-bool isDeviceSuitable(VkPhysicalDevice device, const EVkPickPhysicalDevice *pPickInfo)
-{
-    QueueFamilyIndices indices = findQueueFamilies(device, pPickInfo);
-
-    bool extensionsSupported = checkDeviceExtensionSupport(device, pPickInfo);
-
-    bool swapChainAdequate = false;
-    if (extensionsSupported)
-    {
-        SwapChainSupportDetails swapChainSupport = querySwapChainSupport(device, pPickInfo);
-        swapChainAdequate = !swapChainSupport.formats.empty() && !swapChainSupport.presentModes.empty();
-    }
-
-    VkPhysicalDeviceFeatures supportedFeatures;
-    vkGetPhysicalDeviceFeatures(device, &supportedFeatures);
-
-    return indices.isComplete() && extensionsSupported
-        && swapChainAdequate && supportedFeatures.samplerAnisotropy;
-}
-
-bool checkDeviceExtensionSupport(VkPhysicalDevice device, const EVkPickPhysicalDevice *pPickInfo)
-{
-    uint32_t extensionCount;
-    vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, nullptr);
-    std::vector<VkExtensionProperties> availableExtensions(extensionCount);
-    vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, availableExtensions.data());
-
-    std::set<std::string> requiredExtensions(pPickInfo->deviceExtensions.begin(), pPickInfo->deviceExtensions.end());
-
-    for (const auto& extension : availableExtensions)
-    {
-        requiredExtensions.erase(extension.extensionName);
-    }
-
-    return requiredExtensions.empty();
-}
-
-VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
-    VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
-    VkDebugUtilsMessageTypeFlagsEXT messageType,
-    const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
-    void* pUserData)
-{
-    std::cerr << "validation layer: " << pCallbackData->pMessage << std::endl;
-
-    return VK_FALSE;
-}
-
-void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo)
-{
-    createInfo = {};
-    createInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
-    createInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT
-        | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT
-        | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
-    createInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT
-        | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT
-        | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
-    createInfo.pfnUserCallback = debugCallback;
-    createInfo.pUserData = nullptr;
 }

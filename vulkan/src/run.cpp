@@ -117,13 +117,6 @@ void EVulkan::initVulkan()
         evkCreateCommandPool(device, &info, &cp);
     }
 
-    // EVkVertexBufferCreateInfo vertexBufferInfo = {};
-    // vertexBufferInfo.commandPool = commandPool;
-    // vertexBufferInfo.physicalDevice = physicalDevice;
-    // vertexBufferInfo.queue = graphicsQueue;
-    // vertexBufferInfo.vertices = vertices;
-    // evkCreateVertexBuffer(device, &vertexBufferInfo, &vertexBuffer, &vertexBufferMemory);
-
     EVkVertexBufferCreateInfo vUpdateInfo = {};
     vUpdateInfo.pVertices = &vertices;
     vUpdateInfo.physicalDevice = physicalDevice;
