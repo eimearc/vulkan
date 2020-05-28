@@ -50,6 +50,10 @@ private:
     const uint32_t HEIGHT = 600;
     const int MAX_FRAMES_IN_FLIGHT = 3; // Must be greater than minImageCount.
 
+    Grid grid;
+    std::vector<Vertex> vertices;
+    std::vector<uint32_t> indices;
+
     Bench bench;
     ThreadPool threadPool;
 
@@ -114,18 +118,8 @@ private:
     EVkDrawFrameInfo drawInfo;
     uint32_t imageIndex;
 
-    #ifdef NDEBUG
-        const bool enableValidationLayers = false;
-    #else
-        const bool enableValidationLayers = true;
-    #endif
-
     void createGrid();
     void setupVertices();
-    Grid grid;
-    std::vector<Vertex> vertices;
-    std::vector<uint32_t> indices;
-
     void initWindow();
     void initVulkan();
     void mainLoop();

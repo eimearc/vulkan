@@ -364,7 +364,7 @@ void evkCreateSyncObjects(
 
 struct EVkDrawFrameInfo
 {
-    VkPhysicalDevice physicalDevice;
+    // VkPhysicalDevice physicalDevice;
     std::vector<VkFence> *pInFlightFences;
     std::vector<VkSemaphore> *pImageAvailableSemaphores;
     size_t maxFramesInFlight;
@@ -372,15 +372,9 @@ struct EVkDrawFrameInfo
     VkQueue presentQueue;
     VkSwapchainKHR swapchain;
     VkExtent2D swapchainExtent;
-    std::vector<VkFramebuffer> framebuffers;
-    bool *pFramebufferResized;
+    // std::vector<VkFramebuffer> framebuffers;
     std::vector<VkDeviceMemory> *pUniformBufferMemory;
-    std::vector<Vertex> *pVertices;
-    Grid *pGrid;
-    VkCommandPool commandPool;
-    VkBuffer vertexBuffer;
-    EVkCommandBuffersCreateInfo *pCommandBuffersCreateInfo;
-    std::vector<VkCommandPool> commandPools;
+    // std::vector<VkCommandPool> commandPools;
 };
 void evkDrawFrame(
     VkDevice device,
@@ -388,10 +382,7 @@ void evkDrawFrame(
     size_t *pCurrentFrame,
     std::vector<VkFence> *pImagesInFlight,
     std::vector<VkSemaphore> *pRenderFinishedSemaphores,
-    VkCommandBuffer *pPrimaryCommandBuffer,
-    uint32_t *pImageIndex,
-    Bench &bench,
-    ThreadPool &threadpool
+    VkCommandBuffer *pPrimaryCommandBuffer
 );
 
 struct EVkSwapchainRecreateInfo
