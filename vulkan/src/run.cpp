@@ -259,7 +259,7 @@ void EVulkan::cleanup()
 
     vkDestroyDevice(device, nullptr);
 
-    if (ENABLE_VALIDATION)
+    if (FLAGS_enable_validation)
     {
         DestroyDebugUtilsMessengerEXT(instance, debugMessenger, nullptr);
     }

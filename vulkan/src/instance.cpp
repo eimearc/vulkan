@@ -71,7 +71,7 @@ void evkCreateInstance(const EVkCreateInstance *pCreateInfo, VkInstance *instanc
     createInfo.ppEnabledExtensionNames = extensions.data();
 
     VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo;
-    if(ENABLE_VALIDATION)
+    if(FLAGS_enable_validation)
     {
         createInfo.enabledLayerCount = static_cast<uint32_t>(pCreateInfo->validationLayers.size());
         createInfo.ppEnabledLayerNames = pCreateInfo->validationLayers.data();
@@ -92,8 +92,7 @@ void evkCreateInstance(const EVkCreateInstance *pCreateInfo, VkInstance *instanc
 
 void evkSetupDebugMessenger(VkInstance instance, VkDebugUtilsMessengerEXT *pDebugMessenger)
 {
-    if (!ENABLE_VALIDATION) return;
-
+    if (!FLAGS_enable_validation) return;
     VkDebugUtilsMessengerCreateInfoEXT createInfo;
     populateDebugMessengerCreateInfo(createInfo);
 

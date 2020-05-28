@@ -36,7 +36,7 @@ void evkCreateDevice(
     createInfo.enabledExtensionCount = static_cast<uint32_t>(pCreateInfo->deviceExtensions.size());
     createInfo.ppEnabledExtensionNames = pCreateInfo->deviceExtensions.data();
 
-    if (ENABLE_VALIDATION) {
+    if (FLAGS_enable_validation) {
         createInfo.enabledLayerCount = static_cast<uint32_t>(pCreateInfo->validationLayers.size());
         createInfo.ppEnabledLayerNames = pCreateInfo->validationLayers.data();
     } else {
