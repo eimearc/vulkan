@@ -51,6 +51,7 @@ private:
     const int MAX_FRAMES_IN_FLIGHT = 3; // Must be greater than minImageCount.
 
     Bench bench;
+    ThreadPool threadPool;
 
     GLFWwindow *window;
     VkSurfaceKHR surface;
@@ -85,7 +86,9 @@ private:
     VkDescriptorSetLayout descriptorSetLayout;
 
     VkCommandPool commandPool;
+    std::vector<VkCommandPool> commandPools;
     VkCommandBuffer primaryCommandBuffer;
+    std::vector<VkCommandBuffer> primaryCommandBuffers;
     std::vector<VkCommandBuffer> secondaryCommandBuffers;
 
     std::vector<VkSemaphore> imageAvailableSemaphores;
@@ -107,6 +110,9 @@ private:
     VkImage depthImage;
     VkDeviceMemory depthImageMemory;
     VkImageView depthImageView;
+
+    EVkDrawFrameInfo drawInfo;
+    uint32_t imageIndex;
 
     #ifdef NDEBUG
         const bool enableValidationLayers = false;

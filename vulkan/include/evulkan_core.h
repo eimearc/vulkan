@@ -464,12 +464,10 @@ void evkUpdateUniformBuffer(VkDevice device, const EVkUniformBufferUpdateInfo *p
 struct EVkVertexBufferUpdateInfo
 {
    std::vector<Vertex> *pVertices;
-   Grid *pGrid; 
    VkPhysicalDevice physicalDevice;
    VkCommandPool commandPool;
    std::vector<VkCommandPool> commandPools;
    VkQueue graphicsQueue;
    VkBuffer vertexBuffer;
-   VkSurfaceKHR surface;
 };
 void evkUpdateVertexBuffer(VkDevice device, const EVkVertexBufferUpdateInfo *pUpdateInfo, ThreadPool &threadpool);
