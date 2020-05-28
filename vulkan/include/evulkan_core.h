@@ -473,17 +473,3 @@ struct EVkVertexBufferUpdateInfo
    VkSurfaceKHR surface;
 };
 void evkUpdateVertexBuffer(VkDevice device, const EVkVertexBufferUpdateInfo *pUpdateInfo, ThreadPool &threadpool);
-
-struct EVkSceneUpdateInfo
-{
-   const EVkVertexBufferUpdateInfo *pVertexUpdateInfo;
-   const EVkCommandBuffersCreateInfo *pCommandBuffersCreateInfo;
-   std::vector<VkCommandBuffer> *pCommandBuffers;
-   const std::vector<VkCommandPool> *pCommandPools;
-};
-void evkUpdateScene(
-    VkDevice device,
-    const EVkSceneUpdateInfo *pUpdateInfo,
-    Bench &bench,
-    ThreadPool &threadpool
-);

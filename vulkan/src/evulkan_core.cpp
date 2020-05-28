@@ -786,8 +786,6 @@ void evkDrawFrame(
     const std::vector<VkSemaphore> &imageAvailableSemaphores = *(pDrawInfo->pImageAvailableSemaphores);
     std::vector<VkFence> &imagesInFlight = *(pImagesInFlight);
     const VkQueue &graphicsQueue = pDrawInfo->graphicsQueue;
-    // EVkCommandBuffersCreateInfo *pCommandBuffersInfo = pDrawInfo->pCommandBuffersCreateInfo;
-    // pCommandBuffersInfo->framebuffer = pDrawInfo->framebuffers[*pCurrentFrame];
 
     vkWaitForFences(device, 1, &inFlightFences[*pCurrentFrame], VK_TRUE, UINT64_MAX);
 
@@ -797,13 +795,7 @@ void evkDrawFrame(
         imageAvailableSemaphores[*pCurrentFrame],
         VK_NULL_HANDLE, &imageIndex);
 
-    if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR)
-    {
-        std::cout << "RECREATE SWAPCHAIN\n";
-        // recreateSwapChain();
-        // return;
-    }
-    else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR)
+    if (result != VK_SUCCESS)
     {
         throw std::runtime_error("failed to acquire swap chain image.");
     }
@@ -823,33 +815,6 @@ void evkDrawFrame(
     updateInfo.swapchainExtent = pDrawInfo->swapchainExtent;
     updateInfo.pUniformBufferMemory = pDrawInfo->pUniformBufferMemory;
     evkUpdateUniformBuffer(device, &updateInfo);
-
-    // Also need to upate the vertex buffers.
-    EVkVertexBufferUpdateInfo vUpdateInfo = {};
-    vUpdateInfo.pVertices = pDrawInfo->pVertices;
-    vUpdateInfo.physicalDevice = pDrawInfo->physicalDevice;
-    vUpdateInfo.graphicsQueue = graphicsQueue;
-    vUpdateInfo.vertexBuffer = pDrawInfo->vertexBuffer;
-    vUpdateInfo.pGrid = pDrawInfo->pGrid;
-    // vUpdateInfo.surface = pDrawInfo->surface;
-    vUpdateInfo.commandPools = pDrawInfo->commandPools;
-
-    // Update verts and command buffer here.
-    // std::vector<thread> threadPool;
-    EVkSceneUpdateInfo sceneUpdateInfo = {};
-    sceneUpdateInfo.pVertexUpdateInfo = &vUpdateInfo;
-    // sceneUpdateInfo.pCommandBuffersCreateInfo = pCommandBuffersInfo;
-    // std::vector<VkCommandPool> commandPools(FLAGS_num_threads); // Move this.
-    // std::vector<VkCommandBuffer> commandBuffers(FLAGS_num_threads);
-    // sceneUpdateInfo.pCommandBuffers=&commandBuffers;
-    // sceneUpdateInfo.pCommandPools=&commandPools;
-    sceneUpdateInfo.pCommandPools=&(pDrawInfo->commandPools);
-    // evkUpdateScene(device, &sceneUpdateInfo, bench, threadpool);
-
-    // evkCreateCommandBuffers(device,
-    //     pCommandBuffersInfo,
-    //     pPrimaryCommandBuffer,
-    //     &commandBuffers,&(pDrawInfo->commandPools),threadpool);
 
     VkSubmitInfo submitInfo = {};
     submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
@@ -882,26 +847,12 @@ void evkDrawFrame(
     presentInfo.pImageIndices = &imageIndex;
     presentInfo.pResults = nullptr;
 
-    result = vkQueuePresentKHR(pDrawInfo->presentQueue, &presentInfo);
-
-    if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || *pDrawInfo->pFramebufferResized)
-    {
-        // *pDrawInfo->pFramebufferResized = false;
-        std::cout << "RECREATE SWAPCHAIN\n";
-        // recreateSwapChain();
-    }
-    else if (result != VK_SUCCESS)
+    if (vkQueuePresentKHR(pDrawInfo->presentQueue, &presentInfo) != VK_SUCCESS)
     {
         throw std::runtime_error("failed to present swap chain image.");
     }
 
     vkQueueWaitIdle(pDrawInfo->presentQueue);
-
-    for (int i = 0; i < pDrawInfo->commandPools.size(); ++i)
-    {
-        // vkFreeCommandBuffers(device, pDrawInfo->commandPools[i], 1, &commandBuffers[i]);
-        // vkDestroyCommandPool(device, commandPools[i], nullptr);  // TODO: move this out?
-    }
 
     *pCurrentFrame = ((*pCurrentFrame)+1) % pDrawInfo->maxFramesInFlight;
 }

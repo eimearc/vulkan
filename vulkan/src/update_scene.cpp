@@ -58,19 +58,6 @@ void createSecondaryCommandBuffers(
     }
 }
 
-
-void evkUpdateScene(
-    VkDevice device,
-    const EVkSceneUpdateInfo *pUpdateInfo,
-    Bench &bench,
-    ThreadPool &threadpool
-)
-{
-    auto startTime = bench.start();
-    // evkUpdateVertexBuffer(device, pUpdateInfo->pVertexUpdateInfo, threadpool);
-    bench.updateVBOTime(startTime);
-}
-
 void evkUpdateVertexBuffer(VkDevice device, const EVkVertexBufferUpdateInfo *pUpdateInfo, ThreadPool &threadpool)
 {
     size_t NUM_THREADS=FLAGS_num_threads;
