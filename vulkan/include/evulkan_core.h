@@ -238,19 +238,19 @@ void evkCreateCommandPool(
     const EVkCommandPoolCreateInfo *pCreateInfo,
     VkCommandPool *pCommandPool);
 
-struct EVkVertexBufferCreateInfo
-{
-    std::vector<Vertex> vertices;
-    VkPhysicalDevice physicalDevice;
-    VkQueue queue;
-    VkCommandPool commandPool;
-};
-void evkCreateVertexBuffer(
-    VkDevice device,
-    const EVkVertexBufferCreateInfo *pCreateInfo,
-    VkBuffer *pBuffer,
-    VkDeviceMemory *pBufferMemory
-);
+// struct EVkVertexBufferCreateInfo
+// {
+//     std::vector<Vertex> vertices;
+//     VkPhysicalDevice physicalDevice;
+//     VkQueue queue;
+//     VkCommandPool commandPool;
+// };
+// void evkCreateVertexBuffer(
+//     VkDevice device,
+//     const EVkVertexBufferCreateInfo *pCreateInfo,
+//     VkBuffer *pBuffer,
+//     VkDeviceMemory *pBufferMemory
+// );
 struct EVkIndexBufferCreateInfo
 {
     std::vector<uint32_t> indices;
@@ -452,7 +452,7 @@ struct EVkUniformBufferUpdateInfo
 };
 void evkUpdateUniformBuffer(VkDevice device, const EVkUniformBufferUpdateInfo *pUpdateInfo);
 
-struct EVkVertexBufferUpdateInfo
+struct EVkVertexBufferCreateInfo
 {
    std::vector<Vertex> *pVertices;
    VkPhysicalDevice physicalDevice;
@@ -461,4 +461,9 @@ struct EVkVertexBufferUpdateInfo
    VkQueue graphicsQueue;
    VkBuffer vertexBuffer;
 };
-void evkUpdateVertexBuffer(VkDevice device, const EVkVertexBufferUpdateInfo *pUpdateInfo, ThreadPool &threadpool);
+void evkCreateVertexBuffer(
+    VkDevice device,
+    const EVkVertexBufferCreateInfo *pUpdateInfo,
+    VkBuffer *pBuffer,
+    VkDeviceMemory *pBufferMemory,  
+    ThreadPool &threadpool);

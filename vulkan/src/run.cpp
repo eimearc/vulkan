@@ -73,13 +73,6 @@ void EVulkan::initVulkan()
     commandPoolInfo.flags = 0;
     evkCreateCommandPool(device, &commandPoolInfo, &commandPool);
 
-    EVkVertexBufferCreateInfo vertexBufferInfo = {};
-    vertexBufferInfo.commandPool = commandPool;
-    vertexBufferInfo.physicalDevice = physicalDevice;
-    vertexBufferInfo.queue = graphicsQueue;
-    vertexBufferInfo.vertices = vertices;
-    evkCreateVertexBuffer(device, &vertexBufferInfo, &vertexBuffer, &vertexBufferMemory);
-
     EVkIndexBufferCreateInfo indexBufferInfo = {};
     indexBufferInfo.commandPool = commandPool;
     indexBufferInfo.physicalDevice = physicalDevice;
@@ -124,6 +117,21 @@ void EVulkan::initVulkan()
         evkCreateCommandPool(device, &info, &cp);
     }
 
+    // EVkVertexBufferCreateInfo vertexBufferInfo = {};
+    // vertexBufferInfo.commandPool = commandPool;
+    // vertexBufferInfo.physicalDevice = physicalDevice;
+    // vertexBufferInfo.queue = graphicsQueue;
+    // vertexBufferInfo.vertices = vertices;
+    // evkCreateVertexBuffer(device, &vertexBufferInfo, &vertexBuffer, &vertexBufferMemory);
+
+    EVkVertexBufferCreateInfo vUpdateInfo = {};
+    vUpdateInfo.pVertices = &vertices;
+    vUpdateInfo.physicalDevice = physicalDevice;
+    vUpdateInfo.graphicsQueue = graphicsQueue;
+    vUpdateInfo.vertexBuffer = vertexBuffer;
+    vUpdateInfo.commandPools = commandPools;
+    evkCreateVertexBuffer(device, &vUpdateInfo, &vertexBuffer, &vertexBufferMemory, threadPool);
+
     EVkCommandBuffersCreateInfo commandBuffersInfo = {};
     commandBuffersInfo.commandPool = commandPool;
     commandBuffersInfo.descriptorSets = descriptorSets;
@@ -135,23 +143,6 @@ void EVulkan::initVulkan()
     commandBuffersInfo.swapchainExtent = swapChainExtent;
     commandBuffersInfo.vertexBuffer = vertexBuffer;
     commandBuffersInfo.poolCreateInfo = commandPoolInfo;
-
-    drawInfo.pInFlightFences = &inFlightFences;
-    drawInfo.pImageAvailableSemaphores = &imageAvailableSemaphores;
-    drawInfo.swapchain = swapChain;
-    drawInfo.maxFramesInFlight = MAX_FRAMES_IN_FLIGHT;
-    drawInfo.graphicsQueue = graphicsQueue;
-    drawInfo.presentQueue = presentQueue;
-    drawInfo.swapchainExtent = swapChainExtent;
-    drawInfo.pUniformBufferMemory = &uniformBuffersMemory;
-
-    EVkVertexBufferUpdateInfo vUpdateInfo = {};
-    vUpdateInfo.pVertices = &vertices;
-    vUpdateInfo.physicalDevice = physicalDevice;
-    vUpdateInfo.graphicsQueue = graphicsQueue;
-    vUpdateInfo.vertexBuffer = vertexBuffer;
-    vUpdateInfo.commandPools = commandPools;
-    evkUpdateVertexBuffer(device, &vUpdateInfo, threadPool);
 
     primaryCommandBuffers.resize(MAX_FRAMES_IN_FLIGHT);
     secondaryCommandBuffers.resize(FLAGS_num_threads);
@@ -165,6 +156,15 @@ void EVulkan::initVulkan()
             &commandPools,
             threadPool);
     }
+
+    drawInfo.pInFlightFences = &inFlightFences;
+    drawInfo.pImageAvailableSemaphores = &imageAvailableSemaphores;
+    drawInfo.swapchain = swapChain;
+    drawInfo.maxFramesInFlight = MAX_FRAMES_IN_FLIGHT;
+    drawInfo.graphicsQueue = graphicsQueue;
+    drawInfo.presentQueue = presentQueue;
+    drawInfo.swapchainExtent = swapChainExtent;
+    drawInfo.pUniformBufferMemory = &uniformBuffersMemory;
 }
 
 void EVulkan::mainLoop()
