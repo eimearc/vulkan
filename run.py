@@ -1,7 +1,8 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 import subprocess
 import argparse
+from os import path
 
 parser = argparse.ArgumentParser(description='Vulkan and OpenGL benchmark.')
 parser.add_argument('--vulkan', action='store_true',
@@ -11,6 +12,7 @@ parser.add_argument('--gl', action='store_true',
 parser.add_argument('-d', dest='debug', action='store_true', help='Debug mode.')
 parser.add_argument('--num_cubes', default=40000, help='Number of cubes to render.')
 parser.add_argument('--num_frames', default=1000, help='Number of frames to render.')
+parser.add_argument('--file', default='time.csv', help='The file to save the result in.')
 args = parser.parse_args()
 
 class Args:
@@ -36,8 +38,18 @@ class Args:
             a += ["-num_frames", str(self.num_frames)]
         return a
 
-def run_process(py_args, executable_path=None):
+def run_process(py_args, program=None):
     args=Args(py_args.num_frames,1,py_args.num_cubes,True)
+    executable_path="./gl/gl"
+    fileName=path.join("csv",program,py_args.file)
+    print(fileName)
+    if path.exists(fileName):
+        cont = input("File {} already exists. Overwrite? [y/n] ".format(fileName))
+        if not (cont=='y'):
+            print("Exiting.")
+            exit(0)
+    if program=="vulkan":
+        executable_path="./vulkan/vulkan"
     if py_args.debug:
         args=Args(100,1,16,True)
     for i in range(1,5):
@@ -52,6 +64,6 @@ def run_process(py_args, executable_path=None):
 # See a good convergence at 1000 frames, with 40000 cubes.
 subprocess.call(["make","-j","4"])
 if args.vulkan:
-    run_process(args, "./vulkan/vulkan")
+    run_process(args,"vulkan")
 if args.gl:
-    run_process(args, "./gl/gl")
+    run_process(args, "gl")
