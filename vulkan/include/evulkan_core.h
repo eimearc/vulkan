@@ -381,7 +381,6 @@ struct EVkSwapchainCleanupInfo
     VkImageView depthImageView;
     VkDeviceMemory depthImageMemory;
     std::vector<VkFramebuffer> swapchainFramebuffers;
-    VkCommandPool commandPool;
     std::vector<VkCommandBuffer> *pCommandBuffers;
     VkPipeline graphicsPipeline;
     VkPipelineLayout pipelineLayout;

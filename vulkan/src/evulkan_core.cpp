@@ -584,7 +584,6 @@ void evkRecreateSwapChain(VkDevice device, const EVkSwapchainRecreateInfo *pCrea
     cleanupInfo.depthImage = *pCreateInfo->pDepthImage;
     cleanupInfo.depthImageView = *pCreateInfo->pDepthImageView;
     cleanupInfo.swapchainFramebuffers = *pCreateInfo->pSwapchainFramebuffers;
-    cleanupInfo.commandPool = pCreateInfo->commandBuffersCreateInfo.commandPool;
     cleanupInfo.pCommandBuffers = pCreateInfo->pCommandBuffers;
     cleanupInfo.graphicsPipeline = *pCreateInfo->pPipeline;
     cleanupInfo.pipelineLayout = *pCreateInfo->pPipelineLayout;

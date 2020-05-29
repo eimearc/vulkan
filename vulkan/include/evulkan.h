@@ -91,7 +91,6 @@ private:
     VkRenderPass renderPass;
     VkDescriptorSetLayout descriptorSetLayout;
 
-    VkCommandPool commandPool;
     std::vector<VkCommandPool> commandPools;
     VkCommandBuffer primaryCommandBuffer;
     std::vector<VkCommandBuffer> primaryCommandBuffers;

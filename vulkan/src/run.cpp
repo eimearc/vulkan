@@ -67,14 +67,19 @@ void EVulkan::initVulkan()
     framebuffersInfo.depthImageView = depthImageView;
     evkCreateFramebuffers(device, &framebuffersInfo, &swapChainFramebuffers);
 
-    EVkCommandPoolCreateInfo commandPoolInfo = {};
-    commandPoolInfo.physicalDevice = physicalDevice;
-    commandPoolInfo.surface = surface;
-    commandPoolInfo.flags = 0;
-    evkCreateCommandPool(device, &commandPoolInfo, &commandPool);
+    commandPools.resize(FLAGS_num_threads);
+    for (auto &cp : commandPools)
+    {
+        EVkCommandPoolCreateInfo info = {};
+        info.physicalDevice = physicalDevice;
+        info.surface = surface;
+        evkCreateCommandPool(device, &info, &cp);
+    }
+
+    EVkCommandPoolCreateInfo commandPoolInfo = {}; // TODO: Remove
 
     EVkIndexBufferCreateInfo indexBufferInfo = {};
-    indexBufferInfo.commandPool = commandPool;
+    indexBufferInfo.commandPool = commandPools[0]; // TODO: Make multithreaded
     indexBufferInfo.physicalDevice = physicalDevice;
     indexBufferInfo.queue = graphicsQueue;
     indexBufferInfo.indices = indices;
@@ -108,15 +113,6 @@ void EVulkan::initVulkan()
 
     threadPool.setThreadCount(FLAGS_num_threads);
 
-    commandPools.resize(FLAGS_num_threads);
-    for (auto &cp : commandPools)
-    {
-        EVkCommandPoolCreateInfo info = {};
-        info.physicalDevice = physicalDevice;
-        info.surface = surface;
-        evkCreateCommandPool(device, &info, &cp);
-    }
-
     EVkVertexBufferCreateInfo vUpdateInfo = {};
     vUpdateInfo.pVertices = &vertices;
     vUpdateInfo.physicalDevice = physicalDevice;
@@ -126,7 +122,7 @@ void EVulkan::initVulkan()
     evkCreateVertexBuffer(device, &vUpdateInfo, &vertexBuffer, &vertexBufferMemory, threadPool);
 
     EVkCommandBuffersCreateInfo commandBuffersInfo = {};
-    commandBuffersInfo.commandPool = commandPool;
+    commandBuffersInfo.commandPool = commandPools[0]; // TODO: Is this needed?
     commandBuffersInfo.descriptorSets = descriptorSets;
     commandBuffersInfo.graphicsPipeline = graphicsPipeline;
     commandBuffersInfo.indexBuffer = indexBuffer;
@@ -199,7 +195,6 @@ void EVulkan::cleanup()
     cleanupInfo.depthImageView = depthImageView;
     cleanupInfo.depthImageMemory = depthImageMemory;
     cleanupInfo.swapchainFramebuffers = swapChainFramebuffers;
-    cleanupInfo.commandPool = commandPool;
     cleanupInfo.graphicsPipeline = graphicsPipeline;
     cleanupInfo.pipelineLayout = pipelineLayout;
     cleanupInfo.renderPass = renderPass;
@@ -225,8 +220,6 @@ void EVulkan::cleanup()
         vkDestroySemaphore(device, imageAvailableSemaphores[i], nullptr);
         vkDestroyFence(device, inFlightFences[i], nullptr);
     }
-
-    vkDestroyCommandPool(device, commandPool, nullptr);
 
     for (int i = 0; i < commandPools.size(); ++i)
     {
