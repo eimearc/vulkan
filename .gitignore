@@ -1,4 +1,5 @@
 HelloTriangle
 *.swp
 obj/
-
+trace/
+.ipynb_checkpoints/

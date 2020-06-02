@@ -17,7 +17,7 @@ class EGL
 public:
     void run()
     {
-        bench.open("time_gl.csv", FLAGS_overwrite);
+        bench.open(FLAGS_file, FLAGS_overwrite);
         initWindow();
         initGL();
         mainLoop();

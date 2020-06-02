@@ -33,9 +33,11 @@
 class EVulkan {
 public:
     void run() {
-        bench.open("time_vulkan.csv", FLAGS_overwrite);
+        bench.open(FLAGS_file, FLAGS_overwrite);
         createGrid();
+        auto start = bench.start();
         initVulkan();
+        bench.startupTime(start);
         mainLoop();
         cleanup();
         bench.close();
@@ -48,9 +50,14 @@ private:
 
     const uint32_t WIDTH = 800;
     const uint32_t HEIGHT = 600;
-    const int MAX_FRAMES_IN_FLIGHT = 3; // Must be greater than minImageCount.
+    const int MAX_FRAMES_IN_FLIGHT = 2; // Must be greater than minImageCount.
+
+    Grid grid;
+    std::vector<Vertex> vertices;
+    std::vector<uint32_t> indices;
 
     Bench bench;
+    ThreadPool threadPool;
 
     GLFWwindow *window;
     VkSurfaceKHR surface;
@@ -84,8 +91,9 @@ private:
     VkRenderPass renderPass;
     VkDescriptorSetLayout descriptorSetLayout;
 
-    VkCommandPool commandPool;
+    std::vector<VkCommandPool> commandPools;
     VkCommandBuffer primaryCommandBuffer;
+    std::vector<VkCommandBuffer> primaryCommandBuffers;
     std::vector<VkCommandBuffer> secondaryCommandBuffers;
 
     std::vector<VkSemaphore> imageAvailableSemaphores;
@@ -108,18 +116,11 @@ private:
     VkDeviceMemory depthImageMemory;
     VkImageView depthImageView;
 
-    #ifdef NDEBUG
-        const bool enableValidationLayers = false;
-    #else
-        const bool enableValidationLayers = true;
-    #endif
+    EVkDrawFrameInfo drawInfo;
+    uint32_t imageIndex;
 
     void createGrid();
     void setupVertices();
-    Grid grid;
-    std::vector<Vertex> vertices;
-    std::vector<uint32_t> indices;
-
     void initWindow();
     void initVulkan();
     void mainLoop();

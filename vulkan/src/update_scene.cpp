@@ -4,6 +4,7 @@
 #include <mutex>
 #include <condition_variable>
 #include <thread>
+#include "util.h"
 
 void createSecondaryCommandBuffers(
     VkDevice device,
@@ -55,111 +56,6 @@ void createSecondaryCommandBuffers(
     if (vkEndCommandBuffer(*pCommandBuffer) != VK_SUCCESS)
     {
         throw std::runtime_error("failed to record command buffer.");
-    }
-}
-
-
-void evkUpdateScene(
-    VkDevice device,
-    const EVkSceneUpdateInfo *pUpdateInfo,
-    Bench &bench,
-    ThreadPool &threadpool
-)
-{
-    auto startTime = bench.start();
-    // evkUpdateVertexBuffer(device, pUpdateInfo->pVertexUpdateInfo, threadpool);
-    bench.updateVBOTime(startTime);
-}
-
-void evkUpdateVertexBuffer(VkDevice device, const EVkVertexBufferUpdateInfo *pUpdateInfo, ThreadPool &threadpool)
-{
-    size_t NUM_THREADS=FLAGS_num_threads;
-    const VkDeviceSize wholeBufferSize = sizeof((pUpdateInfo->pVertices)[0]) * pUpdateInfo->pVertices->size();
-    const VkQueue queue = pUpdateInfo->graphicsQueue;
-    std::vector<Vertex> &verts = pUpdateInfo->pVertices[0];
-    const int num_verts = verts.size();
-    int num_verts_each = num_verts/NUM_THREADS;
-    size_t threadBufferSize = wholeBufferSize/NUM_THREADS;
-
-    std::vector<std::thread> workers;
-    auto &commandPools = pUpdateInfo->commandPools;
-    std::vector<VkCommandBuffer> commandBuffers(NUM_THREADS);
-    std::vector<VkBuffer> buffers(NUM_THREADS);
-    std::vector<VkDeviceMemory> bufferMemory(NUM_THREADS);
-
-    auto f = [&](int i)
-    {
-        int vertsOffset = num_verts_each*i;
-        size_t bufferOffset=(num_verts_each*sizeof(verts[0]))*i;
-        if (i==(FLAGS_num_threads-1))
-        {
-            num_verts_each = verts.size()-(i*num_verts_each);
-        }
-        size_t numVerts=num_verts_each;
-        size_t bufferSize = numVerts*sizeof(verts[0]);
-        auto &stagingBuffer = buffers[i];
-        auto &stagingBufferMemory = bufferMemory[i];
-
-        // update(verts, *pUpdateInfo->pGrid, vertsOffset, numVerts);
-
-        // Use a host visible buffer as a staging buffer.
-        createBuffer(
-            device,
-            pUpdateInfo->physicalDevice,
-            bufferSize,
-            VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-            &buffers[i], &bufferMemory[i]);
-
-        // Copy vertex data to the staging buffer by mapping the buffer memory into CPU
-        // accessible memory.
-        void *data;
-        vkMapMemory(device, bufferMemory[i], 0, bufferSize, 0, &data);
-        memcpy(data, &verts[vertsOffset], bufferSize);
-        vkUnmapMemory(device, bufferMemory[i]);
-
-        // Copy the vertex data from the staging buffer to the device-local buffer.
-        VkCommandBufferAllocateInfo allocInfo = {};
-        allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-        allocInfo.commandPool = commandPools[i];
-        allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-        allocInfo.commandBufferCount = 1;
-        vkAllocateCommandBuffers(device, &allocInfo, &commandBuffers[i]);
-
-        VkCommandBufferBeginInfo beginInfo = {};
-        beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-        beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
-
-        vkBeginCommandBuffer(commandBuffers[i], &beginInfo);
-
-        VkBufferCopy copyRegion = {};
-        copyRegion.size = bufferSize;
-        copyRegion.dstOffset = bufferOffset;
-        vkCmdCopyBuffer(commandBuffers[i], buffers[i], pUpdateInfo->vertexBuffer, 1, &copyRegion);
-
-        vkEndCommandBuffer(commandBuffers[i]);
-    };
-
-    int i = 0;
-    for (auto &t: threadpool.threads)
-    {
-        t->addJob(std::bind(f,i++));
-    }
-    threadpool.wait();
-
-    VkSubmitInfo submitInfo = {};
-    submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-    submitInfo.commandBufferCount = commandBuffers.size();
-    submitInfo.pCommandBuffers = commandBuffers.data();
-
-    vkQueueSubmit(queue, 1, &submitInfo, VK_NULL_HANDLE);
-    vkQueueWaitIdle(queue);
-
-    for (size_t i = 0; i<NUM_THREADS; ++i)
-    {
-        vkFreeCommandBuffers(device, commandPools[i], 1, &commandBuffers[i]);
-        vkDestroyBuffer(device, buffers[i], nullptr);
-        vkFreeMemory(device, bufferMemory[i], nullptr);
     }
 }
 

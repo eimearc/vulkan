@@ -10,6 +10,8 @@
 #include "bench.h"
 #include "threadpool.h"
 
+#include "evulkan_util.h"
+
 DECLARE_bool(enable_validation);
 
 struct EVkCreateWindow
@@ -60,22 +62,6 @@ void evkPickPhysicalDevice(
     const EVkPickPhysicalDevice *pPickInfo,
     VkPhysicalDevice *physicalDevice
 );
-bool isDeviceSuitable(
-    VkPhysicalDevice device,
-    const EVkPickPhysicalDevice *pPickInfo
-);
-bool checkDeviceExtensionSupport(
-    VkPhysicalDevice device,
-    const EVkPickPhysicalDevice *pPickInfo
-);
-
-void DestroyDebugUtilsMessengerEXT(
-    VkInstance instance,
-    VkDebugUtilsMessengerEXT debugMessenger,
-    const VkAllocationCallbacks* pAllocator
-);
-
-void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
 
 struct EVkDeviceCreateInfo
 {
@@ -99,10 +85,6 @@ void evkCreateDevice(
     VkQueue *pGraphicsQueue,
     VkQueue *pPresentQueue);
 
-QueueFamilyIndices getQueueFamilies(
-    VkPhysicalDevice device,
-    VkSurfaceKHR surface);
-
 void evkCreateSwapchain(
     VkDevice device,
     const EVkSwapchainCreateInfo *pCreateInfo,
@@ -110,21 +92,6 @@ void evkCreateSwapchain(
     std::vector<VkImage> *pSwapchainImages,
     VkFormat *pSwapchainImageFormat,
     VkExtent2D *pSwapchainExtent);
-
-SwapChainSupportDetails querySwapChainSupport(
-    VkPhysicalDevice device,
-    VkSurfaceKHR surface);
-
-VkSurfaceFormatKHR chooseSwapSurfaceFormat(
-    const std::vector<VkSurfaceFormatKHR>& availableFormats);
-VkPresentModeKHR chooseSwapPresentMode(
-    const std::vector<VkPresentModeKHR>& availablePresentModes);
-VkExtent2D chooseSwapExtent(
-    GLFWwindow* window,
-    const VkSurfaceCapabilitiesKHR& capabilities);
-QueueFamilyIndices findQueueFamilies(
-    VkPhysicalDevice device,
-    VkSurfaceKHR surface);
 
 struct EVkImageViewsCreateInfo
 {
@@ -179,7 +146,6 @@ void evkCreateGraphicsPipeline(
     const EVkGraphicsPipelineCreateInfo *pCreateInfo,
     VkPipelineLayout *pPipelineLayout,
     VkPipeline *pPipeline);
-void createShaderModule(VkDevice device, const std::vector<char>& code, VkShaderModule *pShaderModule);
 
 struct EVkDepthResourcesCreateInfo
 {
@@ -211,8 +177,6 @@ void evkCreateImage(
     VkImage *pImage,
     VkDeviceMemory *pImageMemory);
 
-uint32_t findMemoryType(VkPhysicalDevice physicalDevice, uint32_t typeFilter, VkMemoryPropertyFlags properties);
-
 struct EVkFramebuffersCreateInfo
 {
     std::vector<VkImageView> swapchainImageViews;
@@ -238,19 +202,6 @@ void evkCreateCommandPool(
     const EVkCommandPoolCreateInfo *pCreateInfo,
     VkCommandPool *pCommandPool);
 
-struct EVkVertexBufferCreateInfo
-{
-    std::vector<Vertex> vertices;
-    VkPhysicalDevice physicalDevice;
-    VkQueue queue;
-    VkCommandPool commandPool;
-};
-void evkCreateVertexBuffer(
-    VkDevice device,
-    const EVkVertexBufferCreateInfo *pCreateInfo,
-    VkBuffer *pBuffer,
-    VkDeviceMemory *pBufferMemory
-);
 struct EVkIndexBufferCreateInfo
 {
     std::vector<uint32_t> indices;
@@ -264,30 +215,30 @@ void evkCreateIndexBuffer(
     VkBuffer *pBuffer,
     VkDeviceMemory *pBufferMemory
 );
-void createBuffer(
-    VkDevice device,
-    VkPhysicalDevice physicalDevice,
-    VkDeviceSize size,
-    VkBufferUsageFlags usage,
-    VkMemoryPropertyFlags properties,
-    VkBuffer *pBuffer,
-    VkDeviceMemory *pBufferMemory);
-void copyBuffer(
-    VkDevice device,
-    VkCommandPool commandPool,
-    VkQueue queue,
-    VkBuffer srcBuffer,
-    VkBuffer dstBuffer,
-    VkDeviceSize size);
-void beginSingleTimeCommands(
-    VkDevice device,
-    VkCommandPool commandPool,
-    VkCommandBuffer *pCommandBuffer);
-void endSingleTimeCommands(
-    VkDevice device,
-    VkQueue queue,
-    VkCommandPool commandPool,
-    VkCommandBuffer commandBuffer);
+// void createBuffer(
+//     VkDevice device,
+//     VkPhysicalDevice physicalDevice,
+//     VkDeviceSize size,
+//     VkBufferUsageFlags usage,
+//     VkMemoryPropertyFlags properties,
+//     VkBuffer *pBuffer,
+//     VkDeviceMemory *pBufferMemory);
+// void copyBuffer(
+//     VkDevice device,
+//     VkCommandPool commandPool,
+//     VkQueue queue,
+//     VkBuffer srcBuffer,
+//     VkBuffer dstBuffer,
+//     VkDeviceSize size);
+// void beginSingleTimeCommands(
+//     VkDevice device,
+//     VkCommandPool commandPool,
+//     VkCommandBuffer *pCommandBuffer);
+// void endSingleTimeCommands(
+//     VkDevice device,
+//     VkQueue queue,
+//     VkCommandPool commandPool,
+//     VkCommandBuffer commandBuffer);
 
 struct EVkUniformBufferCreateInfo
 {
@@ -364,7 +315,7 @@ void evkCreateSyncObjects(
 
 struct EVkDrawFrameInfo
 {
-    VkPhysicalDevice physicalDevice;
+    // VkPhysicalDevice physicalDevice;
     std::vector<VkFence> *pInFlightFences;
     std::vector<VkSemaphore> *pImageAvailableSemaphores;
     size_t maxFramesInFlight;
@@ -372,15 +323,9 @@ struct EVkDrawFrameInfo
     VkQueue presentQueue;
     VkSwapchainKHR swapchain;
     VkExtent2D swapchainExtent;
-    std::vector<VkFramebuffer> framebuffers;
-    bool *pFramebufferResized;
+    // std::vector<VkFramebuffer> framebuffers;
     std::vector<VkDeviceMemory> *pUniformBufferMemory;
-    std::vector<Vertex> *pVertices;
-    Grid *pGrid;
-    VkCommandPool commandPool;
-    VkBuffer vertexBuffer;
-    EVkCommandBuffersCreateInfo *pCommandBuffersCreateInfo;
-    std::vector<VkCommandPool> commandPools;
+    // std::vector<VkCommandPool> commandPools;
 };
 void evkDrawFrame(
     VkDevice device,
@@ -388,10 +333,7 @@ void evkDrawFrame(
     size_t *pCurrentFrame,
     std::vector<VkFence> *pImagesInFlight,
     std::vector<VkSemaphore> *pRenderFinishedSemaphores,
-    VkCommandBuffer *pPrimaryCommandBuffer,
-    uint32_t *pImageIndex,
-    Bench &bench,
-    ThreadPool &threadpool
+    VkCommandBuffer *pPrimaryCommandBuffer
 );
 
 struct EVkSwapchainRecreateInfo
@@ -439,7 +381,6 @@ struct EVkSwapchainCleanupInfo
     VkImageView depthImageView;
     VkDeviceMemory depthImageMemory;
     std::vector<VkFramebuffer> swapchainFramebuffers;
-    VkCommandPool commandPool;
     std::vector<VkCommandBuffer> *pCommandBuffers;
     VkPipeline graphicsPipeline;
     VkPipelineLayout pipelineLayout;
@@ -461,29 +402,18 @@ struct EVkUniformBufferUpdateInfo
 };
 void evkUpdateUniformBuffer(VkDevice device, const EVkUniformBufferUpdateInfo *pUpdateInfo);
 
-struct EVkVertexBufferUpdateInfo
+struct EVkVertexBufferCreateInfo
 {
    std::vector<Vertex> *pVertices;
-   Grid *pGrid; 
    VkPhysicalDevice physicalDevice;
    VkCommandPool commandPool;
    std::vector<VkCommandPool> commandPools;
    VkQueue graphicsQueue;
    VkBuffer vertexBuffer;
-   VkSurfaceKHR surface;
 };
-void evkUpdateVertexBuffer(VkDevice device, const EVkVertexBufferUpdateInfo *pUpdateInfo, ThreadPool &threadpool);
-
-struct EVkSceneUpdateInfo
-{
-   const EVkVertexBufferUpdateInfo *pVertexUpdateInfo;
-   const EVkCommandBuffersCreateInfo *pCommandBuffersCreateInfo;
-   std::vector<VkCommandBuffer> *pCommandBuffers;
-   const std::vector<VkCommandPool> *pCommandPools;
-};
-void evkUpdateScene(
+void evkCreateVertexBuffer(
     VkDevice device,
-    const EVkSceneUpdateInfo *pUpdateInfo,
-    Bench &bench,
-    ThreadPool &threadpool
-);
+    const EVkVertexBufferCreateInfo *pUpdateInfo,
+    VkBuffer *pBuffer,
+    VkDeviceMemory *pBufferMemory,  
+    ThreadPool &threadpool);

@@ -67,21 +67,19 @@ void EVulkan::initVulkan()
     framebuffersInfo.depthImageView = depthImageView;
     evkCreateFramebuffers(device, &framebuffersInfo, &swapChainFramebuffers);
 
-    EVkCommandPoolCreateInfo commandPoolInfo = {};
-    commandPoolInfo.physicalDevice = physicalDevice;
-    commandPoolInfo.surface = surface;
-    commandPoolInfo.flags = 0;
-    evkCreateCommandPool(device, &commandPoolInfo, &commandPool);
+    commandPools.resize(FLAGS_num_threads);
+    for (auto &cp : commandPools)
+    {
+        EVkCommandPoolCreateInfo info = {};
+        info.physicalDevice = physicalDevice;
+        info.surface = surface;
+        evkCreateCommandPool(device, &info, &cp);
+    }
 
-    EVkVertexBufferCreateInfo vertexBufferInfo = {};
-    vertexBufferInfo.commandPool = commandPool;
-    vertexBufferInfo.physicalDevice = physicalDevice;
-    vertexBufferInfo.queue = graphicsQueue;
-    vertexBufferInfo.vertices = vertices;
-    evkCreateVertexBuffer(device, &vertexBufferInfo, &vertexBuffer, &vertexBufferMemory);
+    EVkCommandPoolCreateInfo commandPoolInfo = {}; // TODO: Remove
 
     EVkIndexBufferCreateInfo indexBufferInfo = {};
-    indexBufferInfo.commandPool = commandPool;
+    indexBufferInfo.commandPool = commandPools[0]; // TODO: Make multithreaded
     indexBufferInfo.physicalDevice = physicalDevice;
     indexBufferInfo.queue = graphicsQueue;
     indexBufferInfo.indices = indices;
@@ -106,28 +104,25 @@ void EVulkan::initVulkan()
     EVkSyncObjectsCreateInfo syncObjectsInfo = {};
     syncObjectsInfo.maxFramesInFlight = MAX_FRAMES_IN_FLIGHT;
     syncObjectsInfo.swapchainSize = swapChainImages.size();
-    evkCreateSyncObjects(device, &syncObjectsInfo, &imageAvailableSemaphores, &renderFinishedSemaphores, &inFlightFences, &imagesInFlight);
-}
+    evkCreateSyncObjects(device,
+                         &syncObjectsInfo,
+                         &imageAvailableSemaphores,
+                         &renderFinishedSemaphores,
+                         &inFlightFences,
+                         &imagesInFlight);
 
-void EVulkan::mainLoop()
-{
-    std::vector<VkCommandPool> vertexUpdateCommandPools(FLAGS_num_threads);
-    for (auto &cp : vertexUpdateCommandPools)
-    {
-        EVkCommandPoolCreateInfo info = {};
-        info.physicalDevice = physicalDevice;
-        info.surface = surface;
-        evkCreateCommandPool(device, &info, &cp);
-    }
-    uint32_t imageIndex;
+    threadPool.setThreadCount(FLAGS_num_threads);
 
-    EVkCommandPoolCreateInfo commandPoolInfo = {};
-    commandPoolInfo.physicalDevice = physicalDevice;
-    commandPoolInfo.surface = surface;
-    commandPoolInfo.flags = 0;
+    EVkVertexBufferCreateInfo vUpdateInfo = {};
+    vUpdateInfo.pVertices = &vertices;
+    vUpdateInfo.physicalDevice = physicalDevice;
+    vUpdateInfo.graphicsQueue = graphicsQueue;
+    vUpdateInfo.vertexBuffer = vertexBuffer;
+    vUpdateInfo.commandPools = commandPools;
+    evkCreateVertexBuffer(device, &vUpdateInfo, &vertexBuffer, &vertexBufferMemory, threadPool);
 
     EVkCommandBuffersCreateInfo commandBuffersInfo = {};
-    commandBuffersInfo.commandPool = commandPool;
+    commandBuffersInfo.commandPool = commandPools[0]; // TODO: Is this needed?
     commandBuffersInfo.descriptorSets = descriptorSets;
     commandBuffersInfo.graphicsPipeline = graphicsPipeline;
     commandBuffersInfo.indexBuffer = indexBuffer;
@@ -138,53 +133,34 @@ void EVulkan::mainLoop()
     commandBuffersInfo.vertexBuffer = vertexBuffer;
     commandBuffersInfo.poolCreateInfo = commandPoolInfo;
 
-    EVkDrawFrameInfo drawInfo = {};
-    drawInfo.pInFlightFences = &inFlightFences;
-    drawInfo.pImageAvailableSemaphores = &imageAvailableSemaphores;
-    drawInfo.swapchain = swapChain;
-    drawInfo.maxFramesInFlight = MAX_FRAMES_IN_FLIGHT;
-    drawInfo.graphicsQueue = graphicsQueue;
-    drawInfo.presentQueue = presentQueue;
-    drawInfo.pFramebufferResized = &framebufferResized;
-    drawInfo.swapchainExtent = swapChainExtent;
-    drawInfo.pUniformBufferMemory = &uniformBuffersMemory;
-    drawInfo.pVertices = &vertices;
-    drawInfo.pGrid = &grid;
-    drawInfo.physicalDevice = physicalDevice;
-    drawInfo.commandPool = commandPool;
-    drawInfo.vertexBuffer = vertexBuffer;
-    drawInfo.framebuffers = swapChainFramebuffers;
-    drawInfo.commandPools = vertexUpdateCommandPools;
-
-    int frameNum=0;
-    bool timed=false;
-    if (FLAGS_num_frames > 0) timed=true; 
-
-    ThreadPool pool;
-    pool.setThreadCount(FLAGS_num_threads);
-
-    std::vector<VkCommandBuffer> commandBuffers(FLAGS_num_threads);
-
-    EVkVertexBufferUpdateInfo vUpdateInfo = {};
-    vUpdateInfo.pVertices = &vertices;
-    vUpdateInfo.physicalDevice = physicalDevice;
-    vUpdateInfo.graphicsQueue = graphicsQueue;
-    vUpdateInfo.vertexBuffer = vertexBuffer;
-    vUpdateInfo.pGrid = &grid;
-    vUpdateInfo.commandPools = vertexUpdateCommandPools;
-    evkUpdateVertexBuffer(device, &vUpdateInfo, pool);
-
-    std::vector<VkCommandBuffer> primaryCommandBuffers(MAX_FRAMES_IN_FLIGHT);
+    primaryCommandBuffers.resize(MAX_FRAMES_IN_FLIGHT);
+    secondaryCommandBuffers.resize(FLAGS_num_threads);
     for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i)
     {
         commandBuffersInfo.framebuffer=swapChainFramebuffers[i];
         evkCreateCommandBuffers(device,
             &commandBuffersInfo,
             &primaryCommandBuffers[i],
-            &commandBuffers,
-            &vertexUpdateCommandPools,
-            pool);
+            &secondaryCommandBuffers,
+            &commandPools,
+            threadPool);
     }
+
+    drawInfo.pInFlightFences = &inFlightFences;
+    drawInfo.pImageAvailableSemaphores = &imageAvailableSemaphores;
+    drawInfo.swapchain = swapChain;
+    drawInfo.maxFramesInFlight = MAX_FRAMES_IN_FLIGHT;
+    drawInfo.graphicsQueue = graphicsQueue;
+    drawInfo.presentQueue = presentQueue;
+    drawInfo.swapchainExtent = swapChainExtent;
+    drawInfo.pUniformBufferMemory = &uniformBuffersMemory;
+}
+
+void EVulkan::mainLoop()
+{
+    int frameNum=0;
+    bool timed=false;
+    if (FLAGS_num_frames > 0) timed=true; 
 
     while(!glfwWindowShouldClose(window))
     {
@@ -198,10 +174,7 @@ void EVulkan::mainLoop()
             &drawInfo,
             &currentFrame, &imagesInFlight,
             &renderFinishedSemaphores,
-            &primaryCommandBuffers[currentFrame],
-            &imageIndex,
-            bench,
-            pool);
+            &primaryCommandBuffers[currentFrame]);
         bench.frameTime(startTime);
         bench.record();
 
@@ -213,12 +186,6 @@ void EVulkan::mainLoop()
     {
         throw std::runtime_error("Could not wait for vkDeviceWaitIdle");
     }
-
-    for (int i = 0; i < vertexUpdateCommandPools.size(); ++i)
-    {
-        vkFreeCommandBuffers(device, vertexUpdateCommandPools[i], 1, &commandBuffers[i]);
-        vkDestroyCommandPool(device, vertexUpdateCommandPools[i], nullptr);
-    }
 }
 
 void EVulkan::cleanup()
@@ -228,7 +195,6 @@ void EVulkan::cleanup()
     cleanupInfo.depthImageView = depthImageView;
     cleanupInfo.depthImageMemory = depthImageMemory;
     cleanupInfo.swapchainFramebuffers = swapChainFramebuffers;
-    cleanupInfo.commandPool = commandPool;
     cleanupInfo.graphicsPipeline = graphicsPipeline;
     cleanupInfo.pipelineLayout = pipelineLayout;
     cleanupInfo.renderPass = renderPass;
@@ -255,7 +221,11 @@ void EVulkan::cleanup()
         vkDestroyFence(device, inFlightFences[i], nullptr);
     }
 
-    vkDestroyCommandPool(device, commandPool, nullptr);
+    for (int i = 0; i < commandPools.size(); ++i)
+    {
+        vkFreeCommandBuffers(device, commandPools[i], 1, &secondaryCommandBuffers[i]);
+        vkDestroyCommandPool(device, commandPools[i], nullptr);
+    }
 
     vkDestroyDevice(device, nullptr);
 

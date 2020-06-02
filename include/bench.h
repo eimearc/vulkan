@@ -28,6 +28,11 @@ class Bench
         float d = duration(_time);
         m_updateVBO = d;
     }
+    inline void startupTime(time_point _time)
+    {
+        float d = duration(_time);
+        m_startup = d;
+    }
     void record();
     void close();
 
@@ -38,6 +43,7 @@ class Bench
     size_t m_numThreads=0;
     float m_frame=0.0f;
     float m_updateVBO=0.0f;
+    float m_startup=0.0f;
 
     float duration(time_point _time)
     {

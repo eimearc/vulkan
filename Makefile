@@ -16,7 +16,7 @@ LDFLAGS += -L$(GLEW_PATH) -lGLEW -framework OpenGL -Lgl -lEGL
 LDFLAGS += -L$(VULKAN_SDK_PATH)/lib -lvulkan -Lvulkan -lEVulkan
 LDFLAGS += -L/usr/local/lib/ -lgflags
 
-_OBJ = util.o main.o bench.o
+_OBJ = util.o bench.o
 OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
 
 all: $(OBJ) vulkan gl

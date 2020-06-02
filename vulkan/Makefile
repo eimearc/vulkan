@@ -13,12 +13,12 @@ CFLAGS = -std=c++17 -I$(VULKAN_SDK_PATH)/include -I$(STB_INCLUDE_PATH) -I$(STB_I
 LDFLAGS = `pkg-config --static --libs glfw3` -L$(VULKAN_SDK_PATH)/lib -lvulkan -L/usr/local/lib/ -lgflags
 LDFLAGS += -L/usr/local/lib/ -lboost_thread-mt
 
-_DEPS = evulkan.h evulkan_core.h
+_DEPS = evulkan.h evulkan_core.h evulkan_util.h
 _DEPS_EXT = cube.h grid.h vertex.h util.h flags.h threadpool.h
 DEPS = $(patsubst %,$(IDIR)/%,$(_DEPS))
 DEPS += $(patsubst %,$(IDIR_EXT)/%,$(_DEPS_EXT))
 
-_OBJ =  descriptor.o instance.o render.o run.o buffer.o evulkan_core.o update_scene.o
+_OBJ =  descriptor.o instance.o render.o run.o buffer.o evulkan_core.o update_scene.o draw.o evulkan_util.o
 OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
 
 _OBJ_EXT = util.o flags.o bench.o
