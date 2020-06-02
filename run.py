@@ -13,7 +13,8 @@ parser.add_argument('-d', dest='debug', action='store_true', help='Debug mode.')
 parser.add_argument('--num_cubes', default=40000, help='Number of cubes to render.')
 parser.add_argument('--num_frames', default=1000, help='Number of frames to render.')
 parser.add_argument('--file', default='time.csv', help='The file to save the result in.')
-parser.add_argument('--num_times', default=1, type=int, help='If true, then run the program many times.')
+parser.add_argument('--num_times', default=1, type=int, help='If more than 1, then run the program many times.')
+parser.add_argument('--num_threads', default=0, type=int, help='Run the program with the specified number of threads.')
 args = parser.parse_args()
 
 class Args:
@@ -45,7 +46,7 @@ def run_process(py_args, program=None):
     args=Args(py_args.num_frames,1,py_args.num_cubes,True)
     executable_path="./gl/gl"
     fileName=path.join("csv",program,py_args.file)
-    if path.exists(fileName):
+    if path.exists(fileName) and (py_args.file != "/dev/null"):
         cont = input("File {} already exists. Overwrite? [y/n] ".format(fileName))
         if not (cont=='y'):
             print("Exiting.")
@@ -55,6 +56,13 @@ def run_process(py_args, program=None):
         executable_path="./vulkan/vulkan"
     if py_args.debug:
         args=Args(100,1,16,True)
+    if py_args.num_threads > 0:
+        args.num_threads=py_args.num_threads
+        a=args.build()
+        a = [executable_path] + a
+        print(' '.join(a))
+        subprocess.call(a)
+        return
     for i in range(1,5):
         for j in range(0,py_args.num_times):
             if py_args.num_times > 1 and args.num_frames > 1:
