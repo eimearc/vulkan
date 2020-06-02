@@ -50,7 +50,7 @@ private:
 
     const uint32_t WIDTH = 800;
     const uint32_t HEIGHT = 600;
-    const int MAX_FRAMES_IN_FLIGHT = 3; // Must be greater than minImageCount.
+    const int MAX_FRAMES_IN_FLIGHT = 2; // Must be greater than minImageCount.
 
     Grid grid;
     std::vector<Vertex> vertices;
