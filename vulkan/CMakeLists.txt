@@ -1,11 +1,11 @@
 cmake_minimum_required (VERSION 3.1)
-project (VULKAN)
+project (vulkan)
 
 find_package(PkgConfig REQUIRED)
 set (CMAKE_CXX_STANDARD 17)
 
-set(VULKANROOT ./)
-set(UTILROOT ../)
+set(VULKANROOT .)
+set(UTILROOT ..)
 set(VULKAN_SDK $ENV{VULKAN_SDK})
 set(STB_INCLUDE_PATH /usr/local/include)
 set(STB_LIB_PATH /usr/local/lib)
@@ -26,7 +26,6 @@ link_libraries(Vulkan::Vulkan)
 
 # Add gflags.
 find_package(gflags REQUIRED)
-message(${gflags_LIBRARIES})
 link_libraries(gflags)
 
 set (SOURCES
@@ -41,21 +40,21 @@ set (SOURCES
     ${VULKANROOT}/src/render.cpp
     ${VULKANROOT}/src/run.cpp
     ${VULKANROOT}/src/update_scene.cpp
-    ${VULKANROOT}/src/util.cpp
     ${VULKANROOT}/include/evulkan_core.h
     ${VULKANROOT}/include/evulkan_util.h
     ${VULKANROOT}/include/evulkan.h
     ${UTILROOT}/src/bench.cpp
-    ${UTILROOT}/src/util.cpp
     ${UTILROOT}/src/flags.cpp
+    ${UTILROOT}/src/util.cpp
     ${UTILROOT}/include/bench.h
     ${UTILROOT}/include/util.h
     ${UTILROOT}/include/flags.h
     ${UTILROOT}/include/cube.h
     ${UTILROOT}/include/grid.h
     ${UTILROOT}/include/threadpool.h
-    ${UTILROOT}/include/util.h
     ${UTILROOT}/include/vertex.h
 )
 
-add_executable(VULKAN ${SOURCES})
+message(${SOURCES})
+
+add_executable(vulkan ${SOURCES})
